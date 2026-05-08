@@ -256,6 +256,54 @@ const plans = [
 
 const app = document.querySelector("#app");
 
+const logoPositions = [
+  ["0%", "0%"],
+  ["33.333%", "0%"],
+  ["66.667%", "0%"],
+  ["100%", "0%"],
+  ["0%", "33.333%"],
+  ["33.333%", "33.333%"],
+  ["66.667%", "33.333%"],
+  ["100%", "33.333%"],
+  ["0%", "66.667%"],
+  ["33.333%", "66.667%"],
+  ["66.667%", "66.667%"],
+  ["100%", "66.667%"],
+  ["0%", "100%"],
+  ["33.333%", "100%"],
+  ["66.667%", "100%"],
+  ["100%", "100%"],
+];
+
+const companyLogoMap = {
+  "Media Click": 4,
+  DIGITALK: 1,
+  "Assistant Ventures Network": 9,
+  "ONG MEDAIR": 5,
+  "TARAM Group": 14,
+  "ABL OUTSOURCING": 8,
+  AQUARELLE: 7,
+  "La compta": 6,
+  "Docteur Certif": 12,
+  TEKNETGROUP: 11,
+  "Terra Group": 2,
+  MATERAUTO: 3,
+  "LINKEO MADA": 11,
+  MADIXY: 7,
+  Onja: 0,
+  "Novaly Services": 15,
+};
+
+function companyLogo(name, className = "logo-mark", style = "") {
+  const position = logoPositions[getLogoIndex(name)];
+  return `<span class="${className} mock-logo" style="--logo-x:${position[0]};--logo-y:${position[1]};${style}" role="img" aria-label="Logo mock ${escapeAttr(name)}"></span>`;
+}
+
+function getLogoIndex(name) {
+  if (Object.prototype.hasOwnProperty.call(companyLogoMap, name)) return companyLogoMap[name];
+  return [...name].reduce((sum, char) => sum + char.charCodeAt(0), 0) % logoPositions.length;
+}
+
 function icon(name) {
   const paths = {
     briefcase: '<rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>',
@@ -332,7 +380,7 @@ function pageShell(content, header = true) {
 function jobCard(job) {
   return `
     <a class="job-card" href="#/annonces/${job.slug}" data-job-card data-title="${escapeAttr(job.title)}" data-company="${escapeAttr(job.company)}" data-contract="${job.contract}" data-city="${job.city}" data-sector="${escapeAttr(job.sector)}">
-      <div class="logo-mark">${job.initials}</div>
+      ${companyLogo(job.company)}
       <div class="job-main">
         <strong>${job.title}</strong>
         <span>${job.company}</span>
@@ -351,7 +399,7 @@ function jobCard(job) {
 function miniJob(job) {
   return `
     <a class="mini-job" href="#/annonces/${job.slug}">
-      <div class="logo-mark">${job.initials}</div>
+      ${companyLogo(job.company)}
       <div><strong>${job.title}</strong><span>${job.company}</span></div>
       <span class="pill">${job.contract}</span>
     </a>
@@ -390,7 +438,7 @@ function homePage() {
     <section class="section">
       <div class="container">
         <h2 class="section-title" style="justify-content:center"><span class="icon-tile">${icon("briefcase")}</span>Entreprises qui <strong>recrutent</strong></h2>
-        <div class="companies-row" style="margin-top:28px">${companies.slice(0, 8).map((c) => `<a class="company-logo-card" href="#/profil-entreprise/${slugify(c.name)}">${c.initials}</a>`).join("")}</div>
+        <div class="companies-row" style="margin-top:28px">${companies.slice(0, 8).map((c) => `<a class="company-logo-card" href="#/profil-entreprise/${slugify(c.name)}" aria-label="${escapeAttr(c.name)}">${companyLogo(c.name)}</a>`).join("")}</div>
       </div>
     </section>
 
@@ -418,7 +466,7 @@ function homePage() {
         <aside class="side-stack">
           <div class="side-card">
             <h3>${icon("clock")} Derniers jours pour postuler</h3>
-            ${jobs.filter((j) => j.urgent).map((j) => `<a class="urgent-card" href="#/annonces/${j.slug}"><div class="logo-mark">${j.initials}</div><div><strong>${j.title}</strong><span>${j.company}</span><br><span class="pill rose">${j.deadline}</span></div></a>`).join("")}
+            ${jobs.filter((j) => j.urgent).map((j) => `<a class="urgent-card" href="#/annonces/${j.slug}">${companyLogo(j.company)}<div><strong>${j.title}</strong><span>${j.company}</span><br><span class="pill rose">${j.deadline}</span></div></a>`).join("")}
           </div>
           <div class="side-card dark">
             <h3>${icon("zap")} Asako Pro</h3>
@@ -543,7 +591,7 @@ function jobDetailPage(slug) {
         <div>
           <div class="detail-title-card">
             <div class="detail-title-row">
-              <div class="logo-mark" style="width:74px;height:74px">${job.initials}</div>
+              ${companyLogo(job.company, "logo-mark", "width:74px;height:74px")}
               <div>
                 <p><a href="#/emploi">Offres d'emploi</a> / ${job.sector}</p>
                 <h1>${job.title}</h1>
@@ -555,7 +603,7 @@ function jobDetailPage(slug) {
         </div>
         <aside class="side-stack">
           <div class="side-card"><h3>Résumé de l'offre</h3><p><strong>Contrat</strong><br>${job.contract}</p><p><strong>Localisation</strong><br>${job.city}</p><p><strong>Salaire</strong><br>${job.salary}</p><p><strong>Deadline</strong><br>${job.deadline}</p><a class="btn btn-primary" style="width:100%" href="#/inscription/candidat">Postuler maintenant</a></div>
-          <div class="side-card"><h3>Entreprise</h3><div class="company-card-head"><div class="logo-mark">${job.initials}</div><div><strong>${job.company}</strong><br><span>${job.sector}</span></div></div><p style="margin-top:14px">Entreprise active sur Asako avec des opportunités mises à jour régulièrement.</p><a href="#/profil-entreprise/${slugify(job.company)}">Voir le profil →</a></div>
+          <div class="side-card"><h3>Entreprise</h3><div class="company-card-head">${companyLogo(job.company)}<div><strong>${job.company}</strong><br><span>${job.sector}</span></div></div><p style="margin-top:14px">Entreprise active sur Asako avec des opportunités mises à jour régulièrement.</p><a href="#/profil-entreprise/${slugify(job.company)}">Voir le profil →</a></div>
         </aside>
       </div>
     </section>
@@ -565,7 +613,7 @@ function jobDetailPage(slug) {
 function companiesPage() {
   return pageShell(`
     <section class="page-hero"><div class="container"><span class="eyebrow">Annuaire entreprises</span><h1>Entreprises qui recrutent à Madagascar</h1><p>Explorez les recruteurs actifs et leurs offres ouvertes.</p></div></section>
-    <section class="section"><div class="container company-grid">${companies.map((c) => `<a class="company-card" href="#/profil-entreprise/${slugify(c.name)}"><div class="company-card-head"><div class="logo-mark">${c.initials}</div><div><h3>${c.name}</h3><p>${c.city}</p></div></div><p>${c.sector}</p><span class="pill">${c.jobs} offres</span></a>`).join("")}</div></section>
+    <section class="section"><div class="container company-grid">${companies.map((c) => `<a class="company-card" href="#/profil-entreprise/${slugify(c.name)}"><div class="company-card-head">${companyLogo(c.name)}<div><h3>${c.name}</h3><p>${c.city}</p></div></div><p>${c.sector}</p><span class="pill">${c.jobs} offres</span></a>`).join("")}</div></section>
   `);
 }
 
@@ -573,7 +621,7 @@ function companyProfilePage(slug) {
   const company = companies.find((c) => slugify(c.name) === slug) || companies[0];
   const companyJobs = jobs.filter((j) => j.company === company.name).concat(jobs.slice(0, 2));
   return pageShell(`
-    <section class="page-hero"><div class="container"><div class="logo-mark" style="width:86px;height:86px;margin:0 auto 18px">${company.initials}</div><h1>${company.name}</h1><p>${company.sector} · ${company.city}</p></div></section>
+    <section class="page-hero"><div class="container">${companyLogo(company.name, "logo-mark", "width:86px;height:86px;margin:0 auto 18px")}<h1>${company.name}</h1><p>${company.sector} · ${company.city}</p></div></section>
     <section class="section"><div class="container detail-layout"><div><section class="content-section"><h2>À propos</h2><p>${company.name} est une entreprise active à Madagascar, engagée dans le recrutement de profils motivés et qualifiés. Ce profil est une reproduction démo avec des informations fictives.</p></section><section class="content-section"><h2>Offres ouvertes</h2><div class="job-list">${companyJobs.map(jobCard).join("")}</div></section></div><aside class="side-card"><h3>Informations</h3><p><strong>Secteur</strong><br>${company.sector}</p><p><strong>Ville</strong><br>${company.city}</p><p><strong>Offres</strong><br>${company.jobs}</p></aside></div></section>
   `);
 }
@@ -630,7 +678,7 @@ function recruiterLayout(page, content) {
     <div class="recruiter-app">
       <div class="recruiter-shell">
         <aside class="recruiter-sidebar">
-          <div class="recruiter-account"><div class="avatar">N</div><div><strong>Novaly Services</strong><span>Admin Recruteur</span></div><a class="btn btn-soft" style="min-height:38px;padding:0;width:38px" href="#/">${icon("eye")}</a></div>
+          <div class="recruiter-account">${companyLogo("Novaly Services", "avatar")}<div><strong>Novaly Services</strong><span>Admin Recruteur</span></div><a class="btn btn-soft" style="min-height:38px;padding:0;width:38px" href="#/">${icon("eye")}</a></div>
           <div class="side-groups">${groups.map(([title, links]) => `<div class="side-group"><p class="side-group-title">${title}</p>${links.map(([label, key, ic]) => `<a class="side-link ${page === key ? "active" : ""}" href="#/recruteur/${key === "dashboard" ? "dashboard" : key}">${icon(ic)} ${label}</a>`).join("")}</div>`).join("")}</div>
           <div class="side-cta"><a class="btn btn-primary" style="width:100%" href="#/recruteur/offres/nouvelle">${icon("plus")} Publier une offre</a></div>
           <div class="plan-mini"><strong>Plan Gratuit <span class="pill" style="float:right">0 Ar</span></strong><div class="quota-bar" style="margin:16px 0 10px"><span></span></div><p style="color:#e58200;font-size:12px">Plus que 2 offres disponibles</p><a class="btn btn-outline" style="width:100%;min-height:36px" href="#/recruteur/abonnement">Changer de plan →</a></div>
@@ -737,7 +785,7 @@ function companyFormPage() {
     ${recruiterTop("Profil de l'entreprise", "Complétez votre profil pour attirer 3x plus de candidats", `<a class="btn btn-outline" href="#/profil-entreprise/novaly-services">${icon("eye")} Voir ma page</a>`)}
     <form data-save-form>
       <section class="form-section"><div class="form-section-head"><div class="form-section-title"><span class="icon-tile">${icon("briefcase")}</span>Identité</div><span class="status-badge">À compléter</span></div><div class="form-body form-grid">
-        <div class="form-field full"><label>Logo de l'entreprise</label><div class="upload-box"><div class="upload-placeholder">${icon("briefcase")}</div><div><strong>Format JPG ou PNG, max 2 Mo</strong><br><button class="btn btn-primary" type="button" data-toast="Upload simulé">Télécharger un logo</button></div></div></div>
+        <div class="form-field full"><label>Logo de l'entreprise</label><div class="upload-box">${companyLogo("Novaly Services", "upload-placeholder")}<div><strong>Format JPG ou PNG, max 2 Mo</strong><br><button class="btn btn-primary" type="button" data-toast="Upload simulé">Télécharger un logo</button></div></div></div>
         <div class="form-field"><label>Nom de l'entreprise — verrouillé</label><input class="input" value="Novaly Services" disabled></div>
         <div class="form-field"><label>Secteur d'activité*</label><select class="select"><option>Sélectionner un secteur</option>${sectors.map(([s]) => `<option>${s}</option>`).join("")}</select></div>
         <div class="form-field"><label>Taille de l'entreprise</label><select class="select"><option>Sélectionner la taille</option><option>1 à 10 employés</option><option>11 à 50 employés</option><option>51 à 200 employés</option><option>Plus de 500 employés</option></select></div>
