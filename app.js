@@ -25,15 +25,35 @@ const sectors = [
 ];
 
 const companies = [
-  { name: "Terra Group", initials: "Terra", sector: "Agriculture & Agroalimentaire", city: "Antananarivo", jobs: 4 },
-  { name: "MATERAUTO", initials: "MA", sector: "Commerce & Vente", city: "Antananarivo", jobs: 3 },
-  { name: "LINKEO MADA", initials: "Linkeo", sector: "Informatique & Digital", city: "Antananarivo", jobs: 5 },
-  { name: "Assistant Ventures Network", initials: "AV", sector: "Ressources humaines", city: "Antananarivo", jobs: 9 },
-  { name: "MADIXY", initials: "MX", sector: "Marketing, Communication & Médias", city: "Antananarivo", jobs: 2 },
-  { name: "DIGITALK", initials: "DK", sector: "Centres d'appels & BPO", city: "Antananarivo", jobs: 7 },
-  { name: "ABL OUTSOURCING", initials: "ABL", sector: "Centres d'appels & BPO", city: "Antananarivo", jobs: 11 },
-  { name: "Onja", initials: "onja", sector: "Informatique & Digital", city: "Toamasina", jobs: 2 },
-  { name: "Novaly Services", initials: "NS", sector: "Gestion, Administration & Secrétariat", city: "Antsirabe", jobs: 3 },
+  { name: "ABL OUTSOURCING", sector: "Centres d'appels & BPO", city: "Antananarivo", jobs: 5, size: "201-500 collaborateurs", since: "2023", website: "abl-outsourcing.fr", slogan: "Être mieux ici qu'ailleurs : ensemble, faisons la différence.", photo: 1, about: "ABL Outsourcing est une société spécialisée dans l'externalisation à Madagascar, avec des équipes orientées relation client, back-office et performance opérationnelle." },
+  { name: "Blue Ocean Back Office", sector: "Centres d'appels & BPO", city: "Antananarivo", jobs: 2, size: "51-200 collaborateurs", since: "2024", website: "blueocean.mg", slogan: "Des opérations fluides pour des clients exigeants.", photo: 2, about: "Blue Ocean Back Office accompagne des clients internationaux dans le support, la qualification et le traitement administratif." },
+  { name: "ScaleMyCrew", sector: "Informatique & Digital", city: "Antananarivo", jobs: 1, size: "11-50 collaborateurs", since: "2025", website: "scalemycrew.io", slogan: "Des équipes tech prêtes à accélérer.", photo: 2, about: "ScaleMyCrew construit des équipes digitales dédiées pour des startups et PME en croissance." },
+  { name: "Outokia", sector: "Informatique & Digital", city: "Antananarivo", jobs: 1, size: "11-50 collaborateurs", since: "2025", website: "outokia.mg", slogan: "Design, produit et données au service du terrain.", photo: 3, about: "Outokia développe des produits numériques utiles, sobres et adaptés aux usages locaux." },
+  { name: "ONG MEDAIR", sector: "Associatif, ONG & Humanitaire", city: "Fianarantsoa", jobs: 1, size: "51-200 collaborateurs", since: "2023", website: "medair.org", slogan: "Agir vite, agir près des communautés.", photo: 8, about: "Organisation humanitaire engagée dans la santé communautaire, la nutrition et la coordination terrain." },
+  { name: "Human Talent Consulting", sector: "Banque, Finance & Comptabilité", city: "Antananarivo", jobs: 1, size: "11-50 collaborateurs", since: "2024", website: "humantalent.mg", slogan: "Conseil RH et finance pour équipes ambitieuses.", photo: 5, about: "Cabinet de conseil qui accompagne les entreprises dans leurs recrutements spécialisés et leur structuration financière." },
+  { name: "LearnProgress", sector: "Enseignement & Formation", city: "Antananarivo", jobs: 1, size: "11-50 collaborateurs", since: "2025", website: "learnprogress.mg", slogan: "Former mieux, progresser plus vite.", photo: 10, about: "LearnProgress conçoit des parcours de formation professionnelle pour les équipes commerciales, support et digitales." },
+  { name: "Mada Solutions Plus", sector: "Banque, Finance & Comptabilité", city: "Antananarivo", jobs: 1, size: "51-200 collaborateurs", since: "2024", website: "madasolutions.mg", slogan: "Des process fiables pour une croissance propre.", photo: 5, about: "Société de services administratifs et financiers pour PME et groupes multisites." },
+  { name: "BET 261", sector: "Banque, Finance & Comptabilité", city: "Antananarivo", jobs: 1, size: "11-50 collaborateurs", since: "2024", website: "bet261.mg", slogan: "Analyses, chiffres et décisions concrètes.", photo: 5, about: "BET 261 rassemble des profils finance, reporting et contrôle de gestion pour des projets exigeants." },
+  { name: "MADAJOB", sector: "Gestion, Administration & Secrétariat", city: "Antananarivo", jobs: 2, size: "11-50 collaborateurs", since: "2023", website: "madajob.mg", slogan: "Connecter les talents aux bonnes opportunités.", photo: 15, about: "Équipe locale qui facilite le recrutement et la diffusion d'opportunités professionnelles." },
+  { name: "MaaSII Inc", sector: "Centres d'appels & BPO", city: "Antananarivo", jobs: 1, size: "51-200 collaborateurs", since: "2024", website: "maasii.io", slogan: "Support client agile, qualité mesurable.", photo: 1, about: "MaaSII Inc opère des activités de support client et de relation commerciale multicanale." },
+  { name: "HELLOPRO", sector: "Centres d'appels & BPO", city: "Antananarivo", jobs: 5, size: "201-500 collaborateurs", since: "2023", website: "hellopro.mg", slogan: "La relation client, sans friction.", photo: 1, about: "HELLOPRO recrute des conseillers et superviseurs pour des opérations francophones et B2B." },
+  { name: "Baobab Plus Madagascar", sector: "Commerce & Vente", city: "Antananarivo", jobs: 3, size: "51-200 collaborateurs", since: "2023", website: "baobabplus.mg", slogan: "Équiper les foyers, créer de l'impact.", photo: 4, about: "Entreprise de distribution et services terrain avec un fort ancrage client." },
+  { name: "GRAPHICLAND", sector: "BTP, Construction & Immobilier", city: "Antananarivo", jobs: 1, size: "11-50 collaborateurs", since: "2024", website: "graphicland.mg", slogan: "Donner forme aux espaces de marque.", photo: 6, about: "Studio de production, signalétique et aménagement pour entreprises et points de vente." },
+  { name: "TOP GROUP", sector: "Marketing, Communication & Médias", city: "Antananarivo", jobs: 2, size: "11-50 collaborateurs", since: "2025", website: "topgroup.mg", slogan: "Créer des campagnes qui restent en tête.", photo: 6, about: "Agence créative orientée contenu, performance et activation commerciale." },
+  { name: "LES HOTELS PALISSANDRE", sector: "Hôtellerie, Restauration & Tourisme", city: "Antananarivo", jobs: 1, size: "201-500 collaborateurs", since: "2023", website: "palissandre-hotel.com", slogan: "L'accueil malgache avec exigence.", photo: 11, about: "Groupe hôtelier recrutant des profils de service, restauration, réception et opérations." },
+  { name: "SOLYNC", sector: "Centres d'appels & BPO", city: "Antananarivo", jobs: 1, size: "51-200 collaborateurs", since: "2025", website: "solync.mg", slogan: "Synchroniser les équipes et les clients.", photo: 1, about: "Centre de services spécialisé dans la relation client et le suivi de dossiers." },
+  { name: "FaniRH", sector: "Commerce & Vente", city: "Antananarivo", jobs: 1, size: "1-10 collaborateurs", since: "2025", website: "fanirh.mg", slogan: "Le recrutement terrain, simple et humain.", photo: 0, about: "Structure RH qui accompagne les petites entreprises dans leurs besoins de recrutement." },
+  { name: "BLM-SERVICES", sector: "Gestion, Administration & Secrétariat", city: "Antananarivo", jobs: 2, size: "51-200 collaborateurs", since: "2024", website: "blm-services.mg", slogan: "Services administratifs fiables et mesurables.", photo: 15, about: "BLM-SERVICES gère des opérations administratives et logistiques pour des clients locaux." },
+  { name: "Bolt Influence", sector: "Informatique & Digital", city: "Antananarivo", jobs: 1, size: "11-50 collaborateurs", since: "2024", website: "boltinfluence.mg", slogan: "Influence, data et acquisition.", photo: 6, about: "Agence digitale spécialisée dans la croissance, les contenus sociaux et les campagnes paid media." },
+  { name: "MATERAUTO", sector: "Commerce & Vente", city: "Antananarivo", jobs: 2, size: "201-500 collaborateurs", since: "2023", website: "materauto.mg", slogan: "Solutions automobiles et service client.", photo: 7, about: "Acteur commercial avec des équipes vente, support, pièces et gestion de stock." },
+  { name: "GROUPE ALTHEA", sector: "Commerce & Vente", city: "Antananarivo", jobs: 1, size: "51-200 collaborateurs", since: "2024", website: "althea.mg", slogan: "Des marques fortes, des équipes proches.", photo: 4, about: "Groupe de distribution et services qui développe ses équipes commerciales." },
+  { name: "Terra Group", sector: "Agriculture & Agroalimentaire", city: "Antsirabe", jobs: 4, size: "51-200 collaborateurs", since: "2023", website: "terra-group.mg", slogan: "Cultiver mieux, distribuer plus juste.", photo: 3, about: "Terra Group structure des filières agricoles et agroalimentaires avec des équipes terrain et qualité." },
+  { name: "LINKEO MADA", sector: "Informatique & Digital", city: "Antananarivo", jobs: 3, size: "51-200 collaborateurs", since: "2023", website: "linkeo.mg", slogan: "Des sites et outils digitaux pour PME.", photo: 2, about: "LINKEO MADA accompagne des clients dans leur présence web, leur acquisition et leur relation digitale." },
+  { name: "MADIXY", sector: "Marketing, Communication & Médias", city: "Antananarivo", jobs: 2, size: "11-50 collaborateurs", since: "2024", website: "madixy.mg", slogan: "Studio marketing pour marques en mouvement.", photo: 6, about: "MADIXY réunit stratégie, création et production de contenus pour entreprises locales." },
+  { name: "Onja", sector: "Informatique & Digital", city: "Toamasina", jobs: 2, size: "51-200 collaborateurs", since: "2023", website: "onja.org", slogan: "Former et coder avec impact.", photo: 10, about: "Onja forme et accompagne des talents tech à Madagascar dans un cadre collaboratif." },
+  { name: "TEKNETGROUP", sector: "Commerce & Vente", city: "Antananarivo", jobs: 1, size: "11-50 collaborateurs", since: "2024", website: "teknetgroup.mg", slogan: "Des ventes structurées et un service net.", photo: 7, about: "TEKNETGROUP recrute des profils commerciaux et administratifs pour soutenir sa croissance." },
+  { name: "Good Luck Agency", sector: "Centres d'appels & BPO", city: "Antananarivo", jobs: 1, size: "11-50 collaborateurs", since: "2025", website: "goodluckagency.mg", slogan: "Des conversations qui convertissent.", photo: 1, about: "Good Luck Agency gère des missions de chat, support et qualification commerciale." },
+  { name: "1talentpourvous", sector: "Ressources humaines", city: "Antananarivo", jobs: 0, size: "1-10 collaborateurs", since: "2026", website: "1talentpourvous.mg", slogan: "Trouvez le bon profil, au bon moment.", photo: 0, about: "Cabinet recruteur démo spécialisé dans la sélection rapide de profils qualifiés pour PME et startups." },
 ];
 
 const jobs = [
@@ -205,6 +225,143 @@ const jobs = [
     deadline: "Expire demain",
     salary: "Selon profil",
   },
+  {
+    slug: "un-superviseur-d-une-equipe-de-conseillers-en-comptabilite-b9fe3dbc",
+    title: "Superviseur d'une équipe de conseillers en comptabilité",
+    company: "ABL OUTSOURCING",
+    city: "Antananarivo",
+    sector: "Centres d'appels & BPO",
+    contract: "CDI",
+    time: "il y a 4j",
+    sponsored: true,
+    urgent: false,
+    deadline: "Expire dans 10j",
+    salary: "Selon expérience",
+  },
+  {
+    slug: "responsable-achat-stock-8c3c5368",
+    title: "Responsable achat & stock",
+    company: "LES HOTELS PALISSANDRE",
+    city: "Antananarivo",
+    sector: "Logistique, Transport & Supply Chain",
+    contract: "CDI",
+    time: "il y a 11h",
+    sponsored: false,
+    urgent: false,
+    deadline: "Expire dans 8j",
+    salary: "Selon profil",
+  },
+  {
+    slug: "agent-de-securite-2e408612",
+    title: "Agent de sécurité",
+    company: "LES HOTELS PALISSANDRE",
+    city: "Antananarivo",
+    sector: "Sécurité & Gardiennage",
+    contract: "CDI",
+    time: "il y a 12h",
+    sponsored: false,
+    urgent: false,
+    deadline: "Expire dans 12j",
+    salary: "Fixe",
+  },
+  {
+    slug: "vendeurs-itinerants-en-flexitime-10119",
+    title: "Vendeurs itinérants en Flexitime",
+    company: "Baobab Plus Madagascar",
+    city: "Antananarivo",
+    sector: "Commerce & Vente",
+    contract: "CDI",
+    time: "il y a 12h",
+    sponsored: false,
+    urgent: false,
+    deadline: "Expire dans 9j",
+    salary: "Fixe + primes",
+  },
+  {
+    slug: "01-responsable-entrepot-adcc3864",
+    title: "Responsable entrepôt",
+    company: "ONG MEDAIR",
+    city: "Fianarantsoa",
+    sector: "Logistique, Transport & Supply Chain",
+    contract: "CDD",
+    time: "il y a 13h",
+    sponsored: false,
+    urgent: true,
+    deadline: "Expire bientôt",
+    salary: "Selon grille",
+  },
+  {
+    slug: "chef-de-projet-it-coordinateur-methodologie-qualite-6dac1450",
+    title: "Chef de projet IT - Coordinateur méthodologie & qualité",
+    company: "ScaleMyCrew",
+    city: "Antananarivo",
+    sector: "Informatique & Digital",
+    contract: "CDI",
+    time: "il y a 13h",
+    sponsored: false,
+    urgent: false,
+    deadline: "Expire dans 14j",
+    salary: "À négocier",
+  },
+  {
+    slug: "charge-e-de-communication-et-marketing-h-f-d3179516",
+    title: "Chargé-e de communication et marketing (H/F)",
+    company: "Bolt Influence",
+    city: "Antananarivo",
+    sector: "Marketing, Communication & Médias",
+    contract: "CDI",
+    time: "il y a 15h",
+    sponsored: false,
+    urgent: false,
+    deadline: "Expire dans 11j",
+    salary: "Selon profil",
+  },
+  {
+    slug: "support-helpdesk-36f597b9",
+    title: "Support Helpdesk",
+    company: "ABL OUTSOURCING",
+    city: "Antananarivo",
+    sector: "Centres d'appels & BPO",
+    contract: "CDI",
+    time: "il y a 4j",
+    sponsored: false,
+    urgent: false,
+    deadline: "Expire dans 16j",
+    salary: "Motivant",
+  },
+  {
+    slug: "agent-de-chat-44c3cb07",
+    title: "Agent de chat",
+    company: "Good Luck Agency",
+    city: "Antananarivo",
+    sector: "Centres d'appels & BPO",
+    contract: "Freelance",
+    time: "il y a 1j",
+    sponsored: false,
+    urgent: false,
+    deadline: "Expire dans 7j",
+    salary: "Mission",
+  },
+  {
+    slug: "chef-de-salle-patisserie-9760",
+    title: "Chef de salle (pâtisserie)",
+    company: "LES HOTELS PALISSANDRE",
+    city: "Antananarivo",
+    sector: "Hôtellerie, Restauration & Tourisme",
+    contract: "CDI",
+    time: "il y a 1j",
+    sponsored: false,
+    urgent: false,
+    deadline: "Expire dans 9j",
+    salary: "Selon profil",
+  },
+];
+
+const filledJobs = [
+  { title: "Conseiller client francophone expérimenté", company: "ABL OUTSOURCING", city: "Antananarivo", sector: "Centres d'appels & BPO", contract: "CDI" },
+  { title: "Superviseur d'une équipe de conseillers en comptabilité", company: "ABL OUTSOURCING", city: "Antananarivo", sector: "Centres d'appels & BPO", contract: "CDI" },
+  { title: "Agent support client", company: "HELLOPRO", city: "Antananarivo", sector: "Centres d'appels & BPO", contract: "CDI" },
+  { title: "Commercial terrain", company: "Baobab Plus Madagascar", city: "Antananarivo", sector: "Commerce & Vente", contract: "CDI" },
 ];
 
 const recruiterOffers = [
@@ -228,29 +385,29 @@ const plans = [
     audience: "Startups et micro-entreprises",
     monthly: 0,
     color: "#8D8BA8",
-    features: ["2 offres/mois, visibles 7 jours", "Indexation Google Jobs", "IA limitée", "Page entreprise"],
+    features: ["2 offres/mois, visibles 7 jours", "Indexation Google Jobs", "IA limitée", "Aucun boost", "Pas d'accès CVthèque"],
   },
   {
     name: "Starter",
     audience: "PME locales avec besoins réguliers",
     monthly: 80000,
     color: "#A78BCD",
-    features: ["10 offres/mois, visibles 14 jours", "3 boosts simples", "10 crédits IA", "Support email"],
+    features: ["10 offres/mois, visibles 14 jours", "1 annonce Urgent/mois", "1 remontée en tête/semaine", "IA avancée", "Statistiques des offres", "Support email"],
   },
   {
     name: "Booster",
-    audience: "Recrutements fréquents",
-    monthly: 180000,
+    audience: "BPO et entreprises en secteur compétitif",
+    monthly: 350000,
     color: "#F2537B",
     featured: true,
-    features: ["Offres illimitées", "CVthèque 40 000+ profils", "Matching IA avancé", "Boost vedette inclus"],
+    features: ["Offres illimitées, visibles 14 jours", "1 annonce Vedette/semaine", "5 annonces Urgent/mois", "3 remontées/semaine", "CVthèque — 50 CVs/mois", "IA illimitée", "Matching IA candidats-offres", "Statistiques des offres"],
   },
   {
     name: "Agence",
-    audience: "Cabinets et BPO",
-    monthly: 350000,
+    audience: "Cabinets RH et grands groupes",
+    monthly: 950000,
     color: "#474476",
-    features: ["Multi-utilisateurs", "Pipelines par client", "Exports candidats", "Support prioritaire"],
+    features: ["Offres illimitées, republication auto", "2 annonces Vedette/semaine", "Remontée quotidienne", "Urgent illimité", "CVthèque complète (40k+ CVs)", "IA illimitée", "Matching IA candidats-offres", "Support WhatsApp dédié"],
   },
 ];
 
@@ -292,6 +449,23 @@ const companyLogoMap = {
   MADIXY: 7,
   Onja: 0,
   "Novaly Services": 15,
+  "Blue Ocean Back Office": 10,
+  ScaleMyCrew: 2,
+  Outokia: 11,
+  LearnProgress: 13,
+  "Mada Solutions Plus": 12,
+  "MaaSII Inc": 10,
+  HELLOPRO: 1,
+  "Baobab Plus Madagascar": 3,
+  GRAPHICLAND: 8,
+  "TOP GROUP": 7,
+  "LES HOTELS PALISSANDRE": 13,
+  SOLYNC: 11,
+  FaniRH: 9,
+  "BLM-SERVICES": 14,
+  "Bolt Influence": 6,
+  "Good Luck Agency": 5,
+  "1talentpourvous": 0,
 };
 
 function companyLogo(name, className = "logo-mark", style = "") {
@@ -302,6 +476,27 @@ function companyLogo(name, className = "logo-mark", style = "") {
 function getLogoIndex(name) {
   if (Object.prototype.hasOwnProperty.call(companyLogoMap, name)) return companyLogoMap[name];
   return [...name].reduce((sum, char) => sum + char.charCodeAt(0), 0) % logoPositions.length;
+}
+
+function companyPhoto(company, className = "company-photo", style = "") {
+  const source = typeof company === "string" ? companies.find((item) => item.name === company) : company;
+  const index = source?.photo ?? getLogoIndex(source?.name || String(company));
+  const position = logoPositions[index % logoPositions.length];
+  const label = source?.name || String(company);
+  const classes = className.includes("company-photo") ? className : `company-photo ${className}`;
+  return `<span class="${classes}" style="--photo-x:${position[0]};--photo-y:${position[1]};${style}" role="img" aria-label="Photo mock ${escapeAttr(label)}"></span>`;
+}
+
+function findCompany(name) {
+  return companies.find((company) => company.name === name) || companies[0];
+}
+
+function visibleJobs() {
+  return jobs.slice(0, 20);
+}
+
+function filterCount(type, value) {
+  return jobs.filter((job) => job[type] === value).length;
 }
 
 function icon(name) {
@@ -321,6 +516,14 @@ function icon(name) {
     user: '<path d="M20 21a8 8 0 0 0-16 0"/><circle cx="12" cy="7" r="4"/>',
     file: '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6"/>',
     globe: '<circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15 15 0 0 1 0 20"/><path d="M12 2a15 15 0 0 0 0 20"/>',
+    bell: '<path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 7h18s-3 0-3-7"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/>',
+    send: '<path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/>',
+    target: '<circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/>',
+    calendar: '<rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4"/><path d="M8 2v4"/><path d="M3 10h18"/>',
+    external: '<path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>',
+    check: '<path d="M20 6 9 17l-5-5"/>',
+    circle: '<circle cx="12" cy="12" r="9"/>',
+    trend: '<path d="m3 17 6-6 4 4 8-8"/><path d="M14 7h7v7"/>',
   };
   return `<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${paths[name] || paths.briefcase}</svg>`;
 }
@@ -407,7 +610,7 @@ function miniJob(job) {
 }
 
 function homePage() {
-  const featured = jobs.slice(0, 3);
+  const featured = ["designer-uiux-973g-d570373e", "agent-de-chat-44c3cb07", "chef-de-salle-patisserie-9760"].map((slug) => jobs.find((job) => job.slug === slug)).filter(Boolean);
   return pageShell(`
     <section class="hero-band">
       <div class="container hero-grid">
@@ -460,7 +663,7 @@ function homePage() {
           <div class="tabs" data-contract-tabs>
             ${["Toutes", "CDI", "CDD", "Stage", "Freelance"].map((t, i) => `<button class="tab-btn ${i === 0 ? "active" : ""}" data-contract="${t}">${t}</button>`).join("")}
           </div>
-          <div class="job-list" id="homeJobs">${jobs.slice(1).map(jobCard).join("")}</div>
+          <div class="job-list" id="homeJobs">${visibleJobs().map(jobCard).join("")}</div>
           <p style="text-align:center;margin-top:28px"><a href="#/emploi">Voir toutes les offres →</a></p>
         </div>
         <aside class="side-stack">
@@ -555,29 +758,39 @@ function jobsPage(mode = "Toutes") {
   const params = new URLSearchParams((location.hash.split("?")[1] || ""));
   const initialSearch = params.get("search") || "";
   const initialSector = params.get("sector") || "";
-  const pageTitle = mode === "Toutes" ? "Toutes les offres d'emploi à Madagascar" : mode;
+  const pageTitle = mode === "Toutes" ? "Offres d'emploi à Madagascar" : mode;
+  const shownJobs = visibleJobs();
   return pageShell(`
     <section class="page-hero">
       <div class="container">
-        <span class="eyebrow">Offres d'emploi</span>
         <h1>${pageTitle}</h1>
-        <p>Recherchez, filtrez et postulez aux offres qui correspondent à votre profil.</p>
+        <p><strong>169</strong> offres disponibles</p>
+        <form class="search-shell page-search" data-home-search>
+          <span>${icon("search")}</span>
+          <input name="q" id="jobSearch" value="${escapeAttr(initialSearch)}" placeholder="Poste, métier, entreprise..." />
+          <button class="btn btn-primary" type="submit">Rechercher</button>
+        </form>
       </div>
     </section>
     <section class="section">
-      <div class="container jobs-layout">
-        <aside class="filter-panel">
-          <div class="form-field"><label>Recherche</label><input class="input" id="jobSearch" value="${escapeAttr(initialSearch)}" placeholder="Poste, entreprise..." /></div>
-          <div><h3>Contrat</h3><div class="check-list">${["CDI", "CDD", "Stage", "Freelance"].map((c) => `<label class="check-row"><input type="checkbox" data-job-filter="contract" value="${c}" ${mode.includes(c) ? "checked" : ""}> ${c}</label>`).join("")}</div></div>
-          <div><h3>Ville</h3><div class="check-list">${["Antananarivo", "Fianarantsoa", "Toamasina", "Télétravail"].map((c) => `<label class="check-row"><input type="checkbox" data-job-filter="city" value="${c}"> ${c}</label>`).join("")}</div></div>
-          <div><h3>Secteur</h3><select class="select" id="sectorFilter"><option value="">Tous les secteurs</option>${sectors.map(([name]) => `<option ${name === initialSector ? "selected" : ""}>${name}</option>`).join("")}</select></div>
-          <button class="btn btn-soft" data-clear-jobs>Réinitialiser</button>
-        </aside>
+      <div class="container jobs-layout jobs-listing-layout">
         <div>
-          <div class="section-head"><h2 class="section-title"><strong id="jobCount">${jobs.length}</strong> offres trouvées</h2><a class="btn btn-primary" href="#/inscription/candidat">Créer une alerte</a></div>
-          <div class="job-list" id="jobsList">${jobs.map(jobCard).join("")}</div>
+          <div class="job-list" id="jobsList">${shownJobs.map(jobCard).join("")}</div>
           <div class="empty-state" id="jobEmpty" hidden><h3>Aucune offre trouvée</h3><p>Essayez une autre recherche ou retirez un filtre.</p></div>
+          <div class="load-more-block">
+            <p>Vous voyez <strong id="jobCount">${shownJobs.length}</strong> offres sur 169</p>
+            <span class="progress-line"><span style="width:${Math.round((shownJobs.length / 169) * 100)}%"></span></span>
+            <button class="btn btn-outline" data-toast="Chargement simulé">Charger plus d'offres</button>
+          </div>
         </div>
+        <aside class="filter-panel">
+          <h3>${icon("layers")} Filtres</h3>
+          <div><h4>Type de contrat</h4><div class="check-list">${["CDI", "CDD", "Stage", "Freelance"].map((c) => `<label class="check-row"><input type="checkbox" data-job-filter="contract" value="${c}" ${mode.includes(c) ? "checked" : ""}> <span>${c}</span><em>${filterCount("contract", c)}</em></label>`).join("")}</div><button class="text-link" data-toast="+ autres contrats simulé">+ 1 autres</button></div>
+          <div><h4>Ville</h4><div class="check-list">${["Antananarivo", "Fianarantsoa", "Toamasina", "Télétravail"].map((c) => `<label class="check-row"><input type="checkbox" data-job-filter="city" value="${c}"> <span>${c}</span><em>${filterCount("city", c)}</em></label>`).join("")}</div><button class="text-link" data-toast="+ autres villes simulé">+ 1 autres</button></div>
+          <div><h4>Secteur</h4><select class="select" id="sectorFilter"><option value="">Tous les secteurs</option>${sectors.map(([name]) => `<option ${name === initialSector ? "selected" : ""}>${name}</option>`).join("")}</select><button class="text-link" data-toast="+ autres secteurs simulé">+ 6 autres</button></div>
+          <button class="btn btn-soft" data-clear-jobs>Réinitialiser</button>
+          <div class="side-card dark alert-card">${icon("bell")}<h3>Ne ratez plus rien</h3><p>Recevez les nouvelles offres correspondant à votre recherche.</p><a class="btn btn-primary" href="#/inscription/candidat">Créer mon alerte</a></div>
+        </aside>
       </div>
     </section>
   `);
@@ -585,57 +798,174 @@ function jobsPage(mode = "Toutes") {
 
 function jobDetailPage(slug) {
   const job = jobs.find((j) => j.slug === slug) || jobs[0];
+  const company = findCompany(job.company);
+  const relatedCompanyJobs = jobs.filter((item) => item.company === job.company && item.slug !== job.slug).slice(0, 3);
+  const similarJobs = jobs.filter((item) => item.sector === job.sector && item.slug !== job.slug).slice(0, 4);
+  const missions = job.title.toLowerCase().includes("développeur")
+    ? ["Création d'applications web pour répondre aux besoins du client.", "Maintenance des applications créées ou existantes.", "Correction des erreurs et implémentation de nouvelles fonctionnalités.", "Création et maintenance de tableaux de bord Power BI."]
+    : ["Prendre en charge les missions quotidiennes avec rigueur et autonomie.", "Collaborer avec les équipes opérationnelles et assurer un reporting clair.", "Suivre les indicateurs, remonter les alertes et améliorer les processus."];
+  const profile = job.title.toLowerCase().includes("développeur")
+    ? ["Excellente maîtrise de Python, JavaScript, HTML et CSS.", "Expérience dans la construction d'applications web.", "Compétences en bases de données SQL et NoSQL.", "Maîtrise de Git et des outils de gestion de projet.", "Minimum 2 ans d'expérience en développement web.", "Bon relationnel et aptitude à travailler en équipe."]
+    : ["Bonne capacité d'analyse et communication professionnelle.", "Expérience appréciée dans un environnement exigeant.", "Autonomie, ponctualité et sens du service.", "Aisance avec les outils numériques et le suivi d'activité."];
   return pageShell(`
-    <section class="section alt">
+    <section class="job-detail-hero">
+      <div class="container">
+        <p class="breadcrumb"><a href="#/">Accueil</a> / <a href="#/emploi">Emploi</a> / ${job.sector} / ${job.title}</p>
+        <div class="detail-title-row">
+          ${companyLogo(job.company, "logo-mark", "width:112px;height:112px")}
+          <div>
+            <h1>${job.title}</h1>
+            <div class="job-meta"><a class="pill mauve" href="#/profil-entreprise/${slugify(job.company)}">${job.company}</a><span>${icon("pin")} ${job.city}</span><span>${icon("layers")} ${job.sector}</span><span>${icon("clock")} Publiée ${job.time}</span></div>
+          </div>
+        </div>
+      </div>
+    </section>
+    <section class="section">
       <div class="container detail-layout">
         <div>
-          <div class="detail-title-card">
-            <div class="detail-title-row">
-              ${companyLogo(job.company, "logo-mark", "width:74px;height:74px")}
-              <div>
-                <p><a href="#/emploi">Offres d'emploi</a> / ${job.sector}</p>
-                <h1>${job.title}</h1>
-                <div class="job-meta"><span>${job.company}</span><span>${icon("pin")} ${job.city}</span><span class="pill mauve">${job.contract}</span>${job.sponsored ? `<span class="pill rose">SPONSORISÉ</span>` : ""}</div>
-              </div>
-            </div>
-          </div>
-          ${["Votre mission", "Profil recherché", "Pourquoi rejoindre cette entreprise ?"].map((title, idx) => `<section class="content-section"><h2>${title}</h2><p>${idx === 0 ? "Vous rejoignez une équipe dynamique pour contribuer à des projets concrets, suivre les priorités métier et livrer une expérience utilisateur claire." : idx === 1 ? "Vous avez une bonne capacité d'analyse, un sens de l'organisation et une communication professionnelle. Une expérience dans un environnement exigeant est appréciée." : "Une culture orientée résultats, une équipe locale ambitieuse et un cadre de travail structuré pour progresser rapidement."}</p><ul><li>Collaboration avec les équipes opérationnelles.</li><li>Suivi des indicateurs et reporting simple.</li><li>Participation à l'amélioration continue des processus.</li></ul></section>`).join("")}
+          <div class="job-intro">En pleine croissance, nous recherchons un profil talentueux pour rejoindre notre équipe.</div>
+          <section class="content-section"><h2>${icon("target")} Missions principales</h2><ul>${missions.map((item) => `<li>${item}</li>`).join("")}</ul></section>
+          <section class="content-section"><h2>${icon("users")} Profil recherché</h2><ul>${profile.map((item) => `<li>${item}</li>`).join("")}</ul></section>
+          <section class="apply-inline"><div><h3>Cette offre vous correspond ?</h3><p>Envoyez votre candidature à <strong>${job.company}</strong> directement via Asako. Votre CV et profil sont transmis automatiquement.</p></div><button class="btn btn-primary" data-open-apply>${icon("send")} Postuler</button></section>
         </div>
         <aside class="side-stack">
-          <div class="side-card"><h3>Résumé de l'offre</h3><p><strong>Contrat</strong><br>${job.contract}</p><p><strong>Localisation</strong><br>${job.city}</p><p><strong>Salaire</strong><br>${job.salary}</p><p><strong>Deadline</strong><br>${job.deadline}</p><a class="btn btn-primary" style="width:100%" href="#/inscription/candidat">Postuler maintenant</a></div>
-          <div class="side-card"><h3>Entreprise</h3><div class="company-card-head">${companyLogo(job.company)}<div><strong>${job.company}</strong><br><span>${job.sector}</span></div></div><p style="margin-top:14px">Entreprise active sur Asako avec des opportunités mises à jour régulièrement.</p><a href="#/profil-entreprise/${slugify(job.company)}">Voir le profil →</a></div>
+          <div class="side-card job-summary-card"><p><span>${icon("layers")}</span><strong>Métier</strong>${job.title.split(" ").slice(0, 3).join(" ")}</p><p><span>${icon("file")}</span><strong>Contrat</strong>${job.contract} — Temps plein</p><p><span>${icon("clock")}</span><strong>Prise de poste</strong>Dès que possible</p><p><span>${icon("calendar")}</span><strong>Expire le</strong>${job.deadline}</p><button class="btn btn-primary" style="width:100%" data-open-apply>${icon("send")} Postuler maintenant</button><small>Candidature gratuite et rapide via Asako</small></div>
+          <div class="side-card"><h3>L'entreprise</h3><div class="company-card-head">${companyLogo(job.company)}<div><strong>${job.company}</strong><br><span>${company.jobs} offres actives</span></div></div><p style="margin-top:14px">${company.about}</p><a class="btn btn-soft" style="width:100%" href="#/profil-entreprise/${slugify(job.company)}">Voir le profil ›</a></div>
+          ${relatedCompanyJobs.length ? `<div class="side-card"><h3>Autres offres chez ${job.company}</h3><div class="side-mini-list">${relatedCompanyJobs.map((item) => `<a href="#/annonces/${item.slug}"><strong>${item.title}</strong><span>${icon("pin")} ${item.city} <em>${item.contract}</em></span></a>`).join("")}</div><a href="#/profil-entreprise/${slugify(job.company)}">Voir les ${company.jobs} offres →</a></div>` : ""}
         </aside>
+      </div>
+    </section>
+    <section class="section alt"><div class="container"><h2 class="section-title"><span class="icon-tile">${icon("briefcase")}</span>Offres <strong>similaires</strong></h2><div class="similar-grid">${similarJobs.map(compactJobCard).join("")}</div></div></section>
+    <div class="apply-modal" data-apply-modal hidden><div class="apply-dialog"><button class="modal-close" data-close-apply>×</button><span class="icon-tile">${icon("send")}</span><h2>Postuler à cette offre</h2><p>Connectez-vous ou créez votre profil candidat pour envoyer votre CV à ${job.company}.</p><a class="btn btn-primary" href="#/inscription/candidat">Créer mon profil candidat</a><button class="btn btn-soft" data-close-apply>Annuler</button></div></div>
+  `);
+}
+
+function companiesPage() {
+  const listed = companies.slice(0, 24);
+  return pageShell(`
+    <section class="page-hero">
+      <div class="container">
+        <h1>Les entreprises qui recrutent à <span class="underline">Madagascar</span></h1>
+        <p>Ces entreprises publient régulièrement des offres sur Asako. Explorez leurs profils et trouvez celle qui vous correspond.</p>
+        <div class="company-searchbar">
+          <span>${icon("search")}</span>
+          <input id="companySearch" placeholder="Rechercher une entreprise..." />
+          <select id="companySector"><option value="">Tous les secteurs</option>${sectors.map(([name]) => `<option>${name}</option>`).join("")}</select>
+          <button class="btn btn-primary" data-toast="Recherche simulée">${icon("search")}</button>
+        </div>
+        <p><strong id="companyCount">${listed.length}</strong> entreprises trouvées</p>
+      </div>
+    </section>
+    <section class="section">
+      <div class="container">
+        <div class="company-grid company-directory-grid" id="companyGrid">${listed.map(companyCard).join("")}</div>
+        <div class="load-more-block">
+          <p><strong id="companyShown">${listed.length}</strong> entreprises sur 45</p>
+          <span class="progress-line"><span style="width:53%"></span></span>
+          <button class="btn btn-outline" data-toast="Chargement simulé">Charger plus d'entreprises</button>
+        </div>
+      </div>
+    </section>
+    <section class="section alt">
+      <div class="container seo-copy">
+        <h2><span class="icon-tile">${icon("file")}</span>Annuaire des entreprises qui recrutent à Madagascar</h2>
+        <p>Asako.mg référence les entreprises qui publient régulièrement des offres d'emploi à Madagascar. De l'industrie BPO aux ONG, en passant par l'informatique, la finance et l'hôtellerie, ces entreprises font confiance à Asako pour trouver leurs prochains talents.</p>
+        <p>Chaque profil d'entreprise regroupe ses offres actives, son secteur d'activité et ses informations clés. Explorez les profils, découvrez les entreprises qui vous intéressent et postulez directement aux offres qui vous correspondent.</p>
+        <p>Vous êtes recruteur ? <a href="#/inscription/recruteur">Créez votre espace</a> et publiez vos offres pour apparaître dans cet annuaire.</p>
       </div>
     </section>
   `);
 }
 
-function companiesPage() {
-  return pageShell(`
-    <section class="page-hero"><div class="container"><span class="eyebrow">Annuaire entreprises</span><h1>Entreprises qui recrutent à Madagascar</h1><p>Explorez les recruteurs actifs et leurs offres ouvertes.</p></div></section>
-    <section class="section"><div class="container company-grid">${companies.map((c) => `<a class="company-card" href="#/profil-entreprise/${slugify(c.name)}"><div class="company-card-head">${companyLogo(c.name)}<div><h3>${c.name}</h3><p>${c.city}</p></div></div><p>${c.sector}</p><span class="pill">${c.jobs} offres</span></a>`).join("")}</div></section>
-  `);
+function companyCard(c) {
+  return `<a class="company-card company-directory-card" data-company-card data-name="${escapeAttr(c.name)}" data-sector="${escapeAttr(c.sector)}" href="#/profil-entreprise/${slugify(c.name)}"><div class="company-card-head">${companyLogo(c.name)}<div><h3>${c.name}</h3><p>${icon("briefcase")} ${c.sector}</p>${c.jobs ? `<span class="pill mauve">${c.jobs} offre${c.jobs > 1 ? "s" : ""} active${c.jobs > 1 ? "s" : ""}</span>` : ""}</div></div><span class="chevron-mark">›</span></a>`;
 }
 
 function companyProfilePage(slug) {
   const company = companies.find((c) => slugify(c.name) === slug) || companies[0];
-  const companyJobs = jobs.filter((j) => j.company === company.name).concat(jobs.slice(0, 2));
+  const companyJobs = jobs.filter((j) => j.company === company.name);
+  const filled = filledJobs.filter((job) => job.company === company.name);
+  const related = companies.filter((item) => item.name !== company.name && item.sector === company.sector).slice(0, 6);
   return pageShell(`
-    <section class="page-hero"><div class="container">${companyLogo(company.name, "logo-mark", "width:86px;height:86px;margin:0 auto 18px")}<h1>${company.name}</h1><p>${company.sector} · ${company.city}</p></div></section>
-    <section class="section"><div class="container detail-layout"><div><section class="content-section"><h2>À propos</h2><p>${company.name} est une entreprise active à Madagascar, engagée dans le recrutement de profils motivés et qualifiés. Ce profil est une reproduction démo avec des informations fictives.</p></section><section class="content-section"><h2>Offres ouvertes</h2><div class="job-list">${companyJobs.map(jobCard).join("")}</div></section></div><aside class="side-card"><h3>Informations</h3><p><strong>Secteur</strong><br>${company.sector}</p><p><strong>Ville</strong><br>${company.city}</p><p><strong>Offres</strong><br>${company.jobs}</p></aside></div></section>
+    <section class="company-profile-hero">
+      <div class="container">
+        <p class="breadcrumb"><a href="#/">Accueil</a> / <a href="#/entreprises">Entreprises</a> / ${company.name}</p>
+        <div class="company-profile-grid">
+          <div class="company-profile-main">
+            ${companyLogo(company.name, "logo-mark", "width:112px;height:112px")}
+            <div>
+              <h1>${company.name}</h1>
+              <p>${company.slogan}</p>
+              <div class="job-meta"><span>${icon("pin")} ${company.city}</span><span>${icon("layers")} ${company.sector}</span><a href="https://${company.website}" target="_blank" rel="noreferrer">${icon("globe")} ${company.website}</a></div>
+              <div class="profile-socials"><a href="#" aria-label="Facebook">f</a><a href="#" aria-label="LinkedIn">in</a></div>
+            </div>
+          </div>
+          <div class="company-stats">
+            <div class="stat-mini">${icon("briefcase")}<strong>${company.jobs}</strong><span>offres actives</span></div>
+            <div class="stat-mini">${icon("users")}<strong>${company.size.split(" ")[0]}</strong><span>collaborateurs</span></div>
+          </div>
+        </div>
+      </div>
+    </section>
+    <section class="section">
+      <div class="container detail-layout">
+        <div>
+          ${companyPhoto(company, "company-cover")}
+          <section class="content-section"><h2>${icon("briefcase")} Offres d'emploi chez ${company.name}</h2><div class="company-job-grid">${companyJobs.length ? companyJobs.map(compactJobCard).join("") : `<div class="empty-state">Aucune offre active pour le moment</div>`}</div></section>
+          <section class="content-section muted-section"><h2>${icon("star")} Postes récemment pourvus</h2><div class="job-list">${filled.length ? filled.map(filledJobCard).join("") : filledJobs.slice(0, 2).map(filledJobCard).join("")}</div></section>
+        </div>
+        <aside class="side-stack">
+          <div class="side-card dark alert-card">${icon("bell")}<h3>Ne manquez aucune opportunité</h3><p>Soyez parmi les premiers à postuler quand ${company.name} publie une nouvelle offre.</p><a class="btn btn-primary" href="#/inscription/candidat">Créer mon alerte</a></div>
+          <div class="side-card"><h3>Déposez votre CV</h3><p>Créez votre profil et laissez les recruteurs vous trouver.</p><a class="btn btn-primary" href="#/inscription/candidat">Déposer mon CV</a></div>
+        </aside>
+      </div>
+    </section>
+    <section class="section alt">
+      <div class="container profile-info-grid">
+        <div><h2>${icon("file")} À propos de ${company.name}</h2><p>${company.about}</p></div>
+        <div class="metadata-list">
+          <p><span>${icon("pin")}</span><strong>Localisation</strong>${company.city}</p>
+          <p><span>${icon("layers")}</span><strong>Secteur</strong>${company.sector}</p>
+          <p><span>${icon("users")}</span><strong>Taille de l'équipe</strong>${company.size}</p>
+          <p><span>${icon("clock")}</span><strong>Présente sur Asako depuis</strong>${company.since}</p>
+        </div>
+      </div>
+    </section>
+    <section class="section">
+      <div class="container">
+        <h2 class="section-title">Ces entreprises <strong>recrutent également</strong></h2>
+        <div class="related-company-row">${(related.length ? related : companies.filter((item) => item.name !== company.name).slice(0, 6)).map((item) => `<a class="related-company" href="#/profil-entreprise/${slugify(item.name)}">${companyLogo(item.name)}<strong>${item.name}</strong></a>`).join("")}</div>
+      </div>
+    </section>
   `);
+}
+
+function compactJobCard(job) {
+  return `<a class="compact-job-card" href="#/annonces/${job.slug}"><strong>${job.title}</strong><p>${icon("pin")} ${job.city} · ${job.time}</p><span class="pill">${job.contract}</span></a>`;
+}
+
+function filledJobCard(job) {
+  return `<article class="job-card filled-job">${companyLogo(job.company)}<div class="job-main"><strong>${job.title}</strong><span>${job.company}</span><div class="job-meta"><span>${icon("pin")} ${job.city}</span><span>${icon("layers")} ${job.sector}</span></div></div><span class="pill">POURVUE</span></article>`;
 }
 
 function pricingPage() {
   return pageShell(`
     <section class="page-hero"><div class="container"><span class="eyebrow">Tarifs recruteurs</span><h1>Recrutez <span class="underline">sans compter</span>, payez selon vos besoins</h1><p>De la startup qui embauche son premier collaborateur au BPO qui recrute chaque semaine.</p><div style="display:flex;gap:18px;justify-content:center;flex-wrap:wrap;margin-top:18px"><span>✓ 2 offres gratuites/mois</span><span>✓ Sans engagement</span><span>✓ Annulez à tout moment</span></div></div></section>
-    <section class="section"><div class="container" style="text-align:center"><div class="billing-toggle" data-billing><button class="active" data-cycle="monthly">Mensuel</button><button data-cycle="quarterly">Trimestriel <span style="color:var(--rose)">-15%</span></button></div><div class="pricing-grid">${plans.map(priceCard).join("")}</div></div></section>
-    <section class="section alt"><div class="container"><h2 class="section-title" style="justify-content:center">Questions <strong>fréquentes</strong></h2><div class="company-grid" style="margin-top:28px">${[
+    <section class="section"><div class="container" style="text-align:center"><div class="billing-toggle" data-billing><button class="active" data-cycle="monthly">Mensuel</button><button data-cycle="quarterly">Trimestriel <span style="color:var(--rose)">-15%</span></button></div><div class="pricing-grid">${plans.map(priceCard).join("")}</div><div class="included-strip"><strong>Inclus dans tous les plans</strong><span>${icon("globe")} Google Jobs</span><span>${icon("layers")} Pipeline de suivi</span><span>${icon("briefcase")} Page entreprise</span><span>${icon("bell")} Alertes candidats</span></div></div></section>
+    <section class="section alt"><div class="container"><h2 class="section-title" style="justify-content:center">Ils recrutent avec <strong>Asako</strong></h2><div class="proof-grid">${[["100k+", "Communauté Facebook", "users"], ["40 000+", "CVs dans la base", "file"], ["~30", "Candidatures par offre", "send"], ["500+", "Entreprises inscrites", "briefcase"]].map(([value, label, ic]) => `<div class="proof-card"><span class="icon-tile">${icon(ic)}</span><strong>${value}</strong><span>${label}</span></div>`).join("")}</div><div class="testimonial-grid">${[
+      ["On a publié le matin, à midi on avait 15 candidatures qualifiées. Le pipeline nous aide à ne perdre aucun profil.", "Hery R.", "DRH — Agence Web Madagascar"],
+      ["On a commencé avec le Gratuit. En une semaine, 20 candidatures. On est passé au Booster et on ne revient pas en arrière.", "Naina R.", "RH — Retail, Antsirabe"],
+      ["Avant Asako, on publiait sur Facebook et on priait. Maintenant tout est organisé, on sait qui a postulé et où on en est.", "Andry R.", "CEO — Media Click"],
+    ].map(([quote, name, role]) => `<article class="testimonial-card"><div class="stars">★★★★★</div><p>${quote}</p><strong>${name}</strong><span>${role}</span></article>`).join("")}</div></div></section>
+    <section class="section"><div class="container"><h2 class="section-title" style="justify-content:center">Questions <strong>fréquentes</strong></h2><div class="company-grid faq-grid" style="margin-top:28px">${[
       ["C'est vraiment gratuit ?", "Oui. 2 offres/mois, sans carte bancaire. Suffisant pour tester et recevoir vos premières candidatures."],
       ["Y a-t-il un engagement ?", "Non. Tous les plans sont mensuels. Vous pouvez changer ou revenir au gratuit quand vous voulez."],
-      ["Comment payer ?", "MVola ou carte bancaire. Le prototype simule uniquement l'interface de paiement."],
-      ["C'est quoi la CVthèque ?", "Un espace de recherche parmi des profils candidats qualifiés, ici représentés par des mocks fictifs."],
+      ["Comment payer ?", "MVola ou carte bancaire. Paiement sécurisé, facture par email chaque mois."],
+      ["Puis-je changer de plan ?", "Oui, à tout moment. Upgrade immédiat au prorata, downgrade au prochain renouvellement."],
+      ["C'est quoi un crédit IA ?", "Un crédit active une action IA : générer une offre, matching CV ou renouvellement automatique."],
+      ["C'est quoi la CVthèque ?", "40 000+ CVs consultables. Cherchez par compétences et ville, contactez les profils directement."],
     ].map(([q, a]) => `<div class="company-card"><h3>${q}</h3><p>${a}</p></div>`).join("")}</div></div></section>
+    <section class="final-cta"><div class="container"><h2>Prêt à trouver votre <span>prochain talent</span> ?</h2><p>Créez votre espace recruteur et publiez votre première offre en 2 minutes.</p><a class="btn btn-primary" href="#/inscription/recruteur">Commencer gratuitement →</a></div></section>
   `);
 }
 
@@ -646,9 +976,9 @@ function priceCard(plan) {
       <span class="icon-tile" style="background:${plan.color}20;color:${plan.color}">${icon(plan.featured ? "zap" : "layers")}</span>
       <h3>${plan.name}</h3>
       <p>${plan.audience}</p>
-      <div class="price" data-price="${plan.monthly}">${formatPrice(plan.monthly)}</div>
+      <div class="price" data-price="${plan.monthly}">${plan.monthly === 0 ? "0 Ar" : `${formatPrice(plan.monthly)} <small>/mois</small>`}</div>
       <ul class="feature-list">${plan.features.map((f) => `<li>${f}</li>`).join("")}</ul>
-      <a class="btn ${plan.featured ? "btn-primary" : "btn-outline"}" style="margin-top:auto" href="#/inscription/recruteur">${plan.monthly === 0 ? "Commencer gratuitement" : "Choisir ce plan"}</a>
+      <a class="btn ${plan.featured ? "btn-primary" : "btn-outline"}" style="margin-top:auto" href="#/inscription/recruteur">${plan.monthly === 0 ? "Commencer gratuitement" : `Choisir ${plan.name}`}</a>
     </article>
   `;
 }
@@ -678,7 +1008,7 @@ function recruiterLayout(page, content) {
     <div class="recruiter-app">
       <div class="recruiter-shell">
         <aside class="recruiter-sidebar">
-          <div class="recruiter-account">${companyLogo("Novaly Services", "avatar")}<div><strong>Novaly Services</strong><span>Admin Recruteur</span></div><a class="btn btn-soft" style="min-height:38px;padding:0;width:38px" href="#/">${icon("eye")}</a></div>
+          <div class="recruiter-account">${companyLogo("1talentpourvous", "avatar")}<div><strong>1talentpourvous</strong><span>Heritiana R.</span></div><a class="btn btn-soft" style="min-height:38px;padding:0;width:38px" href="#/">${icon("external")}</a></div>
           <div class="side-groups">${groups.map(([title, links]) => `<div class="side-group"><p class="side-group-title">${title}</p>${links.map(([label, key, ic]) => `<a class="side-link ${page === key ? "active" : ""}" href="#/recruteur/${key === "dashboard" ? "dashboard" : key}">${icon(ic)} ${label}</a>`).join("")}</div>`).join("")}</div>
           <div class="side-cta"><a class="btn btn-primary" style="width:100%" href="#/recruteur/offres/nouvelle">${icon("plus")} Publier une offre</a></div>
           <div class="plan-mini"><strong>Plan Gratuit <span class="pill" style="float:right">0 Ar</span></strong><div class="quota-bar" style="margin:16px 0 10px"><span></span></div><p style="color:#e58200;font-size:12px">Plus que 2 offres disponibles</p><a class="btn btn-outline" style="width:100%;min-height:36px" href="#/recruteur/abonnement">Changer de plan →</a></div>
@@ -711,21 +1041,35 @@ function recruiterPage(page) {
 
 function recruiterDashboard() {
   return `
-    ${recruiterTop("Dashboard recruteur", "Suivez vos recrutements en un coup d'œil", `<a class="btn btn-primary" href="#/recruteur/offres/nouvelle">${icon("plus")} Publier une offre</a>`)}
+    <div class="dashboard-welcome"><h1>Bonsoir, Heritiana</h1><p>1talentpourvous — Plan Gratuit</p></div>
+    <section class="onboarding-panel">
+      <h2>${icon("zap")} Démarrez en 3 étapes</h2>
+      <div class="onboarding-progress"><span></span></div>
+      <div class="onboarding-steps">
+        <div class="done">${icon("check")} <span>Créer votre compte</span></div>
+        <a href="#/recruteur/entreprise">${icon("circle")} <span>Compléter le profil entreprise</span></a>
+        <a href="#/recruteur/offres/nouvelle">${icon("circle")} <span>Publier votre première offre</span><strong>Publier une offre</strong></a>
+      </div>
+    </section>
     <div class="dashboard-grid">
-      ${[["Offres actives", "3", "briefcase"], ["Candidatures", "42", "users"], ["À traiter", "11", "clock"], ["CV sauvegardés", "8", "star"]].map(([l, v, ic]) => `<div class="metric-card"><span class="icon-tile">${icon(ic)}</span><strong>${v}</strong><span>${l}</span></div>`).join("")}
+      ${[["Offres actives", "0", "briefcase"], ["Candidatures non lues", "0", "users"], ["Shortlistés en cours", "0", "file"], ["Vues totales", "0", "eye"], ["Quota restant", "2", "file"]].map(([l, v, ic]) => `<div class="metric-card"><span class="icon-tile">${icon(ic)}</span><strong>${v}</strong><span>${l}</span></div>`).join("")}
     </div>
     <div class="recruiter-two">
-      <section class="panel"><h2>Offres à surveiller</h2><div class="table-list">${recruiterOffers.map((o) => `<div class="table-row"><div><strong>${o.title}</strong><p>${o.views} vues · ${o.candidates} candidatures</p></div><span class="pill ${o.status === "Publiée" ? "mauve" : "rose"}">${o.status}</span><a class="btn btn-soft" href="#/recruteur/offres">Gérer</a></div>`).join("")}</div></section>
-      <aside class="panel"><h2>Recommandations IA</h2><p>Votre profil entreprise est incomplet. Ajoutez une description et vos liens sociaux pour attirer plus de candidats.</p><a class="btn btn-primary" href="#/recruteur/entreprise">Compléter mon entreprise</a></aside>
+      <section class="panel todo-panel"><h2>À faire</h2><a href="#/recruteur/entreprise"><span class="icon-tile">${icon("briefcase")}</span><div><strong>Compléter votre profil entreprise</strong><p>Un profil complet attire 3x plus de candidatures</p></div><span>›</span></a><a href="#/recruteur/offres/nouvelle"><span class="icon-tile">${icon("plus")}</span><div><strong>Publier une nouvelle offre</strong><p>Trouvez votre prochain talent</p></div><span>›</span></a></section>
+      <section class="panel activity-panel"><h2>${icon("trend")} Activité 7 jours</h2><div class="chart-shell"><span></span><span></span><span></span><span></span><i></i></div><div class="chart-labels"><span>sam.</span><span>dim.</span><span>lun.</span><span>mar.</span><span>mer.</span><span>jeu.</span><span>ven.</span></div><p><b style="color:var(--mauve)">●</b> Vues <b style="color:var(--rose)">●</b> Candidatures</p></section>
     </div>
+    <section class="panel latest-empty"><h2>Dernières offres <a href="#/recruteur/offres">Voir tout →</a></h2><div class="empty-state">${icon("file")}<p>Aucune offre pour le moment</p><a class="btn btn-primary" href="#/recruteur/offres/nouvelle">${icon("plus")} Publier ma première offre</a></div></section>
   `;
+}
+
+function iconOrStatus(status) {
+  return status === "Publiée" ? "mauve" : "rose";
 }
 
 function recruiterOffersPage() {
   return `
     ${recruiterTop("Mes offres", "Gérez vos annonces et leur performance", `<a class="btn btn-primary" href="#/recruteur/offres/nouvelle">${icon("plus")} Nouvelle offre</a>`)}
-    <section class="panel"><div class="toolbar"><input class="input" data-table-search placeholder="Rechercher une offre..."><select class="select"><option>Tous les statuts</option><option>Publiée</option><option>Brouillon</option></select></div><div class="table-list">${recruiterOffers.map((o) => `<div class="table-row" data-search-row><div><strong>${o.title}</strong><p>${o.views} vues · ${o.candidates} candidatures · expire: ${o.expires}</p></div><span class="pill">${o.status}</span><button class="btn btn-soft" data-toast="Action simulée">Modifier</button></div>`).join("")}</div></section>
+    <section class="panel"><div class="toolbar"><input class="input" data-table-search placeholder="Rechercher une offre..."><select class="select"><option>Tous les statuts</option><option>Publiée</option><option>Brouillon</option></select></div><div class="table-list">${recruiterOffers.map((o) => `<div class="table-row" data-search-row><div><strong>${o.title}</strong><p>${o.views} vues · ${o.candidates} candidatures · expire: ${o.expires}</p></div><span class="pill ${iconOrStatus(o.status)}">${o.status}</span><button class="btn btn-soft" data-toast="Action simulée">Modifier</button></div>`).join("")}</div></section>
   `;
 }
 
@@ -782,11 +1126,11 @@ function selectionPage() {
 
 function companyFormPage() {
   return `
-    ${recruiterTop("Profil de l'entreprise", "Complétez votre profil pour attirer 3x plus de candidats", `<a class="btn btn-outline" href="#/profil-entreprise/novaly-services">${icon("eye")} Voir ma page</a>`)}
+    ${recruiterTop("Profil de l'entreprise", "Complétez votre profil pour attirer 3x plus de candidats", `<a class="btn btn-outline" href="#/profil-entreprise/1talentpourvous">${icon("eye")} Voir ma page</a>`)}
     <form data-save-form>
       <section class="form-section"><div class="form-section-head"><div class="form-section-title"><span class="icon-tile">${icon("briefcase")}</span>Identité</div><span class="status-badge">À compléter</span></div><div class="form-body form-grid">
-        <div class="form-field full"><label>Logo de l'entreprise</label><div class="upload-box">${companyLogo("Novaly Services", "upload-placeholder")}<div><strong>Format JPG ou PNG, max 2 Mo</strong><br><button class="btn btn-primary" type="button" data-toast="Upload simulé">Télécharger un logo</button></div></div></div>
-        <div class="form-field"><label>Nom de l'entreprise — verrouillé</label><input class="input" value="Novaly Services" disabled></div>
+        <div class="form-field full"><label>Logo de l'entreprise</label><div class="upload-box">${companyLogo("1talentpourvous", "upload-placeholder")}<div><strong>Format JPG ou PNG, max 2 Mo</strong><br><button class="btn btn-primary" type="button" data-toast="Upload simulé">Télécharger un logo</button></div></div></div>
+        <div class="form-field"><label>Nom de l'entreprise — verrouillé</label><input class="input" value="1talentpourvous" disabled></div>
         <div class="form-field"><label>Secteur d'activité*</label><select class="select"><option>Sélectionner un secteur</option>${sectors.map(([s]) => `<option>${s}</option>`).join("")}</select></div>
         <div class="form-field"><label>Taille de l'entreprise</label><select class="select"><option>Sélectionner la taille</option><option>1 à 10 employés</option><option>11 à 50 employés</option><option>51 à 200 employés</option><option>Plus de 500 employés</option></select></div>
         <div class="form-field"><label>Ville / Siège</label><input class="input" placeholder="Ex : Antananarivo"></div>
@@ -811,7 +1155,7 @@ function subscriptionPage() {
 function profilePage() {
   return `
     ${recruiterTop("Mon profil", "Paramètres du compte recruteur")}
-    <form class="panel form-grid" data-save-form><div class="form-field"><label>Nom affiché</label><input class="input" value="Admin Recruteur"></div><div class="form-field"><label>Email professionnel</label><input class="input" value="rh-demo@novaly.mg"></div><div class="form-field"><label>Téléphone</label><input class="input" placeholder="+261 ..."></div><div class="form-field"><label>Notifications</label><select class="select"><option>Recevoir les candidatures par email</option><option>Résumé quotidien</option></select></div><div class="form-field full"><button class="btn btn-primary" type="submit">Sauvegarder</button></div></form>
+    <form class="panel form-grid" data-save-form><div class="form-field"><label>Nom affiché</label><input class="input" value="Heritiana R."></div><div class="form-field"><label>Email professionnel</label><input class="input" value="heritiana@1talentpourvous.mg"></div><div class="form-field"><label>Téléphone</label><input class="input" placeholder="+261 ..."></div><div class="form-field"><label>Notifications</label><select class="select"><option>Recevoir les candidatures par email</option><option>Résumé quotidien</option></select></div><div class="form-field full"><button class="btn btn-primary" type="submit">Sauvegarder</button></div></form>
   `;
 }
 
@@ -851,6 +1195,8 @@ function bindInteractions() {
   bindBilling();
   bindCvFilters();
   bindTableSearch();
+  bindCompanyFilters();
+  bindApplyModal();
   document.querySelectorAll("[data-save-form]").forEach((form) => form.addEventListener("submit", (event) => {
     event.preventDefault();
     showToast("Enregistré dans la démo locale");
@@ -948,6 +1294,49 @@ function bindTableSearch() {
     document.querySelectorAll("[data-search-row]").forEach((row) => {
       row.hidden = !row.textContent.toLowerCase().includes(q);
     });
+  });
+}
+
+function bindCompanyFilters() {
+  const grid = document.querySelector("#companyGrid");
+  if (!grid) return;
+  const search = document.querySelector("#companySearch");
+  const sector = document.querySelector("#companySector");
+  const apply = () => {
+    const q = (search?.value || "").toLowerCase();
+    const sectorValue = sector?.value || "";
+    let count = 0;
+    document.querySelectorAll("[data-company-card]").forEach((card) => {
+      const visible = (!q || card.dataset.name.toLowerCase().includes(q)) && (!sectorValue || card.dataset.sector === sectorValue);
+      card.hidden = !visible;
+      if (visible) count += 1;
+    });
+    document.querySelector("#companyCount").textContent = count;
+    document.querySelector("#companyShown").textContent = count;
+  };
+  search?.addEventListener("input", apply);
+  sector?.addEventListener("change", apply);
+  apply();
+}
+
+function bindApplyModal() {
+  const modal = document.querySelector("[data-apply-modal]");
+  if (!modal) return;
+  const close = () => {
+    modal.hidden = true;
+    document.body.classList.remove("modal-open");
+  };
+  const open = () => {
+    modal.hidden = false;
+    document.body.classList.add("modal-open");
+  };
+  document.querySelectorAll("[data-open-apply]").forEach((button) => button.addEventListener("click", open));
+  document.querySelectorAll("[data-close-apply]").forEach((button) => button.addEventListener("click", close));
+  modal.addEventListener("click", (event) => {
+    if (event.target === modal) close();
+  });
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape" && !modal.hidden) close();
   });
 }
 
