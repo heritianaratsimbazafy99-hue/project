@@ -795,7 +795,8 @@ a {
 
 .candidateSectionHeader button,
 .candidateFormActions button,
-.candidateEmptyState button {
+.candidateEmptyState button,
+.cvUploadForm button {
   min-height: 2.5rem;
   padding: 0.65rem 0.85rem;
   border: 0;
@@ -901,6 +902,28 @@ a {
   grid-template-columns: minmax(0, 1fr) minmax(16rem, 24rem);
   gap: 1rem;
   align-items: center;
+}
+
+.cvCurrent {
+  display: inline-flex;
+  width: fit-content;
+  max-width: 100%;
+  margin-top: 0.75rem;
+  padding: 0.32rem 0.58rem;
+  border-radius: 999px;
+  background: rgba(142, 227, 33, 0.16);
+  color: #315b09;
+  font-size: 0.86rem;
+  font-weight: 850;
+}
+
+.cvUploadForm {
+  display: grid;
+  gap: 0.65rem;
+}
+
+.cvUploadForm button {
+  justify-self: start;
 }
 
 .cvDropzone {

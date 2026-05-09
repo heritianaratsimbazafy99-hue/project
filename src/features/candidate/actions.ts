@@ -14,10 +14,13 @@ export type CandidateActionResult = {
 
 type CandidateProfileState = {
   cv_path: string | null;
+  desired_role?: string | null;
 };
 
 const candidateProfilePaths = ["/candidat/profil", "/candidat/dashboard"] as const;
 const candidateAlertPaths = ["/candidat/alertes", "/candidat/dashboard"] as const;
+const maxCvSizeBytes = 5 * 1024 * 1024;
+const allowedCvExtensions = [".pdf", ".doc", ".docx"] as const;
 
 function formValue(formData: FormData, key: string) {
   const value = formData.get(key);
@@ -39,6 +42,153 @@ function revalidateCandidateProfile() {
 
 function revalidateCandidateAlerts() {
   candidateAlertPaths.forEach((path) => revalidatePath(path));
+}
+
+function uploadedCvFile(formData: FormData) {
+  const file = formData.get("cv");
+
+  return file instanceof File && file.size > 0 ? file : null;
+}
+
+function isAllowedCvFile(file: File) {
+  const lowerName = file.name.toLowerCase();
+
+  return allowedCvExtensions.some((extension) => lowerName.endsWith(extension));
+}
+
+function sanitizeCvFileName(fileName: string) {
+  const normalizedName = fileName
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9.]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+
+  return normalizedName || "cv.pdf";
+}
+
+async function candidateCompletionAfterCv(supabase: Awaited<ReturnType<typeof createSupabaseServerClient>>, userId: string) {
+  const [
+    { data: candidateProfile, error: candidateProfileError },
+    { count: alertCount, error: alertError }
+  ] = await Promise.all([
+    supabase
+      .from("candidate_profiles")
+      .select("desired_role")
+      .eq("user_id", userId)
+      .maybeSingle<CandidateProfileState>(),
+    supabase
+      .from("job_alerts")
+      .select("id", { count: "exact", head: true })
+      .eq("candidate_id", userId)
+  ]);
+
+  if (candidateProfileError || alertError) {
+    return null;
+  }
+
+  return calculateCandidateCompletion({
+    accountCreated: true,
+    hasCv: true,
+    hasDesiredRole: Boolean(candidateProfile?.desired_role),
+    hasAlert: Boolean(alertCount && alertCount > 0)
+  });
+}
+
+export async function uploadCandidateCv(formData: FormData): Promise<CandidateActionResult> {
+  const file = uploadedCvFile(formData);
+
+  if (!file || !isAllowedCvFile(file)) {
+    return {
+      ok: false,
+      message: "Ajoutez un CV au format PDF, DOC ou DOCX."
+    };
+  }
+
+  if (file.size > maxCvSizeBytes) {
+    return {
+      ok: false,
+      message: "Votre CV doit faire moins de 5MB."
+    };
+  }
+
+  const { user, isDemo } = await requireRole(["candidate"]);
+
+  if (isDemo) {
+    return {
+      ok: false,
+      message: "L'upload de CV est désactivé en mode démo."
+    };
+  }
+
+  const supabase = await createSupabaseServerClient();
+  const fileName = sanitizeCvFileName(file.name);
+  const cvPath = `${user.id}/${Date.now()}-${fileName}`;
+  const completion = await candidateCompletionAfterCv(supabase, user.id);
+
+  if (!completion) {
+    return {
+      ok: false,
+      message: "Impossible de recalculer votre progression candidat."
+    };
+  }
+
+  const { error: uploadError } = await supabase.storage.from("cvs").upload(cvPath, file, {
+    contentType: file.type || "application/octet-stream",
+    upsert: true
+  });
+
+  if (uploadError) {
+    return {
+      ok: false,
+      message: "Le CV n'a pas pu être envoyé."
+    };
+  }
+
+  const { error: candidateError } = await supabase.from("candidate_profiles").upsert(
+    {
+      user_id: user.id,
+      cv_path: cvPath,
+      profile_completion: completion.percent
+    },
+    { onConflict: "user_id" }
+  );
+
+  if (candidateError) {
+    return {
+      ok: false,
+      message: "Le chemin du CV n'a pas pu être enregistré."
+    };
+  }
+
+  const { error: profileError } = await supabase
+    .from("profiles")
+    .update({ onboarding_completion: completion.percent })
+    .eq("id", user.id);
+
+  if (profileError) {
+    return {
+      ok: false,
+      message: "La progression du compte n'a pas pu être mise à jour."
+    };
+  }
+
+  revalidateCandidateProfile();
+
+  return {
+    ok: true,
+    message: "CV enregistré."
+  };
+}
+
+export async function uploadCandidateCvAndRedirect(formData: FormData): Promise<void> {
+  const result = await uploadCandidateCv(formData);
+
+  if (result.ok) {
+    redirect("/candidat/profil?cv=uploaded");
+  }
+
+  redirect(`/candidat/profil?error=${encodeURIComponent(result.message)}`);
 }
 
 export async function saveCandidateProfile(formData: FormData): Promise<CandidateActionResult> {

@@ -17,6 +17,7 @@ type CandidateProfileRow = {
   sector: string | null;
   desired_role: string | null;
   salary_expectation: string | null;
+  cv_path: string | null;
 };
 
 function firstQueryValue(value: string | string[] | undefined) {
@@ -32,7 +33,8 @@ export default async function CandidateProfilePage({ searchParams }: CandidatePr
         city: "Antananarivo",
         sector: "Informatique & Digital",
         desired_role: demoCandidateProfile.desired_role,
-        salary_expectation: ""
+        salary_expectation: "",
+        cv_path: demoCandidateProfile.cv_path
       }
     : null;
 
@@ -40,7 +42,7 @@ export default async function CandidateProfilePage({ searchParams }: CandidatePr
     const supabase = await createSupabaseServerClient();
     const { data } = await supabase
       .from("candidate_profiles")
-      .select("first_name, last_name, city, sector, desired_role, salary_expectation")
+      .select("first_name, last_name, city, sector, desired_role, salary_expectation, cv_path")
       .eq("user_id", user.id)
       .maybeSingle<CandidateProfileRow>();
 
@@ -49,6 +51,7 @@ export default async function CandidateProfilePage({ searchParams }: CandidatePr
 
   const query = await searchParams;
   const saved = firstQueryValue(query.saved);
+  const cvUploaded = firstQueryValue(query.cv);
   const error = firstQueryValue(query.error);
 
   return (
@@ -59,11 +62,16 @@ export default async function CandidateProfilePage({ searchParams }: CandidatePr
         <p>Gardez vos informations à jour pour envoyer des candidatures complètes et crédibles.</p>
       </section>
 
-      <CvUploadCard />
+      <CvUploadCard cvPath={candidateProfile?.cv_path} />
 
       {saved ? (
         <div className="candidateNotice" role="status">
           Profil candidat enregistré.
+        </div>
+      ) : null}
+      {cvUploaded ? (
+        <div className="candidateNotice" role="status">
+          CV candidat enregistré.
         </div>
       ) : null}
       {error ? (
