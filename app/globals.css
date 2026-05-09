@@ -906,7 +906,7 @@ a {
 }
 
 .candidateForm.compact {
-  grid-template-columns: repeat(3, minmax(0, 1fr)) auto;
+  grid-template-columns: repeat(5, minmax(0, 1fr)) auto;
   align-items: end;
 }
 
@@ -920,6 +920,7 @@ a {
 }
 
 .candidateForm input,
+.candidateForm select,
 .candidateSkillGrid textarea {
   width: 100%;
   min-width: 0;
@@ -930,6 +931,40 @@ a {
   background: var(--color-surface);
   color: var(--color-ink);
   font: inherit;
+}
+
+.candidateAlertList {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.candidateAlertList article {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  gap: 0.85rem;
+  align-items: center;
+  padding: 0.8rem;
+  border: 1px solid rgba(11, 47, 107, 0.12);
+  border-radius: 0.5rem;
+  background: rgba(244, 248, 251, 0.72);
+}
+
+.candidateAlertList strong,
+.candidateAlertList span {
+  color: var(--color-navy);
+  font-weight: 850;
+}
+
+.candidateAlertList p {
+  margin: 0.25rem 0 0;
+}
+
+.candidateAlertList small {
+  padding: 0.3rem 0.55rem;
+  border-radius: 999px;
+  background: rgba(142, 227, 33, 0.18);
+  color: var(--color-navy);
+  font-weight: 850;
 }
 
 .onboardingList a {
@@ -1813,6 +1848,7 @@ a {
 
   .sectionHeading,
   .candidateSectionHeader,
+  .candidateAlertList article,
   .recruiterSectionHeader,
   .recruiterHero.compact,
   .adminTableHeader,

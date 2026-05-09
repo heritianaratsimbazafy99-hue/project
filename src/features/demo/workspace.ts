@@ -34,3 +34,16 @@ export const demoCandidateProfile = {
 };
 
 export const demoCandidateAlertCount = 1;
+
+export const demoCandidateAlerts = [
+  {
+    id: "demo-alert-ui",
+    query: "Designer UI/UX",
+    sector: "Informatique & Digital",
+    city: "Antananarivo",
+    contract: "CDI",
+    frequency: "daily",
+    is_active: true,
+    created_at: new Date().toISOString()
+  }
+];

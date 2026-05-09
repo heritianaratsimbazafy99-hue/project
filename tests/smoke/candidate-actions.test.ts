@@ -112,4 +112,40 @@ describe("candidate profile actions", () => {
     expect(mocks.revalidatePath).toHaveBeenCalledWith("/candidat/profil");
     expect(mocks.revalidatePath).toHaveBeenCalledWith("/candidat/dashboard");
   });
+
+  it("creates an authenticated candidate job alert", async () => {
+    const insertAlert = vi.fn(async () => ({ error: null }));
+
+    mocks.from.mockImplementation((table: string) => {
+      if (table === "job_alerts") {
+        return { insert: insertAlert };
+      }
+
+      throw new Error(`Unexpected table ${table}`);
+    });
+
+    const { createCandidateJobAlert } = await import("@/features/candidate/actions");
+    const result = await createCandidateJobAlert(
+      candidateForm({
+        query: "Designer UI/UX",
+        sector: "Informatique & Digital",
+        city: "Antananarivo",
+        contract: "CDI",
+        frequency: "daily"
+      })
+    );
+
+    expect(result).toEqual({ ok: true, message: "Alerte emploi créée." });
+    expect(insertAlert).toHaveBeenCalledWith({
+      candidate_id: "candidate-1",
+      query: "Designer UI/UX",
+      sector: "Informatique & Digital",
+      city: "Antananarivo",
+      contract: "CDI",
+      frequency: "daily",
+      is_active: true
+    });
+    expect(mocks.revalidatePath).toHaveBeenCalledWith("/candidat/alertes");
+    expect(mocks.revalidatePath).toHaveBeenCalledWith("/candidat/dashboard");
+  });
 });

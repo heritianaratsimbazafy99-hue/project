@@ -7,7 +7,7 @@ import { calculateCandidateCompletion } from "@/features/candidate/completion";
 import { requireRole } from "@/lib/auth/require-role";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
-export type SaveCandidateProfileResult = {
+export type CandidateActionResult = {
   ok: boolean;
   message: string;
 };
@@ -17,6 +17,7 @@ type CandidateProfileState = {
 };
 
 const candidateProfilePaths = ["/candidat/profil", "/candidat/dashboard"] as const;
+const candidateAlertPaths = ["/candidat/alertes", "/candidat/dashboard"] as const;
 
 function formValue(formData: FormData, key: string) {
   const value = formData.get(key);
@@ -36,7 +37,11 @@ function revalidateCandidateProfile() {
   candidateProfilePaths.forEach((path) => revalidatePath(path));
 }
 
-export async function saveCandidateProfile(formData: FormData): Promise<SaveCandidateProfileResult> {
+function revalidateCandidateAlerts() {
+  candidateAlertPaths.forEach((path) => revalidatePath(path));
+}
+
+export async function saveCandidateProfile(formData: FormData): Promise<CandidateActionResult> {
   const { user, profile } = await requireRole(["candidate"]);
   const supabase = await createSupabaseServerClient();
 
@@ -133,4 +138,56 @@ export async function saveCandidateProfileAndRedirect(formData: FormData): Promi
   }
 
   redirect(`/candidat/profil?error=${encodeURIComponent(result.message)}`);
+}
+
+export async function createCandidateJobAlert(formData: FormData): Promise<CandidateActionResult> {
+  const query = formValue(formData, "query");
+  const sector = optionalFormValue(formData, "sector");
+  const city = optionalFormValue(formData, "city");
+  const contract = optionalFormValue(formData, "contract");
+
+  if (!query && !sector && !city && !contract) {
+    return {
+      ok: false,
+      message: "Ajoutez au moins un critère pour créer l'alerte."
+    };
+  }
+
+  const { user } = await requireRole(["candidate"]);
+  const supabase = await createSupabaseServerClient();
+  const frequency = formValue(formData, "frequency") || "daily";
+
+  const { error } = await supabase.from("job_alerts").insert({
+    candidate_id: user.id,
+    query,
+    sector,
+    city,
+    contract,
+    frequency,
+    is_active: true
+  });
+
+  if (error) {
+    return {
+      ok: false,
+      message: "L'alerte emploi n'a pas pu être créée."
+    };
+  }
+
+  revalidateCandidateAlerts();
+
+  return {
+    ok: true,
+    message: "Alerte emploi créée."
+  };
+}
+
+export async function createCandidateJobAlertAndRedirect(formData: FormData): Promise<void> {
+  const result = await createCandidateJobAlert(formData);
+
+  if (result.ok) {
+    redirect("/candidat/alertes?created=1");
+  }
+
+  redirect(`/candidat/alertes?error=${encodeURIComponent(result.message)}`);
 }
