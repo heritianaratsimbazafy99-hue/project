@@ -1262,6 +1262,18 @@ a {
   margin-top: 14px;
 }
 
+.recruiter-applications-list small {
+  display: block;
+  margin-top: 5px;
+  color: var(--muted, var(--color-muted));
+  font-weight: 750;
+}
+
+.recruiter-static-action {
+  pointer-events: none;
+  white-space: nowrap;
+}
+
 .recruiterMetricGrid span,
 .recruiterMethodGrid span,
 .recruiterStatus {

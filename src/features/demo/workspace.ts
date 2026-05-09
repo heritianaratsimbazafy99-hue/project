@@ -64,3 +64,26 @@ export const demoCandidateApplications = fallbackPublishedJobs.slice(0, 2).map((
     company: job.company
   }
 }));
+
+export const demoRecruiterApplications = demoCandidateApplications.map((application, index) => ({
+  id: `demo-recruiter-${application.id}`,
+  status: application.status,
+  created_at: application.created_at,
+  message: application.message,
+  cv_path: application.cv_path,
+  candidate: {
+    id: `demo-candidate-${index + 1}`,
+    displayName: index === 0 ? "Hery Ranaivo" : "Miora Rakoto",
+    city: index === 0 ? "Antananarivo" : "Antsirabe",
+    sector: index === 0 ? "Design" : "Relation client",
+    desiredRole: application.job.title
+  },
+  job: {
+    id: application.job.id,
+    slug: application.job.slug,
+    title: application.job.title,
+    contract: application.job.contract,
+    city: application.job.city,
+    sector: application.job.sector
+  }
+}));
