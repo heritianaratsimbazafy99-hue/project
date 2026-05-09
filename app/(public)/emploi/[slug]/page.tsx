@@ -2,7 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { brand } from "@/config/brand";
-import { getPublishedJobBySlug } from "@/features/jobs/queries";
+import { getPublishedJobBySlugOrNull } from "@/features/jobs/queries";
 
 export const dynamic = "force-dynamic";
 
@@ -12,7 +12,7 @@ type JobDetailPageProps = {
 
 export default async function JobDetailPage({ params }: JobDetailPageProps) {
   const { slug } = await params;
-  const job = await getPublishedJobBySlug(slug);
+  const job = await getPublishedJobBySlugOrNull(slug);
 
   if (!job) {
     notFound();

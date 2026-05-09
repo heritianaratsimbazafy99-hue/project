@@ -152,6 +152,15 @@ export async function getPublishedJobs(filters: JobFilters): Promise<JobListItem
   return ((data ?? []) as JobRow[]).map(mapJobListItem);
 }
 
+export async function getPublishedJobsOrEmpty(filters: JobFilters): Promise<JobListItem[]> {
+  try {
+    return await getPublishedJobs(filters);
+  } catch (error) {
+    console.error("Unable to load public jobs", error);
+    return [];
+  }
+}
+
 export async function getPublishedJobBySlug(slug: string): Promise<JobDetail | null> {
   const supabase = await createSupabaseServerClient();
   const { data, error } = await supabase
@@ -169,4 +178,13 @@ export async function getPublishedJobBySlug(slug: string): Promise<JobDetail | n
   }
 
   return data ? mapJobDetail(data as JobRow) : null;
+}
+
+export async function getPublishedJobBySlugOrNull(slug: string): Promise<JobDetail | null> {
+  try {
+    return await getPublishedJobBySlug(slug);
+  } catch (error) {
+    console.error("Unable to load public job", error);
+    return null;
+  }
 }

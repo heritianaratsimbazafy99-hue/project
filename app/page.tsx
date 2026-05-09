@@ -2,12 +2,12 @@ import Link from "next/link";
 
 import { brand } from "@/config/brand";
 import { JobCard } from "@/features/jobs/components/job-card";
-import { buildJobFilters, getPublishedJobs } from "@/features/jobs/queries";
+import { buildJobFilters, getPublishedJobsOrEmpty } from "@/features/jobs/queries";
 
 export const dynamic = "force-dynamic";
 
 export default async function HomePage() {
-  const jobs = await getPublishedJobs(buildJobFilters({}));
+  const jobs = await getPublishedJobsOrEmpty(buildJobFilters({}));
   const featuredJobs = jobs.filter((job) => job.is_featured).slice(0, 3);
   const latestJobs = jobs.slice(0, 4);
   const companies = Array.from(

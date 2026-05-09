@@ -1,6 +1,6 @@
 import Link from "next/link";
 
-import { getPublishedJobs } from "@/features/jobs/queries";
+import { getPublishedJobsOrEmpty } from "@/features/jobs/queries";
 import { requireRole } from "@/lib/auth/require-role";
 
 export const dynamic = "force-dynamic";
@@ -14,7 +14,7 @@ const onboardingSteps = [
 
 export default async function CandidateDashboardPage() {
   const { profile } = await requireRole(["candidate"]);
-  const recentJobs = (await getPublishedJobs({ query: "", contract: "", city: "", sector: "" })).slice(0, 3);
+  const recentJobs = (await getPublishedJobsOrEmpty({ query: "", contract: "", city: "", sector: "" })).slice(0, 3);
   const completedSteps = onboardingSteps.filter((step) => step.done).length;
 
   return (

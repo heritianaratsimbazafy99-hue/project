@@ -2,7 +2,7 @@ import Link from "next/link";
 
 import { brand } from "@/config/brand";
 import { JobCard } from "@/features/jobs/components/job-card";
-import { buildJobFilters, getPublishedJobs } from "@/features/jobs/queries";
+import { buildJobFilters, getPublishedJobsOrEmpty } from "@/features/jobs/queries";
 
 export const dynamic = "force-dynamic";
 
@@ -12,7 +12,7 @@ type EmploymentPageProps = {
 
 export default async function EmploymentPage({ searchParams }: EmploymentPageProps) {
   const filters = buildJobFilters(await searchParams);
-  const jobs = await getPublishedJobs(filters);
+  const jobs = await getPublishedJobsOrEmpty(filters);
   const urgentJobs = jobs.filter((job) => job.is_urgent).slice(0, 4);
 
   return (
