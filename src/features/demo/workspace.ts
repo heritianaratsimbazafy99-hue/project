@@ -1,5 +1,5 @@
 import { fallbackPublishedJobs } from "@/features/public/demo-data";
-import type { CompanyStatus, JobStatus } from "@/types/database";
+import type { ApplicationStatus, CompanyStatus, JobStatus } from "@/types/database";
 
 export const demoRecruiterCompany = {
   id: "demo-company-media-click",
@@ -47,3 +47,20 @@ export const demoCandidateAlerts = [
     created_at: new Date().toISOString()
   }
 ];
+
+export const demoCandidateApplications = fallbackPublishedJobs.slice(0, 2).map((job, index) => ({
+  id: `demo-application-${job.id}`,
+  status: (index === 0 ? "submitted" : "viewed") as ApplicationStatus,
+  created_at: job.published_at ?? new Date().toISOString(),
+  message: null,
+  cv_path: "demo/cv.pdf",
+  job: {
+    id: job.id,
+    slug: job.slug,
+    title: job.title,
+    contract: job.contract,
+    city: job.city,
+    sector: job.sector,
+    company: job.company
+  }
+}));

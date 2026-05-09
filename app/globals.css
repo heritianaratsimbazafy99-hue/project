@@ -938,6 +938,12 @@ a {
   gap: 0.75rem;
 }
 
+.candidateApplicationList {
+  display: grid;
+  gap: 0.8rem;
+}
+
+.candidateApplicationList article,
 .candidateAlertList article {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto auto;
@@ -949,16 +955,33 @@ a {
   background: rgba(244, 248, 251, 0.72);
 }
 
+.candidateApplicationList strong,
+.candidateApplicationList span,
 .candidateAlertList strong,
 .candidateAlertList span {
   color: var(--color-navy);
   font-weight: 850;
 }
 
+.candidateApplicationList p,
 .candidateAlertList p {
   margin: 0.25rem 0 0;
 }
 
+.candidateApplicationList small {
+  display: block;
+  margin-top: 0.35rem;
+  color: var(--color-muted);
+  font-weight: 750;
+}
+
+.candidateApplicationList a {
+  color: var(--color-navy);
+  font-weight: 850;
+  text-decoration: none;
+}
+
+.candidateApplicationList article > span,
 .candidateAlertList small {
   padding: 0.3rem 0.55rem;
   border-radius: 999px;
@@ -1848,6 +1871,7 @@ a {
 
   .sectionHeading,
   .candidateSectionHeader,
+  .candidateApplicationList article,
   .candidateAlertList article,
   .recruiterSectionHeader,
   .recruiterHero.compact,
