@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { BriefcaseBusiness, Eye, FileText, Plus, TrendingUp, UsersRound, Zap } from "lucide-react";
+import { BriefcaseBusiness, CheckCircle2, Circle, Eye, FileText, Plus, TrendingUp, UsersRound, Zap } from "lucide-react";
 
 import { demoRecruiterCompany, demoRecruiterJobs, demoRecruiterSubscription } from "@/features/demo/workspace";
 import { submitCompanyForReview } from "@/features/recruiter/company-actions";
@@ -53,7 +53,6 @@ export default async function RecruiterDashboardPage() {
   let subscription: SubscriptionRow | null = isDemo ? demoRecruiterSubscription : null;
   let ownedJobs: JobRow[] = isDemo ? demoRecruiterJobs : [];
   let publishedCount = isDemo ? 1 : 0;
-  let reviewCount = isDemo ? 1 : 0;
 
   if (!isDemo) {
     const supabase = await createSupabaseServerClient();
@@ -69,12 +68,7 @@ export default async function RecruiterDashboardPage() {
     company = companyData;
 
     if (company) {
-      const [
-        { data: subscriptionData },
-        { data: jobs },
-        { count: published },
-        { count: inReview }
-      ] = await Promise.all([
+      const [{ data: subscriptionData }, { data: jobs }, { count: published }] = await Promise.all([
         supabase
           .from("subscriptions")
           .select("plan, status, job_quota, cv_access_enabled")
@@ -90,18 +84,12 @@ export default async function RecruiterDashboardPage() {
           .from("jobs")
           .select("id", { count: "exact", head: true })
           .eq("company_id", company.id)
-          .eq("status", "published"),
-        supabase
-          .from("jobs")
-          .select("id", { count: "exact", head: true })
-          .eq("company_id", company.id)
-          .eq("status", "pending_review")
+          .eq("status", "published")
       ]);
 
       subscription = subscriptionData;
       ownedJobs = (jobs ?? []) as JobRow[];
       publishedCount = published ?? 0;
-      reviewCount = inReview ?? 0;
     }
   }
 
@@ -112,7 +100,6 @@ export default async function RecruiterDashboardPage() {
   const onboardingSteps = [
     { label: "Créer votre compte", done: true },
     { label: "Compléter le profil entreprise", done: Boolean(company) },
-    { label: "Entreprise vérifiée", done: company?.status === "verified" },
     { label: "Publier votre première offre", done: jobCount > 0 }
   ];
   const completedSteps = onboardingSteps.filter((step) => step.done).length;
@@ -120,7 +107,7 @@ export default async function RecruiterDashboardPage() {
   const metrics = [
     ["Offres actives", publishedCount, BriefcaseBusiness, `${publishedCount} publiée(s)`],
     ["Candidatures non lues", 0, UsersRound, "Aucune nouvelle"],
-    ["En revue", reviewCount, FileText, "Validation JobMada"],
+    ["Shortlistés en cours", 0, FileText, "Aucun shortlist"],
     ["Vues totales", isDemo ? 128 : 0, Eye, isDemo ? "+12 cette semaine" : "— vs sem. préc."],
     ["Quota restant", remaining, FileText, quota > 0 ? `${jobCount}/${quota} utilisées` : "À configurer"]
   ] as const;
@@ -134,16 +121,12 @@ export default async function RecruiterDashboardPage() {
             {company?.name || "Entreprise JobMada"} — Plan {subscription?.plan ?? "Gratuit"}
           </p>
         </div>
-        <Link className="btn btn-primary" href="/recruteur/offres/nouvelle">
-          <Plus aria-hidden="true" size={18} />
-          Publier une offre
-        </Link>
       </div>
 
       <section className="onboarding-panel">
         <h2>
           <Zap aria-hidden="true" size={20} />
-          Démarrez en 4 étapes
+          Démarrez en 3 étapes
         </h2>
         <div className="onboarding-progress" aria-hidden="true">
           <span style={{ width: `${(completedSteps / onboardingSteps.length) * 100}%` }} />
@@ -152,12 +135,12 @@ export default async function RecruiterDashboardPage() {
           {onboardingSteps.map((step) =>
             step.done ? (
               <div className="done" key={step.label}>
-                <span aria-hidden="true">OK</span>
+                <CheckCircle2 aria-hidden="true" size={20} />
                 <span>{step.label}</span>
               </div>
             ) : (
               <Link href={step.label.includes("offre") ? "/recruteur/offres/nouvelle" : "/recruteur/entreprise"} key={step.label}>
-                <span aria-hidden="true">○</span>
+                <Circle aria-hidden="true" size={20} />
                 <span>{step.label}</span>
                 {step.label.includes("offre") ? <strong>Publier une offre</strong> : null}
               </Link>

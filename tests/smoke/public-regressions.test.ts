@@ -27,6 +27,16 @@ describe("public regression guards", () => {
     );
   });
 
+  it("keeps the public homepage scale close to the Asako reference", () => {
+    const styles = read("styles.css");
+
+    expect(styles).toContain("width: min(1168px, calc(100% - 48px))");
+    expect(styles).toContain("font-size: clamp(36px, 4vw, 52px)");
+    expect(styles).toContain("padding: 48px 0");
+    expect(styles).toContain("min-height: 70px");
+    expect(styles).not.toContain("font-size: clamp(42px, 5vw, 68px)");
+  });
+
   it("keeps signup pages close to the observed Asako recruiter and candidate account creation screens", () => {
     const signup = read("app/(public)/inscription/[type]/page.tsx");
     const styles = read("app/globals.css");
