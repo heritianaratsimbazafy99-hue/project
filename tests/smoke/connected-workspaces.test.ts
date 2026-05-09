@@ -23,4 +23,20 @@ describe("connected workspace visual regressions", () => {
     expect(offers).toContain("offers-panel");
     expect(offers).toContain("status-tabs");
   });
+
+  it("keeps the new offer page aligned with the observed Asako manual form", () => {
+    const newOffer = read("app/(recruiter)/recruteur/offres/nouvelle/page.tsx");
+    const styles = read("styles.css");
+
+    expect(newOffer).toContain("Nouvelle offre");
+    expect(newOffer).toContain("Remplissez les informations de votre offre");
+    expect(newOffer).toContain("Changer de méthode");
+    expect(newOffer).toContain("quota-notice");
+    expect(newOffer).toContain("form-section");
+    expect(newOffer).toContain("Informations du poste");
+    expect(newOffer).toContain("Description de l'offre");
+    expect(newOffer).toContain("Améliorer avec l'IA");
+    expect(newOffer).toContain("sticky-actions");
+    expect(styles).toContain(".recruiter-app.compact-ui");
+  });
 });

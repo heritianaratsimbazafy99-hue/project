@@ -56,7 +56,7 @@ export default async function RecruiterLayout({ children }: RecruiterLayoutProps
   }
 
   return (
-    <main className="recruiter-app">
+    <main className="recruiter-app compact-ui">
       <div className="recruiter-shell">
         <RecruiterSidebar
           companyName={company?.name}

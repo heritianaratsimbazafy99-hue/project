@@ -20,7 +20,7 @@ describe("public regression guards", () => {
     const companies = getPublicCompanies?.([fallbackPublishedJobs[0]]) ?? [];
     const companyNames = companies.map((company) => company.name);
 
-    expect(companyNames.length).toBeGreaterThanOrEqual(6);
+    expect(companyNames.length).toBeGreaterThanOrEqual(8);
     expect(new Set(companyNames).size).toBe(companyNames.length);
     expect(companyNames).toEqual(
       expect.arrayContaining(["Media Click", "DIGITALK", "LES HOTELS PALISSANDRE", "LINKEO MADA", "La compta", "MATERAUTO"])

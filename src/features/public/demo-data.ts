@@ -78,6 +78,32 @@ export const fallbackPublishedJobs: JobListItem[] = [
     is_urgent: false,
     published_at: "2026-05-04T08:00:00.000Z",
     company: { name: "MATERAUTO", slug: "materauto", logo_path: null }
+  },
+  {
+    id: "demo-rh",
+    slug: "charge-recrutement",
+    title: "Chargé de recrutement",
+    contract: "CDD",
+    city: "Antananarivo",
+    sector: "Ressources humaines",
+    summary: "Soutenez le sourcing, les entretiens et l'intégration des nouveaux talents.",
+    is_featured: false,
+    is_urgent: false,
+    published_at: "2026-05-03T08:00:00.000Z",
+    company: { name: "Talentis Mada", slug: "talentis-mada", logo_path: null }
+  },
+  {
+    id: "demo-projet-ong",
+    slug: "coordinateur-projet-ong",
+    title: "Coordinateur projet ONG",
+    contract: "CDI",
+    city: "Fianarantsoa",
+    sector: "ONG & Projet",
+    summary: "Coordonnez les activités terrain et le reporting d'un programme social.",
+    is_featured: false,
+    is_urgent: true,
+    published_at: "2026-05-02T08:00:00.000Z",
+    company: { name: "Impact Madagascar", slug: "impact-madagascar", logo_path: null }
   }
 ];
 
