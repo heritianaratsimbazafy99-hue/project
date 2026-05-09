@@ -13,6 +13,7 @@ type ConnexionPageProps = {
 export default async function ConnexionPage({ searchParams }: ConnexionPageProps) {
   const params = await searchParams;
   const error = Array.isArray(params.error) ? params.error[0] : params.error;
+  const signup = Array.isArray(params.signup) ? params.signup[0] : params.signup;
 
   return (
     <>
@@ -30,6 +31,12 @@ export default async function ConnexionPage({ searchParams }: ConnexionPageProps
               <div className="login-alert" role="alert">
                 <strong>Connexion impossible</strong>
                 <p>Vérifiez votre email, votre mot de passe ou la configuration Supabase.</p>
+              </div>
+            ) : null}
+            {signup === "check-email" ? (
+              <div className="login-alert login-success" role="status">
+                <strong>Compte créé</strong>
+                <p>Confirmez votre email si Supabase le demande, puis connectez-vous à votre espace.</p>
               </div>
             ) : null}
             <form className="login-form" action={signInWithPassword}>

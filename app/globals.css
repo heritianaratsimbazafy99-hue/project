@@ -1173,6 +1173,17 @@ a {
   font-weight: 850;
 }
 
+.recruiterNotice.isError {
+  border-color: rgba(225, 93, 126, 0.36);
+  background: rgba(225, 93, 126, 0.12);
+}
+
+.review-company-form {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 14px;
+}
+
 .recruiterMetricGrid span,
 .recruiterMethodGrid span,
 .recruiterStatus {
@@ -1984,6 +1995,16 @@ a {
   color: #817b9d;
 }
 
+.login-success {
+  border-color: rgba(125, 214, 91, 0.46);
+  background: #f0ffe5;
+  color: #427823;
+}
+
+.login-success p {
+  color: #5f8e48;
+}
+
 .login-form {
   display: grid;
   gap: 24px;
@@ -2616,6 +2637,7 @@ a {
 }
 
 .signup-submit {
+  border: 0;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -2627,6 +2649,7 @@ a {
   font-size: 17px;
   font-weight: 950;
   box-shadow: 0 18px 36px rgba(225, 93, 126, 0.24);
+  cursor: pointer;
   text-decoration: none;
 }
 

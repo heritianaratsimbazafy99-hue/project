@@ -1,11 +1,11 @@
-import { readFileSync } from "node:fs";
+import { readdirSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
 import { describe, expect, it } from "vitest";
 
 const migrationPath = resolve(
   process.cwd(),
-  "supabase/migrations/20260509_initial_schema.sql"
+  "supabase/migrations"
 );
 
 const coreTables = [
@@ -20,7 +20,12 @@ const coreTables = [
 ] as const;
 
 describe("initial Supabase schema", () => {
-  const migrationSql = readFileSync(migrationPath, "utf8").toLowerCase();
+  const migrationSql = readdirSync(migrationPath)
+    .filter((fileName) => fileName.endsWith(".sql"))
+    .sort()
+    .map((fileName) => readFileSync(resolve(migrationPath, fileName), "utf8"))
+    .join("\n")
+    .toLowerCase();
 
   it.each(coreTables)("creates and protects public.%s", (tableName) => {
     expect(migrationSql).toContain(
@@ -48,5 +53,13 @@ describe("initial Supabase schema", () => {
     expect(migrationSql).toContain("create or replace function public.review_company");
     expect(migrationSql).toContain("for update");
     expect(migrationSql).toContain("insert into public.admin_reviews");
+  });
+
+  it("onboards new Supabase Auth users into their business workspace", () => {
+    expect(migrationSql).toContain("create or replace function public.handle_new_auth_user");
+    expect(migrationSql).toContain("after insert on auth.users");
+    expect(migrationSql).toContain("insert into public.candidate_profiles");
+    expect(migrationSql).toContain("insert into public.companies");
+    expect(migrationSql).toContain("insert into public.subscriptions");
   });
 });

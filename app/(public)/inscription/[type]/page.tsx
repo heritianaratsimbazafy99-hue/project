@@ -12,17 +12,27 @@ import {
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
+import { signUpWithPassword } from "@/features/auth/actions";
 import { PublicHeader } from "@/features/public/components";
 
 export const dynamic = "force-dynamic";
 
 type SignupPageProps = {
   params: Promise<{ type: string }>;
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
 };
 
-export default async function SignupPage({ params }: SignupPageProps) {
+const signupErrorMessages: Record<string, string> = {
+  exists: "Ce compte existe déjà ou Supabase a refusé l'inscription. Essayez de vous connecter.",
+  missing: "Complétez tous les champs obligatoires avec un mot de passe d'au moins 8 caractères.",
+  workspace: "Le compte a été créé, mais l'espace métier n'a pas pu être préparé. Réessayez dans un instant."
+};
+
+export default async function SignupPage({ params, searchParams }: SignupPageProps) {
   const { type } = await params;
+  const query = await searchParams;
   const isRecruiter = type === "recruteur";
+  const error = Array.isArray(query.error) ? query.error[0] : query.error;
 
   if (type !== "candidat" && type !== "recruteur") {
     notFound();
@@ -87,13 +97,21 @@ export default async function SignupPage({ params }: SignupPageProps) {
               </div>
             </div>
 
-            <form className="signup-asako-form">
+            {error ? (
+              <div className="login-alert signup-alert" role="alert">
+                <strong>Inscription impossible</strong>
+                <p>{signupErrorMessages[error] ?? signupErrorMessages.missing}</p>
+              </div>
+            ) : null}
+
+            <form className="signup-asako-form" action={signUpWithPassword}>
+              <input type="hidden" name="account_type" value={isRecruiter ? "recruiter" : "candidate"} />
               {isRecruiter ? (
                 <label>
                   Nom de votre entreprise
                   <span className="signup-input-wrap">
                     <Building2 size={19} aria-hidden="true" />
-                    <input placeholder="Ex: TeknetGroup" />
+                    <input name="company_name" placeholder="Ex: TeknetGroup" autoComplete="organization" required />
                   </span>
                 </label>
               ) : null}
@@ -103,14 +121,14 @@ export default async function SignupPage({ params }: SignupPageProps) {
                   Prénom
                   <span className="signup-input-wrap">
                     <UserRound size={19} aria-hidden="true" />
-                    <input placeholder={isRecruiter ? "Rivo" : "Hery"} />
+                    <input name="first_name" placeholder={isRecruiter ? "Rivo" : "Hery"} autoComplete="given-name" required />
                   </span>
                 </label>
                 <label>
                   Nom
                   <span className="signup-input-wrap">
                     <UserRound size={19} aria-hidden="true" />
-                    <input placeholder={isRecruiter ? "Rakoto" : "Ranaivo"} />
+                    <input name="last_name" placeholder={isRecruiter ? "Rakoto" : "Ranaivo"} autoComplete="family-name" required />
                   </span>
                 </label>
               </div>
@@ -119,7 +137,13 @@ export default async function SignupPage({ params }: SignupPageProps) {
                 {isRecruiter ? "Email professionnel" : "Email"}
                 <span className="signup-input-wrap">
                   <Mail size={19} aria-hidden="true" />
-                  <input placeholder={isRecruiter ? "vous@entreprise.mg" : "vous@email.com"} type="email" />
+                  <input
+                    name="email"
+                    placeholder={isRecruiter ? "vous@entreprise.mg" : "vous@email.com"}
+                    type="email"
+                    autoComplete="email"
+                    required
+                  />
                 </span>
               </label>
 
@@ -128,8 +152,12 @@ export default async function SignupPage({ params }: SignupPageProps) {
                 <span className="signup-input-wrap">
                   {isRecruiter ? <LockKeyhole size={19} aria-hidden="true" /> : <FileText size={19} aria-hidden="true" />}
                   <input
+                    name={isRecruiter ? "password" : "desired_role"}
                     placeholder={isRecruiter ? "Minimum 8 caractères" : "Designer UI/UX, Comptable..."}
                     type={isRecruiter ? "password" : "text"}
+                    autoComplete={isRecruiter ? "new-password" : "organization-title"}
+                    required={isRecruiter}
+                    minLength={isRecruiter ? 8 : undefined}
                   />
                   {isRecruiter ? <Eye size={19} aria-hidden="true" /> : null}
                 </span>
@@ -140,16 +168,23 @@ export default async function SignupPage({ params }: SignupPageProps) {
                   Mot de passe
                   <span className="signup-input-wrap">
                     <LockKeyhole size={19} aria-hidden="true" />
-                    <input placeholder="Minimum 8 caractères" type="password" />
+                    <input
+                      name="password"
+                      placeholder="Minimum 8 caractères"
+                      type="password"
+                      autoComplete="new-password"
+                      minLength={8}
+                      required
+                    />
                     <Eye size={19} aria-hidden="true" />
                   </span>
                 </label>
               ) : null}
 
-              <Link className="signup-submit" href="/connexion">
+              <button className="signup-submit" type="submit">
                 <Send size={20} aria-hidden="true" />
                 {isRecruiter ? "Publier ma première offre" : "Déposer mon CV"}
-              </Link>
+              </button>
             </form>
 
             <div className="signup-reassurance" aria-label="Avantages">
