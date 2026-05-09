@@ -1285,6 +1285,12 @@ a {
   color: var(--color-muted);
 }
 
+.recruiterCompanyReview {
+  display: grid;
+  gap: 0.8rem;
+  justify-items: start;
+}
+
 .recruiterTabs {
   display: flex;
   flex-wrap: wrap;
@@ -1450,6 +1456,248 @@ a {
   cursor: pointer;
 }
 
+.adminArea {
+  background:
+    linear-gradient(135deg, rgba(11, 47, 107, 0.08), transparent 30rem),
+    linear-gradient(315deg, rgba(40, 200, 245, 0.1), transparent 28rem),
+    var(--color-page);
+}
+
+.adminShell {
+  display: grid;
+  grid-template-columns: minmax(14rem, 18rem) minmax(0, 1fr);
+  gap: 1.25rem;
+  width: min(100% - 2rem, 72rem);
+  margin: 0 auto;
+  padding: 1rem 0 4rem;
+}
+
+.adminSidebar {
+  position: sticky;
+  top: 1rem;
+  display: grid;
+  gap: 1rem;
+  align-self: start;
+}
+
+.adminIdentity,
+.adminNav,
+.adminHero,
+.adminMetricGrid article,
+.adminMetricGrid a,
+.adminEmptyState,
+.adminTable {
+  border: 1px solid rgba(11, 47, 107, 0.12);
+  border-radius: 0.5rem;
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow: 0 0.75rem 2rem rgba(11, 47, 107, 0.08);
+}
+
+.adminIdentity {
+  display: grid;
+  gap: 0.25rem;
+  padding: 1rem;
+}
+
+.adminIdentity span,
+.adminEyebrow,
+.adminMetricGrid span {
+  color: var(--color-purple);
+  font-size: 0.78rem;
+  font-weight: 850;
+  line-height: 1.35;
+  text-transform: uppercase;
+}
+
+.adminIdentity strong {
+  color: var(--color-navy);
+  line-height: 1.25;
+}
+
+.adminNav {
+  display: grid;
+  gap: 0.35rem;
+  padding: 0.75rem;
+}
+
+.adminNav a,
+.adminNav span {
+  min-height: 2.45rem;
+  padding: 0.65rem 0.75rem;
+  border-radius: 0.45rem;
+  color: var(--color-navy);
+  font-weight: 850;
+  text-decoration: none;
+}
+
+.adminNav a:hover {
+  background: rgba(40, 200, 245, 0.11);
+}
+
+.adminNav span {
+  color: var(--color-muted);
+  cursor: not-allowed;
+}
+
+.adminContent,
+.adminStack {
+  min-width: 0;
+}
+
+.adminStack {
+  display: grid;
+  gap: 1rem;
+}
+
+.adminHero {
+  display: grid;
+  gap: 0.8rem;
+  padding: clamp(1.5rem, 4vw, 2rem);
+  background:
+    linear-gradient(135deg, rgba(142, 227, 33, 0.16), transparent 65%),
+    var(--color-surface);
+}
+
+.adminHero.compact {
+  padding-block: 1.5rem;
+}
+
+.adminHero h1 {
+  max-width: 16ch;
+  margin: 0;
+  color: var(--color-navy);
+  font-size: clamp(2rem, 5vw, 3.4rem);
+  line-height: 1;
+}
+
+.adminHero p {
+  max-width: 44rem;
+  margin: 0;
+  color: var(--color-muted);
+  line-height: 1.6;
+}
+
+.adminMetricGrid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.85rem;
+}
+
+.adminMetricGrid article,
+.adminMetricGrid a {
+  display: grid;
+  gap: 0.45rem;
+  min-height: 9rem;
+  padding: 1rem;
+  color: inherit;
+  text-decoration: none;
+}
+
+.adminMetricGrid strong {
+  color: var(--color-navy);
+  font-size: 2.2rem;
+  line-height: 1;
+}
+
+.adminMetricGrid p,
+.adminEmptyState p {
+  margin: 0;
+  color: var(--color-muted);
+  line-height: 1.5;
+}
+
+.adminTable {
+  overflow: hidden;
+}
+
+.adminTableHeader,
+.adminTableRow {
+  display: grid;
+  grid-template-columns: minmax(12rem, 1.35fr) minmax(9rem, 1fr) minmax(7rem, 0.75fr) minmax(7rem, 0.75fr) minmax(12rem, 1fr);
+  gap: 0.75rem;
+  align-items: center;
+  padding: 0.95rem 1rem;
+}
+
+.adminTableHeader {
+  background: rgba(11, 47, 107, 0.06);
+  color: var(--color-navy);
+  font-size: 0.78rem;
+  font-weight: 850;
+  text-transform: uppercase;
+}
+
+.adminTableRow {
+  border-top: 1px solid rgba(11, 47, 107, 0.1);
+}
+
+.adminTableRow strong {
+  display: block;
+  color: var(--color-navy);
+  line-height: 1.25;
+}
+
+.adminTableRow span,
+.adminTableRow time {
+  color: var(--color-muted);
+  line-height: 1.45;
+}
+
+.adminStatus {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: fit-content;
+  min-height: 2rem;
+  padding: 0.35rem 0.6rem;
+  border-radius: 999px;
+  background: rgba(40, 200, 245, 0.1);
+  color: var(--color-navy) !important;
+  font-size: 0.82rem;
+  font-weight: 850;
+}
+
+.adminActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.adminActions button {
+  min-height: 2.4rem;
+  padding: 0.6rem 0.8rem;
+  border: 0;
+  border-radius: 0.45rem;
+  background: var(--color-navy);
+  color: var(--color-surface);
+  font: inherit;
+  font-weight: 850;
+  cursor: pointer;
+}
+
+.adminActions button.isDanger {
+  background: #8a2032;
+}
+
+.adminActionHint {
+  display: inline-flex;
+  align-items: center;
+  min-height: 2.4rem;
+  color: var(--color-muted);
+  font-size: 0.82rem;
+  font-weight: 850;
+}
+
+.adminEmptyState {
+  padding: 1.5rem;
+}
+
+.adminEmptyState h2 {
+  margin: 0;
+  color: var(--color-navy);
+  font-size: 1.2rem;
+}
+
 @media (max-width: 520px) {
   :root {
     --header-height: 76px;
@@ -1479,6 +1727,8 @@ a {
   .jobBoardLayout,
   .homeJobGrid,
   .dashboardShell,
+  .adminShell,
+  .adminMetricGrid,
   .cvUploadCard,
   .candidateForm,
   .candidateForm.compact,
@@ -1495,6 +1745,7 @@ a {
   .applyPanel,
   .stickyRail,
   .candidateSidebar,
+  .adminSidebar,
   .recruiterSidebar,
   .recruiterSubmitBar {
     position: static;
@@ -1533,9 +1784,12 @@ a {
   .candidateSectionHeader,
   .recruiterSectionHeader,
   .recruiterHero.compact,
+  .adminTableHeader,
+  .adminTableRow,
   .recruiterOfferCard,
   .recruiterSubmitBar {
     display: grid;
+    grid-template-columns: 1fr;
   }
 
   .dashboardShell {

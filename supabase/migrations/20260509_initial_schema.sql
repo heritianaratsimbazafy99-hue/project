@@ -332,6 +332,13 @@ begin
   end if;
 
   if tg_op = 'UPDATE' and new.status is distinct from old.status then
+    if old.status in ('incomplete', 'rejected')
+      and new.status = 'pending_review'
+      and new.owner_id = old.owner_id
+      and new.owner_id = (select auth.uid()) then
+      return new;
+    end if;
+
     raise exception 'Company moderation status is admin-managed';
   end if;
 
@@ -426,6 +433,118 @@ drop trigger if exists protect_application_identity on public.applications;
 create trigger protect_application_identity
   before update on public.applications
   for each row execute function public.protect_application_identity();
+
+create or replace function public.review_job(
+  job_uuid uuid,
+  review_decision text,
+  review_note text default null
+)
+returns table(slug text)
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  job_record public.jobs%rowtype;
+  next_status text;
+  company_status text;
+begin
+  if not public.is_admin() then
+    raise exception 'Only admins can review jobs';
+  end if;
+
+  if review_decision not in ('approve', 'reject') then
+    raise exception 'Unsupported review decision';
+  end if;
+
+  select *
+  into job_record
+  from public.jobs
+  where id = job_uuid
+  for update;
+
+  if not found then
+    raise exception 'Job not found';
+  end if;
+
+  if job_record.status <> 'pending_review' then
+    raise exception 'Job is not waiting for review';
+  end if;
+
+  if review_decision = 'approve' then
+    select status
+    into company_status
+    from public.companies
+    where id = job_record.company_id
+    for update;
+
+    if company_status <> 'verified' then
+      raise exception 'Company must be verified before publishing a job';
+    end if;
+  end if;
+
+  next_status := case when review_decision = 'approve' then 'published' else 'rejected' end;
+
+  update public.jobs
+  set
+    status = next_status,
+    published_at = case when next_status = 'published' then now() else null end
+  where id = job_uuid;
+
+  insert into public.admin_reviews (reviewer_id, target_table, target_id, decision, note)
+  values ((select auth.uid()), 'jobs', job_uuid, review_decision, nullif(trim(review_note), ''));
+
+  slug := job_record.slug;
+  return next;
+end;
+$$;
+
+create or replace function public.review_company(
+  company_uuid uuid,
+  review_decision text,
+  review_note text default null
+)
+returns void
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  company_record public.companies%rowtype;
+  next_status text;
+begin
+  if not public.is_admin() then
+    raise exception 'Only admins can review companies';
+  end if;
+
+  if review_decision not in ('approve', 'reject') then
+    raise exception 'Unsupported review decision';
+  end if;
+
+  select *
+  into company_record
+  from public.companies
+  where id = company_uuid
+  for update;
+
+  if not found then
+    raise exception 'Company not found';
+  end if;
+
+  if company_record.status <> 'pending_review' then
+    raise exception 'Company is not waiting for review';
+  end if;
+
+  next_status := case when review_decision = 'approve' then 'verified' else 'rejected' end;
+
+  update public.companies
+  set status = next_status
+  where id = company_uuid;
+
+  insert into public.admin_reviews (reviewer_id, target_table, target_id, decision, note)
+  values ((select auth.uid()), 'companies', company_uuid, review_decision, nullif(trim(review_note), ''));
+end;
+$$;
 
 alter table public.profiles enable row level security;
 alter table public.candidate_profiles enable row level security;
@@ -685,7 +804,19 @@ create policy companies_delete_admin on public.companies
 
 create policy jobs_select_public_owned_or_admin on public.jobs
   for select to anon, authenticated
-  using (status = 'published' or (select public.owns_company(company_id)) or (select public.is_admin()));
+  using (
+    (
+      status = 'published'
+      and exists (
+        select 1
+        from public.companies
+        where public.companies.id = public.jobs.company_id
+          and public.companies.status = 'verified'
+      )
+    )
+    or (select public.owns_company(company_id))
+    or (select public.is_admin())
+  );
 
 create policy jobs_insert_owned_company_or_admin on public.jobs
   for insert to authenticated
@@ -760,8 +891,10 @@ create policy saved_jobs_insert_own_published on public.saved_jobs
     and exists (
       select 1
       from public.jobs
+      join public.companies on public.companies.id = public.jobs.company_id
       where public.jobs.id = public.saved_jobs.job_id
         and public.jobs.status = 'published'
+        and public.companies.status = 'verified'
     )
   );
 

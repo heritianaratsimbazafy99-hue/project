@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import { submitCompanyForReview } from "@/features/recruiter/company-actions";
 import { requireRole } from "@/lib/auth/require-role";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { CompanyStatus, JobStatus } from "@/types/database";
@@ -35,6 +36,13 @@ const statusLabels: Record<JobStatus, string> = {
   rejected: "Rejetée",
   expired: "Expirée",
   archived: "Archivée"
+};
+
+const companyStatusLabels: Record<CompanyStatus, string> = {
+  incomplete: "Incomplète",
+  pending_review: "En revue",
+  verified: "Vérifiée",
+  rejected: "Rejetée"
 };
 
 export default async function RecruiterDashboardPage() {
@@ -146,9 +154,22 @@ export default async function RecruiterDashboardPage() {
             </div>
           </div>
           {company ? (
-            <p>
-              {company.sector || "Secteur à préciser"} · {company.city || "Ville à préciser"} · Statut {company.status}
-            </p>
+            <div className="recruiterCompanyReview">
+              <p>
+                {company.sector || "Secteur à préciser"} · {company.city || "Ville à préciser"} · Statut{" "}
+                {companyStatusLabels[company.status]}
+              </p>
+              {company.status === "incomplete" || company.status === "rejected" ? (
+                <form action={submitCompanyForReview.bind(null, company.id)}>
+                  <button className="primaryAction" type="submit">
+                    Envoyer en revue
+                  </button>
+                </form>
+              ) : null}
+              {company.status === "pending_review" ? (
+                <p className="recruiterHint">La fiche est entre les mains de l'équipe JobMada.</p>
+              ) : null}
+            </div>
           ) : (
             <div className="recruiterEmptyState">
               <h3>Complétez votre fiche entreprise</h3>
