@@ -7,6 +7,7 @@ export type AuthenticatedProfile = {
   id: string;
   role: UserRole;
   email: string | null;
+  phone: string | null;
   display_name: string | null;
   onboarding_completion: number | null;
 };
@@ -24,7 +25,7 @@ export async function requireRole(roles: UserRole[]) {
 
   const { data: profile, error: profileError } = await supabase
     .from("profiles")
-    .select("id, role, email, display_name, onboarding_completion")
+    .select("id, role, email, phone, display_name, onboarding_completion")
     .eq("id", user.id)
     .single<AuthenticatedProfile>();
 

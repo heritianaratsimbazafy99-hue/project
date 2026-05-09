@@ -721,11 +721,22 @@ create policy applications_insert_candidate_for_published_job on public.applicat
   with check (
     candidate_id = (select auth.uid())
     and length(trim(cv_path)) > 0
+    and status = 'submitted'
+    and (select public.current_user_role()) = 'candidate'
+    and exists (
+      select 1
+      from public.candidate_profiles
+      where public.candidate_profiles.user_id = (select auth.uid())
+        and public.candidate_profiles.cv_path = public.applications.cv_path
+        and public.applications.cv_path like (select auth.uid())::text || '/%'
+    )
     and exists (
       select 1
       from public.jobs
+      join public.companies on public.companies.id = public.jobs.company_id
       where public.jobs.id = public.applications.job_id
         and public.jobs.status = 'published'
+        and public.companies.status = 'verified'
     )
   );
 
