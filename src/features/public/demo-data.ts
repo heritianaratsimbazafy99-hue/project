@@ -96,6 +96,20 @@ export function useFallbackJobs(jobs: JobListItem[]) {
   return jobs.length > 0 ? jobs : fallbackPublishedJobs;
 }
 
+export function getPublicCompanies(jobs: JobListItem[]) {
+  const companies = new Map<string, JobListItem["company"]>();
+
+  for (const job of [...jobs, ...fallbackPublishedJobs]) {
+    const key = job.company.slug || job.company.name;
+
+    if (key && !companies.has(key)) {
+      companies.set(key, job.company);
+    }
+  }
+
+  return [...companies.values()].slice(0, 8);
+}
+
 export function findPublicJob(slug: string, jobs: JobListItem[] = fallbackPublishedJobs) {
   return jobs.find((job) => job.slug === slug) ?? null;
 }

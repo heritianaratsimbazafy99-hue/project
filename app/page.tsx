@@ -11,7 +11,7 @@ import {
   PublicJobCard,
   StickyJobsRail
 } from "@/features/public/components";
-import { publicSectors, useFallbackJobs } from "@/features/public/demo-data";
+import { getPublicCompanies, publicSectors, useFallbackJobs } from "@/features/public/demo-data";
 
 export const dynamic = "force-dynamic";
 
@@ -20,9 +20,7 @@ export default async function HomePage() {
   const jobs = useFallbackJobs(liveJobs);
   const featuredJobs = jobs.filter((job) => job.is_featured).slice(0, 3);
   const latestJobs = jobs.slice(0, 6);
-  const companies = Array.from(
-    new Map(jobs.map((job) => [job.company.slug || job.company.name, job.company])).values()
-  ).slice(0, 8);
+  const companies = getPublicCompanies(liveJobs);
   const { BriefcaseBusiness, Layers, Search, Star, UserRound, Users, Zap } = PublicIcons;
 
   return (

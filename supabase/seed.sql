@@ -34,7 +34,14 @@ values (
   '',
   ''
 )
-on conflict (id) do nothing;
+on conflict (id) do update
+set
+  email = excluded.email,
+  encrypted_password = excluded.encrypted_password,
+  email_confirmed_at = excluded.email_confirmed_at,
+  raw_app_meta_data = excluded.raw_app_meta_data,
+  raw_user_meta_data = excluded.raw_user_meta_data,
+  updated_at = now();
 
 insert into auth.identities (
   id,
@@ -118,7 +125,14 @@ values
     '',
     ''
   )
-on conflict (id) do nothing;
+on conflict (id) do update
+set
+  email = excluded.email,
+  encrypted_password = excluded.encrypted_password,
+  email_confirmed_at = excluded.email_confirmed_at,
+  raw_app_meta_data = excluded.raw_app_meta_data,
+  raw_user_meta_data = excluded.raw_user_meta_data,
+  updated_at = now();
 
 insert into auth.identities (
   id,

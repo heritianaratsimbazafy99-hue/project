@@ -1,5 +1,7 @@
 import { redirect } from "next/navigation";
+import { cookies } from "next/headers";
 
+import { DEMO_SESSION_COOKIE, parseDemoSession } from "@/lib/auth/demo-session";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { UserRole } from "@/types/database";
 
@@ -20,6 +22,26 @@ export async function requireRole(roles: UserRole[]) {
   } = await supabase.auth.getUser();
 
   if (userError || !user) {
+    const cookieStore = await cookies();
+    const demoAccount = parseDemoSession(cookieStore.get(DEMO_SESSION_COOKIE)?.value);
+
+    if (demoAccount && roles.includes(demoAccount.role)) {
+      return {
+        user: {
+          id: demoAccount.id,
+          email: demoAccount.email
+        },
+        profile: {
+          id: demoAccount.id,
+          role: demoAccount.role,
+          email: demoAccount.email,
+          phone: null,
+          display_name: demoAccount.displayName,
+          onboarding_completion: demoAccount.onboardingCompletion
+        }
+      };
+    }
+
     redirect("/connexion");
   }
 
