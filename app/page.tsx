@@ -1,63 +1,274 @@
 import Link from "next/link";
 
-import { brand } from "@/config/brand";
-import { JobCard } from "@/features/jobs/components/job-card";
 import { buildJobFilters, getPublishedJobsOrEmpty } from "@/features/jobs/queries";
+import {
+  BrandMark,
+  CompanyLogo,
+  MiniJob,
+  PublicFooter,
+  PublicHeader,
+  PublicIcons,
+  PublicJobCard,
+  StickyJobsRail
+} from "@/features/public/components";
+import { publicSectors, useFallbackJobs } from "@/features/public/demo-data";
 
 export const dynamic = "force-dynamic";
 
 export default async function HomePage() {
-  const jobs = await getPublishedJobsOrEmpty(buildJobFilters({}));
+  const liveJobs = await getPublishedJobsOrEmpty(buildJobFilters({}));
+  const jobs = useFallbackJobs(liveJobs);
   const featuredJobs = jobs.filter((job) => job.is_featured).slice(0, 3);
-  const latestJobs = jobs.slice(0, 4);
+  const latestJobs = jobs.slice(0, 6);
   const companies = Array.from(
     new Map(jobs.map((job) => [job.company.slug || job.company.name, job.company])).values()
-  ).slice(0, 6);
+  ).slice(0, 8);
+  const { BriefcaseBusiness, Layers, Search, Star, UserRound, Users, Zap } = PublicIcons;
 
   return (
-    <main className="siteShell">
-      <header className="siteHeader" aria-label="Accueil JobMada">
-        <Link className="brand" href="/" aria-label="JobMada accueil">
-          <img src={brand.logoPath} alt="" width="56" height="56" />
-          <span>{brand.name}</span>
-        </Link>
-      </header>
-
-      <section className="hero" aria-labelledby="home-title">
-        <h1 id="home-title">L'emploi qui vous correspond</h1>
-        <p>La nouvelle marketplace emploi JobMada arrive en full-stack.</p>
-        <div className="heroActions">
-          <Link className="primaryAction" href="/emploi">
-            Voir les offres
-          </Link>
-        </div>
-      </section>
-
-      <section className="homeDynamic" aria-labelledby="home-jobs-title">
-        <div className="sectionHeading">
-          <h2 id="home-jobs-title">Offres mises en avant</h2>
-          <Link href="/emploi">Toutes les offres</Link>
-        </div>
-
-        <div className="homeJobGrid">
-          {(featuredJobs.length > 0 ? featuredJobs : latestJobs).map((job) => (
-            <JobCard key={job.id} job={job} />
-          ))}
-        </div>
-
-        {companies.length > 0 ? (
-          <div className="companyStrip" aria-label="Entreprises qui recrutent">
-            {companies.map((company) => (
-              <div key={company.slug || company.name} className="companyChip">
-                {company.logo_path ? (
-                  <img src={company.logo_path} alt="" width="36" height="36" />
-                ) : null}
-                <span>{company.name}</span>
+    <>
+      <PublicHeader active="/" />
+      <main>
+        <section className="hero-band">
+          <div className="container hero-grid">
+            <div className="hero-card">
+              <span className="eyebrow">Emploi à Madagascar</span>
+              <h1 className="hero-title">
+                L'emploi qui vous <span className="underline">correspond</span>
+              </h1>
+              <p className="hero-copy">Le jobboard moderne qui comprend Madagascar.</p>
+              <form className="search-shell" action="/emploi">
+                <span>
+                  <Search size={18} aria-hidden="true" />
+                </span>
+                <input name="q" placeholder="Poste, métier, entreprise..." />
+                <button className="btn btn-primary" type="submit">
+                  Rechercher
+                </button>
+              </form>
+              <div className="trends">
+                Tendances : <Link href="/emploi?q=comptable">Comptable</Link> ·{" "}
+                <Link href="/emploi?q=commercial">Commercial</Link> ·{" "}
+                <Link href="/emploi?q=téléprospecteur">Téléprospecteur</Link>
               </div>
-            ))}
+            </div>
+
+            <aside className="hero-side">
+              <div className="stat-grid">
+                <div className="stat-card">
+                  <BriefcaseBusiness size={18} aria-hidden="true" />
+                  <strong>874+</strong>
+                  <span>offres actives</span>
+                </div>
+                <div className="stat-card rose">
+                  <Users size={18} aria-hidden="true" />
+                  <strong>1392+</strong>
+                  <span>recruteurs actifs</span>
+                </div>
+              </div>
+              <div className="featured-card">
+                <h2>
+                  <Star size={18} aria-hidden="true" /> Offres à la une
+                </h2>
+                {(featuredJobs.length > 0 ? featuredJobs : latestJobs.slice(0, 3)).map((job) => (
+                  <MiniJob key={job.id} job={job} />
+                ))}
+              </div>
+            </aside>
           </div>
-        ) : null}
-      </section>
-    </main>
+        </section>
+
+        <section className="section">
+          <div className="container">
+            <h2 className="section-title" style={{ justifyContent: "center" }}>
+              <span className="icon-tile">
+                <BriefcaseBusiness size={18} aria-hidden="true" />
+              </span>
+              Entreprises qui <strong>recrutent</strong>
+            </h2>
+            <div className="companies-row" style={{ marginTop: 28 }}>
+              {companies.map((company) => (
+                <Link
+                  key={company.slug || company.name}
+                  className="company-logo-card"
+                  href={`/emploi?company=${encodeURIComponent(company.name)}`}
+                  aria-label={company.name}
+                >
+                  <CompanyLogo name={company.name} />
+                </Link>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        <section className="section alt" style={{ padding: "28px 0" }}>
+          <div className="container">
+            <div className="pro-banner">
+              <p>
+                <span className="pill">SPONSORISÉ</span> Recrutez plus vite avec <em>JobMada Pro</em> — CVthèque,
+                boost vedette, matching IA
+              </p>
+              <Link className="btn btn-primary" href="/tarifs">
+                Découvrir →
+              </Link>
+            </div>
+          </div>
+        </section>
+
+        <section className="section">
+          <div className="container jobs-layout">
+            <div>
+              <div className="section-head">
+                <h2 className="section-title">
+                  <span className="icon-tile">
+                    <BriefcaseBusiness size={18} aria-hidden="true" />
+                  </span>
+                  Les dernières <strong>offres d'emploi</strong> à Madagascar
+                </h2>
+              </div>
+              <div className="tabs">
+                {["Toutes", "CDI", "CDD", "Stage", "Freelance"].map((tab, index) => (
+                  <Link key={tab} className={`tab-btn ${index === 0 ? "active" : ""}`} href={`/emploi${index ? `?contract=${tab}` : ""}`}>
+                    {tab}
+                  </Link>
+                ))}
+              </div>
+              <div className="job-list" id="homeJobs">
+                {latestJobs.map((job) => (
+                  <PublicJobCard key={job.id} job={job} />
+                ))}
+              </div>
+              <p style={{ textAlign: "center", marginTop: 28 }}>
+                <Link href="/emploi">Voir toutes les offres →</Link>
+              </p>
+            </div>
+            <StickyJobsRail jobs={jobs} />
+          </div>
+        </section>
+
+        <section className="section alt">
+          <div className="container">
+            <h2 className="section-title" style={{ justifyContent: "center" }}>
+              <span className="icon-tile">
+                <Layers size={18} aria-hidden="true" />
+              </span>
+              On a classé <strong>tous nos jobs !</strong>
+            </h2>
+            <div className="category-grid" style={{ marginTop: 28 }}>
+              {publicSectors.map(([name, count]) => (
+                <Link key={name} className="category-card" href={`/emploi?sector=${encodeURIComponent(name)}`}>
+                  <span className="icon-tile">
+                    <Layers size={18} aria-hidden="true" />
+                  </span>
+                  <span>
+                    <strong>{name}</strong>
+                    <span>{count} offres</span>
+                  </span>
+                </Link>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        <section className="section">
+          <div className="container">
+            <h2 className="section-title" style={{ justifyContent: "center" }}>
+              <span className="icon-tile" style={{ background: "var(--green-soft)", color: "var(--green)" }}>
+                <UserRound size={18} aria-hidden="true" />
+              </span>
+              Préparez-vous à <strong>décrocher votre job !</strong>
+            </h2>
+            <div className="prepare-grid" style={{ marginTop: 28 }}>
+              <div className="prepare-card">
+                <strong>40 000+</strong>
+                <p>
+                  CVs dans la base,
+                  <br />
+                  soyez le prochain à être vu !
+                </p>
+              </div>
+              <div className="prepare-card">
+                <h3>Soyez visible auprès des recruteurs</h3>
+                <p>
+                  <Link className="btn btn-navy" href="/inscription/candidat">
+                    Déposer mon CV
+                  </Link>
+                </p>
+              </div>
+              <div className="prepare-card">
+                <strong>874+</strong>
+                <p>
+                  offres actives,
+                  <br />
+                  on vous envoie celles qui collent ?
+                </p>
+              </div>
+              <div className="prepare-card">
+                <h3>Soyez alerté rapidement</h3>
+                <p>
+                  <Link className="btn btn-navy" href="/emploi">
+                    Créer mon alerte
+                  </Link>
+                </p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section className="section">
+          <div className="container cta-grid">
+            <div className="cta-panel">
+              <span className="eyebrow">Candidats</span>
+              <h2>Votre prochain emploi commence ici</h2>
+              <p>Créez votre profil gratuitement, uploadez votre CV et postulez aux offres qui vous correspondent.</p>
+              <Link className="btn btn-primary" href="/inscription/candidat">
+                Créer mon profil gratuitement →
+              </Link>
+            </div>
+            <div className="cta-panel dark">
+              <span className="pill">Recruteurs</span>
+              <h2>
+                Trouvez votre perle rare avec <span style={{ color: "var(--rose)" }}>JobMada</span>
+              </h2>
+              <p>Publiez vos offres et accédez à 40 000+ CVs qualifiés.</p>
+              <Link className="btn btn-primary" href="/recruteur/offres/nouvelle">
+                Publier une offre →
+              </Link>
+            </div>
+          </div>
+        </section>
+
+        <section className="section">
+          <div className="container about-grid">
+            <div className="logo-orbit">
+              <BrandMark />
+              <span className="badge one">
+                40k+
+                <br />
+                <small>CVs qualifiés</small>
+              </span>
+              <span className="badge two">
+                250+
+                <br />
+                <small>offres actives</small>
+              </span>
+            </div>
+            <div>
+              <h2 className="section-title">
+                <span className="icon-tile">
+                  <Zap size={18} aria-hidden="true" />
+                </span>
+                L'emploi à Madagascar, <strong>simplement</strong>
+              </h2>
+              <p>
+                JobMada connecte candidats et recruteurs dans tous les secteurs, avec une expérience pensée pour
+                Madagascar: offres fraîches, candidature rapide et suivi clair.
+              </p>
+            </div>
+          </div>
+        </section>
+      </main>
+      <PublicFooter />
+    </>
   );
 }

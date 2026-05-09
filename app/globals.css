@@ -1811,3 +1811,30 @@ a {
     justify-content: flex-start;
   }
 }
+
+.site-header .brand-logo,
+.site-footer .brand-logo {
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+}
+
+.site-header .brand-name,
+.site-footer .brand-name {
+  color: var(--navy);
+  font-size: 25px;
+  line-height: 1;
+  font-weight: 950;
+}
+
+.auth-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  margin-top: 18px;
+}
+
+.auth-links a {
+  color: var(--navy);
+  font-weight: 850;
+}
