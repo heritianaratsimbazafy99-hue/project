@@ -71,6 +71,22 @@ describe("demo authentication", () => {
     );
   });
 
+  it("opens demo accounts locally without waiting on Supabase sign-in", async () => {
+    mocks.signInWithPassword.mockRejectedValue(new Error("Supabase should not be reached for demo credentials"));
+
+    const { signInWithPassword } = await import("@/features/auth/actions");
+
+    await expect(
+      signInWithPassword(credentials("candidat.demo@jobmada.mg", "jobmada-demo-password"))
+    ).rejects.toThrow("NEXT_REDIRECT:/candidat/dashboard");
+    expect(mocks.signInWithPassword).not.toHaveBeenCalled();
+    expect(mocks.cookieSet).toHaveBeenCalledWith(
+      "jobmada_demo_session",
+      expect.any(String),
+      expect.objectContaining({ httpOnly: true, sameSite: "lax" })
+    );
+  });
+
   it("allows demo sessions through role guards without a Supabase Auth user", async () => {
     const value = encodeURIComponent(
       JSON.stringify({
@@ -95,5 +111,27 @@ describe("demo authentication", () => {
     expect(result.profile.role).toBe("recruiter");
     expect(result.profile.email).toBe("recruteur.demo@jobmada.mg");
     expect(result.user.id).toBe("00000000-0000-0000-0000-000000000001");
+  });
+
+  it("does not call Supabase Auth when a valid demo session cookie is present", async () => {
+    const value = encodeURIComponent(
+      JSON.stringify({
+        id: "00000000-0000-0000-0000-000000000001",
+        role: "recruiter",
+        email: "recruteur.demo@jobmada.mg",
+        displayName: "Recruteur demo JobMada"
+      })
+    );
+
+    mocks.cookieGet.mockImplementation((name: string) =>
+      name === "jobmada_demo_session" ? { value } : undefined
+    );
+    mocks.getUser.mockRejectedValue(new Error("Supabase should not be reached for demo sessions"));
+
+    const { requireRole } = await import("@/lib/auth/require-role");
+    const result = await requireRole(["recruiter"]);
+
+    expect(result.profile.role).toBe("recruiter");
+    expect(mocks.getUser).not.toHaveBeenCalled();
   });
 });

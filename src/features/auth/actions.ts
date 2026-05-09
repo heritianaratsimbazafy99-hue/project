@@ -21,22 +21,22 @@ export async function signInWithPassword(formData: FormData) {
     redirect("/connexion?error=missing");
   }
 
+  if (demoAccount) {
+    const cookieStore = await cookies();
+    cookieStore.set(DEMO_SESSION_COOKIE, serializeDemoSession(demoAccount), {
+      httpOnly: true,
+      sameSite: "lax",
+      secure: process.env.NODE_ENV === "production",
+      path: "/",
+      maxAge: 60 * 60 * 8
+    });
+    redirect(dashboardPathForRole(demoAccount.role));
+  }
+
   const supabase = await createSupabaseServerClient();
   const { data, error } = await supabase.auth.signInWithPassword({ email, password });
 
   if (error || !data.user) {
-    if (demoAccount) {
-      const cookieStore = await cookies();
-      cookieStore.set(DEMO_SESSION_COOKIE, serializeDemoSession(demoAccount), {
-        httpOnly: true,
-        sameSite: "lax",
-        secure: process.env.NODE_ENV === "production",
-        path: "/",
-        maxAge: 60 * 60 * 8
-      });
-      redirect(dashboardPathForRole(demoAccount.role));
-    }
-
     redirect("/connexion?error=invalid");
   }
 

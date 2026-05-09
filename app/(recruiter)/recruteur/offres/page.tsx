@@ -1,5 +1,7 @@
 import Link from "next/link";
+import { BriefcaseBusiness, Clock, Eye, Layers, Plus, UsersRound } from "lucide-react";
 
+import { demoRecruiterCompany, demoRecruiterJobs, demoRecruiterSubscription } from "@/features/demo/workspace";
 import { requireRole } from "@/lib/auth/require-role";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { JobStatus } from "@/types/database";
@@ -31,7 +33,9 @@ const tabs: Array<{ label: string; href: string; status?: JobStatus }> = [
   { label: "Brouillons", href: "/recruteur/offres?status=draft", status: "draft" },
   { label: "En revue", href: "/recruteur/offres?status=pending_review", status: "pending_review" },
   { label: "Publiées", href: "/recruteur/offres?status=published", status: "published" },
-  { label: "Rejetées", href: "/recruteur/offres?status=rejected", status: "rejected" }
+  { label: "Rejetées", href: "/recruteur/offres?status=rejected", status: "rejected" },
+  { label: "Expirées", href: "/recruteur/offres?status=expired", status: "expired" },
+  { label: "Archivées", href: "/recruteur/offres?status=archived", status: "archived" }
 ];
 
 const statusLabels: Record<JobStatus, string> = {
@@ -48,102 +52,139 @@ function firstValue(value: string | string[] | undefined) {
 }
 
 export default async function RecruiterOffersPage({ searchParams }: RecruiterOffersPageProps) {
-  const { user } = await requireRole(["recruiter"]);
+  const { user, isDemo } = await requireRole(["recruiter"]);
   const params = await searchParams;
   const requestedStatus = firstValue(params.status) as JobStatus | undefined;
   const created = firstValue(params.created) === "1";
   const activeStatus = tabs.some((tab) => tab.status === requestedStatus) ? requestedStatus : undefined;
-  const supabase = await createSupabaseServerClient();
+  let company: CompanyRow | null = isDemo ? demoRecruiterCompany : null;
+  let jobs: JobRow[] = isDemo ? demoRecruiterJobs : [];
 
-  const { data: company } = await supabase
-    .from("companies")
-    .select("id")
-    .eq("owner_id", user.id)
-    .order("created_at", { ascending: true })
-    .limit(1)
-    .maybeSingle<CompanyRow>();
+  if (!isDemo) {
+    const supabase = await createSupabaseServerClient();
 
-  let jobs: JobRow[] = [];
+    const { data: companyData } = await supabase
+      .from("companies")
+      .select("id")
+      .eq("owner_id", user.id)
+      .order("created_at", { ascending: true })
+      .limit(1)
+      .maybeSingle<CompanyRow>();
 
-  if (company) {
-    let request = supabase
-      .from("jobs")
-      .select("id, title, contract, city, sector, status, is_featured, is_urgent, created_at")
-      .eq("company_id", company.id)
-      .order("created_at", { ascending: false });
+    company = companyData;
 
-    if (activeStatus) {
-      request = request.eq("status", activeStatus);
+    if (company) {
+      let request = supabase
+        .from("jobs")
+        .select("id, title, contract, city, sector, status, is_featured, is_urgent, created_at")
+        .eq("company_id", company.id)
+        .order("created_at", { ascending: false });
+
+      if (activeStatus) {
+        request = request.eq("status", activeStatus);
+      }
+
+      const { data } = await request;
+      jobs = (data ?? []) as JobRow[];
     }
-
-    const { data } = await request;
-    jobs = (data ?? []) as JobRow[];
+  } else if (activeStatus) {
+    jobs = demoRecruiterJobs.filter((job) => job.status === activeStatus);
   }
 
+  const total = jobs.length;
+  const published = jobs.filter((job) => job.status === "published").length;
+  const inReview = jobs.filter((job) => job.status === "pending_review").length;
+  const quota = demoRecruiterSubscription.job_quota;
+
   return (
-    <div className="recruiterStack">
-      <section className="recruiterHero compact" aria-labelledby="recruiter-offers-title">
+    <>
+      <div className="dashboard-welcome">
         <div>
-          <p className="recruiterEyebrow">Offres</p>
-          <h1 id="recruiter-offers-title">Vos offres d'emploi</h1>
-          <p>Préparez, soumettez et suivez les annonces rattachées à votre entreprise.</p>
+          <h1>Mes offres</h1>
+          <p>Gérez vos offres d'emploi et suivez leurs performances</p>
         </div>
-        <Link className="primaryAction" href="/recruteur/offres/nouvelle">
-          Nouvelle offre
+        <Link className="btn btn-primary" href="/recruteur/offres/nouvelle">
+          <Plus aria-hidden="true" size={18} />
+          Publier une offre
         </Link>
+      </div>
+
+      <section className="dashboard-grid offers-kpis" aria-label="Indicateurs offres">
+        {([
+          ["Offres actives", published, BriefcaseBusiness, `${published} sur ${quota} · Plan Gratuit`],
+          ["Candidatures", 0, UsersRound, "Aucune nouvelle"],
+          ["Vues totales", isDemo ? 128 : 0, Eye, isDemo ? "+12 cette semaine" : "— vs sem. préc."],
+          ["En revue", inReview, Clock, "Validation JobMada"]
+        ] as const).map(([label, value, Icon, hint]) => (
+          <article className="metric-card" key={String(label)}>
+            <span className="icon-tile">
+              <Icon aria-hidden="true" size={18} />
+            </span>
+            <small>{label}</small>
+            <strong>{value}</strong>
+            <span>{hint}</span>
+          </article>
+        ))}
       </section>
 
-      <nav className="recruiterTabs" aria-label="Filtrer les offres">
-        {tabs.map((tab) => {
-          const isActive = tab.status === activeStatus || (!tab.status && !activeStatus);
-
-          return (
-            <Link key={tab.href} className={isActive ? "isActive" : undefined} href={tab.href}>
-              {tab.label}
-            </Link>
-          );
-        })}
-      </nav>
-
       {created ? (
-        <div className="recruiterNotice" role="status">
+        <div className="notice-line" role="status">
           L'offre est envoyée à l'équipe JobMada pour revue.
         </div>
       ) : null}
 
-      {jobs.length > 0 ? (
-        <div className="recruiterOfferList" aria-label="Liste des offres recruteur">
-          {jobs.map((job) => (
-            <article key={job.id} className="recruiterOfferCard">
-              <div>
-                <span className="recruiterStatus">{statusLabels[job.status]}</span>
-                <h2>{job.title}</h2>
-                <p>
-                  {job.contract} · {job.city} · {job.sector}
-                </p>
-              </div>
-              <div className="recruiterBoosts" aria-label="Options de visibilité">
-                <span>{job.is_featured ? "Mise en avant" : "Standard"}</span>
-                <span>{job.is_urgent ? "Urgente" : "Non urgente"}</span>
-              </div>
-            </article>
-          ))}
+      <section className="panel offers-panel">
+        <div className="toolbar">
+          <input className="input" placeholder="Rechercher une offre..." />
+          <select className="select" defaultValue="recent">
+            <option value="recent">Plus récentes</option>
+            <option value="views">Plus de vues</option>
+            <option value="applications">Plus de candidatures</option>
+          </select>
         </div>
-      ) : (
-        <section className="recruiterEmptyState isLarge" aria-labelledby="recruiter-offers-empty-title">
-          <h2 id="recruiter-offers-empty-title">
-            {company ? "Aucune offre dans cet onglet" : "Aucune entreprise rattachée"}
-          </h2>
-          <p>
-            {company
-              ? "Créez une offre manuelle ou revenez sur l'ensemble des statuts pour retrouver vos annonces."
-              : "Votre espace recruteur est prêt, mais une fiche entreprise est nécessaire avant la création d'offres."}
-          </p>
-          <Link className="primaryAction" href="/recruteur/offres/nouvelle">
-            Nouvelle offre
-          </Link>
-        </section>
-      )}
-    </div>
+
+        <div className="status-tabs" aria-label="Filtrer les offres">
+          {tabs.map((tab) => {
+            const isActive = tab.status === activeStatus || (!tab.status && !activeStatus);
+            const count = tab.status ? jobs.filter((job) => job.status === tab.status).length : total;
+
+            return (
+              <Link className={isActive ? "active" : undefined} href={tab.href} key={tab.href}>
+                {tab.label} <span>{count}</span>
+              </Link>
+            );
+          })}
+        </div>
+
+        {jobs.length > 0 ? (
+          <div className="table-list">
+            {jobs.map((job) => (
+              <div className="table-row" key={job.id}>
+                <div>
+                  <strong>{job.title}</strong>
+                  <p>
+                    {job.contract} · {job.city} · {job.sector}
+                  </p>
+                </div>
+                <span className="pill rose">{statusLabels[job.status]}</span>
+                <Link className="btn btn-soft" href="/recruteur/offres/nouvelle">
+                  Modifier
+                </Link>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="empty-state recruiter-empty">
+            <Layers aria-hidden="true" size={24} />
+            <p>{company ? "Aucune offre dans cet onglet" : "Aucune entreprise rattachée"}</p>
+          </div>
+        )}
+
+        <div className="panel-footer">
+          <span>{jobs.length} offres affichées</span>
+          <span>Plan Gratuit · {total}/{quota} offres utilisées</span>
+        </div>
+      </section>
+    </>
   );
 }

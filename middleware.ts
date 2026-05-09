@@ -1,12 +1,17 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
+import { DEMO_SESSION_COOKIE } from "@/lib/auth/demo-session";
+
 export async function middleware(request: NextRequest) {
   let response = NextResponse.next({ request });
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  const cookieNames = request.cookies.getAll().map((cookie) => cookie.name);
+  const hasDemoSession = cookieNames.includes(DEMO_SESSION_COOKIE);
+  const hasSupabaseSession = cookieNames.some((name) => name.startsWith("sb-") && name.includes("auth-token"));
 
-  if (!supabaseUrl || !supabaseAnonKey) {
+  if (!supabaseUrl || !supabaseAnonKey || hasDemoSession || !hasSupabaseSession) {
     return response;
   }
 

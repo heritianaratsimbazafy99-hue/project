@@ -1,7 +1,6 @@
 import type { ReactNode } from "react";
-import Link from "next/link";
 
-import { brand } from "@/config/brand";
+import { demoRecruiterCompany, demoRecruiterSubscription } from "@/features/demo/workspace";
 import { RecruiterSidebar } from "@/features/recruiter/components/recruiter-sidebar";
 import { requireRole } from "@/lib/auth/require-role";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
@@ -23,41 +22,42 @@ type SubscriptionRow = {
 };
 
 export default async function RecruiterLayout({ children }: RecruiterLayoutProps) {
-  const { user, profile } = await requireRole(["recruiter"]);
-  const supabase = await createSupabaseServerClient();
+  const { user, profile, isDemo } = await requireRole(["recruiter"]);
+  let company: CompanyRow | null = isDemo ? demoRecruiterCompany : null;
+  let subscription: SubscriptionRow | null = isDemo ? demoRecruiterSubscription : null;
+  let jobCount = isDemo ? 1 : 0;
 
-  const { data: company } = await supabase
-    .from("companies")
-    .select("id, name")
-    .eq("owner_id", user.id)
-    .order("created_at", { ascending: true })
-    .limit(1)
-    .maybeSingle<CompanyRow>();
+  if (!isDemo) {
+    const supabase = await createSupabaseServerClient();
 
-  const [{ data: subscription }, { count: jobCount }] = company
-    ? await Promise.all([
+    const { data: companyData } = await supabase
+      .from("companies")
+      .select("id, name")
+      .eq("owner_id", user.id)
+      .order("created_at", { ascending: true })
+      .limit(1)
+      .maybeSingle<CompanyRow>();
+
+    company = companyData;
+
+    if (company) {
+      const [{ data: subscriptionData }, { count }] = await Promise.all([
         supabase
           .from("subscriptions")
           .select("plan, job_quota")
           .eq("company_id", company.id)
           .maybeSingle<SubscriptionRow>(),
         supabase.from("jobs").select("id", { count: "exact", head: true }).eq("company_id", company.id)
-      ])
-    : [{ data: null }, { count: 0 }];
+      ]);
+
+      subscription = subscriptionData;
+      jobCount = count ?? 0;
+    }
+  }
 
   return (
-    <main className="siteShell recruiterArea">
-      <header className="siteHeader publicHeader" aria-label="Navigation recruteur">
-        <Link className="brand" href="/recruteur/dashboard" aria-label="JobMada recruteur">
-          <img src={brand.logoPath} alt="" width="56" height="56" />
-          <span>{brand.name}</span>
-        </Link>
-        <Link className="headerLink" href="/emploi">
-          Voir le site public
-        </Link>
-      </header>
-
-      <div className="dashboardShell recruiterShell">
+    <main className="recruiter-app">
+      <div className="recruiter-shell">
         <RecruiterSidebar
           companyName={company?.name}
           displayName={profile.display_name}
@@ -66,7 +66,7 @@ export default async function RecruiterLayout({ children }: RecruiterLayoutProps
           jobQuota={subscription?.job_quota}
           jobCount={jobCount ?? 0}
         />
-        <div className="recruiterContent">{children}</div>
+        <div className="recruiter-main">{children}</div>
       </div>
     </main>
   );

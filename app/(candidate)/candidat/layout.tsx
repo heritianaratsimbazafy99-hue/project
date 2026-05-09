@@ -4,6 +4,7 @@ import Link from "next/link";
 import { brand } from "@/config/brand";
 import { calculateCandidateCompletion } from "@/features/candidate/completion";
 import { CandidateSidebar } from "@/features/candidate/components/candidate-sidebar";
+import { demoCandidateAlertCount, demoCandidateProfile } from "@/features/demo/workspace";
 import { requireRole } from "@/lib/auth/require-role";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
@@ -19,20 +20,28 @@ type CandidateProfileRow = {
 };
 
 export default async function CandidateLayout({ children }: CandidateLayoutProps) {
-  const { user, profile } = await requireRole(["candidate"]);
-  const supabase = await createSupabaseServerClient();
+  const { user, profile, isDemo } = await requireRole(["candidate"]);
+  let candidateProfile: CandidateProfileRow | null = isDemo ? demoCandidateProfile : null;
+  let alertCount = isDemo ? demoCandidateAlertCount : 0;
 
-  const [{ data: candidateProfile }, { count: alertCount }] = await Promise.all([
-    supabase
-      .from("candidate_profiles")
-      .select("cv_path, desired_role")
-      .eq("user_id", user.id)
-      .maybeSingle<CandidateProfileRow>(),
-    supabase
-      .from("job_alerts")
-      .select("id", { count: "exact", head: true })
-      .eq("candidate_id", user.id)
-  ]);
+  if (!isDemo) {
+    const supabase = await createSupabaseServerClient();
+
+    const [{ data: candidateProfileData }, { count }] = await Promise.all([
+      supabase
+        .from("candidate_profiles")
+        .select("cv_path, desired_role")
+        .eq("user_id", user.id)
+        .maybeSingle<CandidateProfileRow>(),
+      supabase
+        .from("job_alerts")
+        .select("id", { count: "exact", head: true })
+        .eq("candidate_id", user.id)
+    ]);
+
+    candidateProfile = candidateProfileData;
+    alertCount = count ?? 0;
+  }
 
   const completion = calculateCandidateCompletion({
     accountCreated: true,

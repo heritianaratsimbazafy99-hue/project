@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import { fallbackPublishedJobs } from "@/features/public/demo-data";
 import { getPublishedJobsOrEmpty } from "@/features/jobs/queries";
 import { requireRole } from "@/lib/auth/require-role";
 
@@ -13,8 +14,10 @@ const onboardingSteps = [
 ];
 
 export default async function CandidateDashboardPage() {
-  const { profile } = await requireRole(["candidate"]);
-  const recentJobs = (await getPublishedJobsOrEmpty({ query: "", contract: "", city: "", sector: "" })).slice(0, 3);
+  const { profile, isDemo } = await requireRole(["candidate"]);
+  const recentJobs = isDemo
+    ? fallbackPublishedJobs.slice(0, 3)
+    : (await getPublishedJobsOrEmpty({ query: "", contract: "", city: "", sector: "" })).slice(0, 3);
   const completedSteps = onboardingSteps.filter((step) => step.done).length;
 
   return (

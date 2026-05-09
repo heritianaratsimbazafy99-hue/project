@@ -1232,9 +1232,14 @@ p {
 }
 
 .avatar {
+  display: grid;
+  place-items: center;
   width: 44px;
   height: 44px;
+  border-radius: 14px;
   background: var(--mauve-soft);
+  color: var(--navy);
+  font-weight: 950;
 }
 
 .avatar.mock-logo {
@@ -1253,6 +1258,12 @@ p {
 .recruiter-account span {
   color: var(--muted);
   font-size: 12px;
+}
+
+.recruiter-account .btn {
+  min-height: 38px;
+  width: 38px;
+  padding: 0;
 }
 
 .side-groups {
@@ -1305,6 +1316,11 @@ p {
   padding: 0 14px 16px;
 }
 
+.side-cta .btn,
+.plan-mini .btn {
+  width: 100%;
+}
+
 .plan-mini {
   margin: 0 16px 18px;
   border-radius: 16px;
@@ -1342,6 +1358,13 @@ p {
   background: #fff;
   padding: 20px 22px;
   box-shadow: var(--shadow-sm);
+}
+
+.recruiter-top-main,
+.candidate-card-head {
+  display: flex;
+  align-items: center;
+  gap: 16px;
 }
 
 .progress-ring {
@@ -1421,7 +1444,8 @@ p {
   padding: 0 18px;
 }
 
-.status-tabs button {
+.status-tabs button,
+.status-tabs a {
   border: 0;
   border-bottom: 2px solid transparent;
   background: transparent;
@@ -1429,9 +1453,11 @@ p {
   padding: 15px 0 13px;
   font-weight: 850;
   white-space: nowrap;
+  text-decoration: none;
 }
 
-.status-tabs button.active {
+.status-tabs button.active,
+.status-tabs a.active {
   border-color: var(--rose);
   color: var(--rose);
 }

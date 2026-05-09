@@ -1,4 +1,5 @@
 import { CvUploadCard } from "@/features/candidate/components/cv-upload-card";
+import { demoCandidateProfile } from "@/features/demo/workspace";
 import { requireRole } from "@/lib/auth/require-role";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
@@ -14,13 +15,28 @@ type CandidateProfileRow = {
 };
 
 export default async function CandidateProfilePage() {
-  const { user, profile } = await requireRole(["candidate"]);
-  const supabase = await createSupabaseServerClient();
-  const { data: candidateProfile } = await supabase
-    .from("candidate_profiles")
-    .select("first_name, last_name, city, sector, desired_role, salary_expectation")
-    .eq("user_id", user.id)
-    .maybeSingle<CandidateProfileRow>();
+  const { user, profile, isDemo } = await requireRole(["candidate"]);
+  let candidateProfile: CandidateProfileRow | null = isDemo
+    ? {
+        first_name: "Candidat",
+        last_name: "Démo",
+        city: "Antananarivo",
+        sector: "Informatique & Digital",
+        desired_role: demoCandidateProfile.desired_role,
+        salary_expectation: ""
+      }
+    : null;
+
+  if (!isDemo) {
+    const supabase = await createSupabaseServerClient();
+    const { data } = await supabase
+      .from("candidate_profiles")
+      .select("first_name, last_name, city, sector, desired_role, salary_expectation")
+      .eq("user_id", user.id)
+      .maybeSingle<CandidateProfileRow>();
+
+    candidateProfile = data;
+  }
 
   return (
     <div className="candidateStack">

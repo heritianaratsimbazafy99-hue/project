@@ -15,6 +15,31 @@ export type AuthenticatedProfile = {
 };
 
 export async function requireRole(roles: UserRole[]) {
+  const cookieStore = await cookies();
+  const demoAccount = parseDemoSession(cookieStore.get(DEMO_SESSION_COOKIE)?.value);
+
+  if (demoAccount) {
+    if (!roles.includes(demoAccount.role)) {
+      redirect("/");
+    }
+
+    return {
+      isDemo: true,
+      user: {
+        id: demoAccount.id,
+        email: demoAccount.email
+      },
+      profile: {
+        id: demoAccount.id,
+        role: demoAccount.role,
+        email: demoAccount.email,
+        phone: null,
+        display_name: demoAccount.displayName,
+        onboarding_completion: demoAccount.onboardingCompletion
+      }
+    };
+  }
+
   const supabase = await createSupabaseServerClient();
   const {
     data: { user },
@@ -22,26 +47,6 @@ export async function requireRole(roles: UserRole[]) {
   } = await supabase.auth.getUser();
 
   if (userError || !user) {
-    const cookieStore = await cookies();
-    const demoAccount = parseDemoSession(cookieStore.get(DEMO_SESSION_COOKIE)?.value);
-
-    if (demoAccount && roles.includes(demoAccount.role)) {
-      return {
-        user: {
-          id: demoAccount.id,
-          email: demoAccount.email
-        },
-        profile: {
-          id: demoAccount.id,
-          role: demoAccount.role,
-          email: demoAccount.email,
-          phone: null,
-          display_name: demoAccount.displayName,
-          onboarding_completion: demoAccount.onboardingCompletion
-        }
-      };
-    }
-
     redirect("/connexion");
   }
 
@@ -55,5 +60,5 @@ export async function requireRole(roles: UserRole[]) {
     redirect("/");
   }
 
-  return { user, profile };
+  return { isDemo: false, user, profile };
 }
