@@ -1269,9 +1269,65 @@ a {
   font-weight: 750;
 }
 
-.recruiter-static-action {
-  pointer-events: none;
+.recruiter-application-cv {
+  display: inline-flex;
+  width: fit-content;
+  margin-top: 0.45rem;
+  padding: 0.25rem 0.55rem;
+  border-radius: 999px;
+  background: rgba(40, 200, 245, 0.12);
+  color: var(--color-navy);
+  font-size: 0.78rem;
+  font-weight: 850;
+}
+
+.recruiter-application-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.4rem;
+  min-width: min(100%, 26rem);
+}
+
+.recruiter-application-actions form {
+  margin: 0;
+}
+
+.recruiter-action-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  min-height: 2.2rem;
+  padding: 0.48rem 0.65rem;
+  border: 1px solid rgba(11, 47, 107, 0.13);
+  border-radius: 0.45rem;
+  background: rgba(255, 255, 255, 0.92);
+  color: var(--color-navy);
+  font: inherit;
+  font-size: 0.82rem;
+  font-weight: 850;
+  line-height: 1;
   white-space: nowrap;
+  cursor: pointer;
+}
+
+.recruiter-action-button:hover {
+  border-color: rgba(116, 40, 200, 0.28);
+  background: rgba(116, 40, 200, 0.08);
+}
+
+.recruiter-action-button.success {
+  color: #2f7f15;
+}
+
+.recruiter-action-button.danger {
+  color: #c43e62;
+}
+
+.recruiter-action-button:disabled {
+  opacity: 0.52;
+  cursor: not-allowed;
 }
 
 .recruiterMetricGrid span,

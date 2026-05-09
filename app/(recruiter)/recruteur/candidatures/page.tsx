@@ -1,5 +1,16 @@
-import { BriefcaseBusiness, Eye, UsersRound } from "lucide-react";
+import { redirect } from "next/navigation";
+import {
+  BriefcaseBusiness,
+  CheckCircle2,
+  Eye,
+  MessageCircle,
+  UserCheck,
+  UsersRound,
+  UserX,
+  type LucideIcon
+} from "lucide-react";
 
+import { updateRecruiterApplicationStatus } from "@/features/applications/actions";
 import {
   getRecruiterApplicationsOrEmpty,
   type RecruiterApplication
@@ -15,6 +26,10 @@ type CompanyRow = {
   id: string;
 };
 
+type RecruiterApplicationsPageProps = {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+};
+
 const statusLabels: Record<ApplicationStatus, string> = {
   submitted: "À traiter",
   viewed: "Consultée",
@@ -24,6 +39,23 @@ const statusLabels: Record<ApplicationStatus, string> = {
   hired: "Recruté"
 };
 
+const statusActions: Array<{
+  status: Exclude<ApplicationStatus, "submitted">;
+  label: string;
+  Icon: LucideIcon;
+  tone?: "danger" | "success";
+}> = [
+  { status: "viewed", label: "Vu", Icon: Eye },
+  { status: "shortlisted", label: "Shortlist", Icon: UserCheck },
+  { status: "interview", label: "Entretien", Icon: MessageCircle },
+  { status: "hired", label: "Recruté", Icon: CheckCircle2, tone: "success" },
+  { status: "rejected", label: "Rejeter", Icon: UserX, tone: "danger" }
+];
+
+function firstQueryValue(value: string | string[] | undefined) {
+  return Array.isArray(value) ? value[0] : value;
+}
+
 function formatApplicationDate(value: string) {
   return new Intl.DateTimeFormat("fr-FR", {
     day: "2-digit",
@@ -32,7 +64,16 @@ function formatApplicationDate(value: string) {
   }).format(new Date(value));
 }
 
-export default async function RecruiterApplicationsPage() {
+async function updateApplicationStatus(applicationId: string, status: ApplicationStatus) {
+  "use server";
+
+  const result = await updateRecruiterApplicationStatus(applicationId, status);
+  const param = result.ok ? "updated" : "error";
+
+  redirect(`/recruteur/candidatures?${param}=${encodeURIComponent(result.message)}`);
+}
+
+export default async function RecruiterApplicationsPage({ searchParams }: RecruiterApplicationsPageProps) {
   const { user, isDemo } = await requireRole(["recruiter"]);
   let applications: RecruiterApplication[] = isDemo ? demoRecruiterApplications : [];
   let company: CompanyRow | null = isDemo ? demoRecruiterCompany : null;
@@ -56,6 +97,9 @@ export default async function RecruiterApplicationsPage() {
   const viewedCount = applications.filter((application) =>
     ["viewed", "shortlisted", "interview", "hired"].includes(application.status)
   ).length;
+  const query = await searchParams;
+  const updatedMessage = firstQueryValue(query.updated);
+  const errorMessage = firstQueryValue(query.error);
 
   return (
     <>
@@ -65,6 +109,17 @@ export default async function RecruiterApplicationsPage() {
           <p>{total} candidature{total > 1 ? "s" : ""} au total</p>
         </div>
       </div>
+
+      {updatedMessage ? (
+        <div className="recruiterNotice" role="status">
+          {updatedMessage}
+        </div>
+      ) : null}
+      {errorMessage ? (
+        <div className="recruiterNotice isError" role="alert">
+          {errorMessage}
+        </div>
+      ) : null}
 
       <section className="dashboard-grid applications-kpis" aria-label="Indicateurs candidatures">
         {([
@@ -121,9 +176,25 @@ export default async function RecruiterApplicationsPage() {
                   <small>
                     Pour {application.job.title} · envoyée le {formatApplicationDate(application.created_at)}
                   </small>
+                  <span className="recruiter-application-cv">
+                    {application.cv_path ? "CV reçu" : "CV à demander"}
+                  </span>
                 </div>
                 <span className="pill rose">{statusLabels[application.status]}</span>
-                <span className="btn btn-soft recruiter-static-action">CV reçu</span>
+                <div className="recruiter-application-actions" aria-label={`Actions pour ${application.candidate.displayName}`}>
+                  {statusActions.map(({ status, label, Icon, tone }) => (
+                    <form action={updateApplicationStatus.bind(null, application.id, status)} key={status}>
+                      <button
+                        className={`recruiter-action-button${tone ? ` ${tone}` : ""}`}
+                        type="submit"
+                        disabled={application.status === status || isDemo}
+                      >
+                        <Icon aria-hidden="true" size={15} />
+                        {label}
+                      </button>
+                    </form>
+                  ))}
+                </div>
               </div>
             ))}
           </div>

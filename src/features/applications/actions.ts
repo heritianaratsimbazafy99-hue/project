@@ -2,12 +2,85 @@
 
 import { revalidatePath } from "next/cache";
 
+import { requireRole } from "@/lib/auth/require-role";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import type { ApplicationStatus } from "@/types/database";
 
 export type ApplyToJobResult = {
   ok: boolean;
   message: string;
 };
+
+export type UpdateRecruiterApplicationStatusResult = {
+  ok: boolean;
+  message: string;
+};
+
+const recruiterAssignableStatuses = [
+  "viewed",
+  "shortlisted",
+  "rejected",
+  "interview",
+  "hired"
+] as const satisfies readonly ApplicationStatus[];
+
+function isRecruiterAssignableStatus(status: string): status is (typeof recruiterAssignableStatuses)[number] {
+  return recruiterAssignableStatuses.includes(status as (typeof recruiterAssignableStatuses)[number]);
+}
+
+export async function updateRecruiterApplicationStatus(
+  applicationId: string,
+  status: string
+): Promise<UpdateRecruiterApplicationStatusResult> {
+  const normalizedApplicationId = applicationId.trim();
+  const normalizedStatus = status.trim();
+
+  if (!normalizedApplicationId || !isRecruiterAssignableStatus(normalizedStatus)) {
+    return {
+      ok: false,
+      message: "Statut de candidature invalide."
+    };
+  }
+
+  const { isDemo } = await requireRole(["recruiter"]);
+
+  if (isDemo) {
+    return {
+      ok: false,
+      message: "Les candidatures démo ne peuvent pas être modifiées."
+    };
+  }
+
+  const supabase = await createSupabaseServerClient();
+  const { data, error } = await supabase
+    .from("applications")
+    .update({ status: normalizedStatus })
+    .eq("id", normalizedApplicationId)
+    .select("id")
+    .maybeSingle<{ id: string }>();
+
+  if (error) {
+    return {
+      ok: false,
+      message: "La candidature n'a pas pu être mise à jour."
+    };
+  }
+
+  if (!data) {
+    return {
+      ok: false,
+      message: "Candidature introuvable ou non autorisée."
+    };
+  }
+
+  revalidatePath("/recruteur/candidatures");
+  revalidatePath("/recruteur/dashboard");
+
+  return {
+    ok: true,
+    message: "Statut de candidature mis à jour."
+  };
+}
 
 export async function applyToJob(jobId: string, cvPath: string | null | undefined): Promise<ApplyToJobResult> {
   const normalizedJobId = jobId.trim();
