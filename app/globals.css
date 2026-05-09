@@ -108,6 +108,436 @@ a {
   line-height: 1.6;
 }
 
+.heroActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: 2rem;
+}
+
+.homeDynamic {
+  width: min(100% - 2rem, 72rem);
+  margin: 0 auto;
+  padding: 0 0 4rem;
+}
+
+.sectionHeading {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.sectionHeading h2 {
+  margin: 0;
+  color: var(--color-navy);
+  font-size: clamp(1.5rem, 4vw, 2.25rem);
+  line-height: 1.05;
+}
+
+.sectionHeading a {
+  color: var(--color-navy);
+  font-weight: 850;
+  text-decoration: none;
+}
+
+.homeJobGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.9rem;
+}
+
+.companyStrip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.7rem;
+  margin-top: 1rem;
+}
+
+.companyChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  max-width: 100%;
+  min-height: 2.75rem;
+  padding: 0.45rem 0.75rem;
+  border: 1px solid rgba(11, 47, 107, 0.12);
+  border-radius: 0.5rem;
+  background: rgba(255, 255, 255, 0.82);
+  color: var(--color-navy);
+  font-weight: 850;
+}
+
+.companyChip img {
+  width: 2.25rem;
+  height: 2.25rem;
+  flex: 0 0 auto;
+  border-radius: 0.45rem;
+  object-fit: cover;
+}
+
+.primaryAction,
+.jobFilters button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 2.75rem;
+  padding: 0.75rem 1rem;
+  border: 0;
+  border-radius: 0.5rem;
+  background: var(--color-navy);
+  color: var(--color-surface);
+  font: inherit;
+  font-weight: 800;
+  text-decoration: none;
+  cursor: pointer;
+  box-shadow: 0 0.75rem 1.5rem rgba(11, 47, 107, 0.18);
+}
+
+.publicHeader {
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.headerLink {
+  color: var(--color-navy);
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.jobBoardShell,
+.jobDetailShell {
+  width: min(100% - 2rem, 72rem);
+  margin: 0 auto;
+  padding: 2rem 0 4rem;
+}
+
+.jobBoardIntro {
+  padding: 1rem 0 1.5rem;
+}
+
+.jobBoardIntro p,
+.jobCompany {
+  margin: 0 0 0.45rem;
+  color: var(--color-purple);
+  font-size: 0.9rem;
+  font-weight: 850;
+  line-height: 1.4;
+  text-transform: uppercase;
+}
+
+.jobBoardIntro h1,
+.jobDetailMain h1 {
+  max-width: 16ch;
+  margin: 0;
+  color: var(--color-navy);
+  font-size: clamp(2.1rem, 6vw, 4.25rem);
+  line-height: 1;
+}
+
+.jobFilters {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr)) auto;
+  gap: 0.75rem;
+  align-items: end;
+  padding: 1rem;
+  border: 1px solid rgba(11, 47, 107, 0.1);
+  border-radius: 0.5rem;
+  background: rgba(255, 255, 255, 0.84);
+  box-shadow: 0 0.75rem 2rem rgba(11, 47, 107, 0.08);
+}
+
+.jobFilters label {
+  display: grid;
+  gap: 0.35rem;
+  color: var(--color-ink);
+  font-size: 0.86rem;
+  font-weight: 800;
+}
+
+.jobFilters input {
+  width: 100%;
+  min-width: 0;
+  min-height: 2.75rem;
+  padding: 0.7rem 0.75rem;
+  border: 1px solid rgba(11, 47, 107, 0.2);
+  border-radius: 0.45rem;
+  background: var(--color-surface);
+  color: var(--color-ink);
+  font: inherit;
+}
+
+.jobResultsHeader {
+  margin: 1.5rem 0 0.75rem;
+  color: var(--color-muted);
+  font-weight: 750;
+}
+
+.jobResultsHeader p {
+  margin: 0;
+}
+
+.jobList {
+  display: grid;
+  gap: 0.9rem;
+}
+
+.jobBoardLayout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(17rem, 21rem);
+  gap: 1.25rem;
+  align-items: start;
+}
+
+.jobCard {
+  border: 1px solid rgba(11, 47, 107, 0.11);
+  border-radius: 0.5rem;
+  background: rgba(255, 255, 255, 0.9);
+  transition:
+    border-color 160ms ease,
+    box-shadow 160ms ease,
+    transform 160ms ease;
+}
+
+.jobCard:focus-within,
+.jobCard:hover {
+  border-color: rgba(11, 47, 107, 0.32);
+  box-shadow: 0 1rem 2.25rem rgba(11, 47, 107, 0.12);
+  transform: translateY(-1px);
+}
+
+.jobCardLink {
+  display: grid;
+  gap: 1rem;
+  padding: 1.25rem;
+  text-decoration: none;
+}
+
+.jobCardHeader {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.jobCard h2 {
+  margin: 0;
+  color: var(--color-navy);
+  font-size: clamp(1.15rem, 3vw, 1.55rem);
+  line-height: 1.18;
+}
+
+.jobBadges {
+  display: flex;
+  flex: 0 0 auto;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.4rem;
+}
+
+.jobBadges span {
+  align-self: start;
+  padding: 0.35rem 0.55rem;
+  border-radius: 999px;
+  background: rgba(142, 227, 33, 0.18);
+  color: #315b09;
+  font-size: 0.78rem;
+  font-weight: 850;
+}
+
+.jobSummary {
+  max-width: 62rem;
+  margin: 0;
+  color: var(--color-muted);
+  line-height: 1.55;
+}
+
+.jobMeta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  margin: 0;
+}
+
+.jobMeta div {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  min-height: 2rem;
+  padding: 0.35rem 0.6rem;
+  border: 1px solid rgba(40, 200, 245, 0.26);
+  border-radius: 0.45rem;
+  background: rgba(40, 200, 245, 0.08);
+}
+
+.jobMeta dt {
+  color: var(--color-muted);
+  font-size: 0.78rem;
+  font-weight: 800;
+}
+
+.jobMeta dd {
+  margin: 0;
+  color: var(--color-ink);
+  font-weight: 800;
+}
+
+.emptyState {
+  padding: 2rem;
+  border: 1px dashed rgba(11, 47, 107, 0.28);
+  border-radius: 0.5rem;
+  background: rgba(255, 255, 255, 0.74);
+}
+
+.emptyState h2,
+.applyPanel h2,
+.jobSection h2,
+.companySummary h2 {
+  margin: 0;
+  color: var(--color-navy);
+  font-size: 1.2rem;
+  line-height: 1.25;
+}
+
+.emptyState p,
+.applyPanel p,
+.jobSection p,
+.companySummary p {
+  margin: 0.6rem 0 0;
+  color: var(--color-muted);
+  line-height: 1.65;
+}
+
+.breadcrumb {
+  margin-bottom: 1.5rem;
+}
+
+.breadcrumb a {
+  color: var(--color-navy);
+  font-weight: 850;
+  text-decoration: none;
+}
+
+.jobDetailLayout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(16rem, 22rem);
+  gap: clamp(1.5rem, 4vw, 3rem);
+  align-items: start;
+}
+
+.jobDetailMain {
+  display: grid;
+  gap: 1.5rem;
+  min-width: 0;
+}
+
+.detailMeta {
+  margin-top: 0.25rem;
+}
+
+.jobSection {
+  padding-top: 1.25rem;
+  border-top: 1px solid rgba(11, 47, 107, 0.12);
+}
+
+.companySummary {
+  display: flex;
+  gap: 1rem;
+  align-items: flex-start;
+  padding: 1.25rem;
+  border: 1px solid rgba(11, 47, 107, 0.12);
+  border-radius: 0.5rem;
+  background: rgba(255, 255, 255, 0.78);
+}
+
+.companySummary img {
+  width: 3.5rem;
+  height: 3.5rem;
+  flex: 0 0 auto;
+  border-radius: 0.75rem;
+  object-fit: cover;
+}
+
+.applyPanel {
+  position: sticky;
+  top: 1rem;
+  display: grid;
+  gap: 1rem;
+  padding: 1.25rem;
+  border: 1px solid rgba(11, 47, 107, 0.12);
+  border-radius: 0.5rem;
+  background: var(--color-surface);
+  box-shadow: 0 1rem 2rem rgba(11, 47, 107, 0.1);
+}
+
+.stickyRail {
+  position: sticky;
+  top: 1rem;
+  display: grid;
+  gap: 1rem;
+}
+
+.railPanel {
+  display: grid;
+  gap: 0.85rem;
+  padding: 1rem;
+  border: 1px solid rgba(11, 47, 107, 0.12);
+  border-radius: 0.5rem;
+  background: rgba(255, 255, 255, 0.88);
+  box-shadow: 0 0.75rem 2rem rgba(11, 47, 107, 0.08);
+}
+
+.railPanel h2 {
+  margin: 0;
+  color: var(--color-navy);
+  font-size: 1.05rem;
+  line-height: 1.25;
+}
+
+.railPanel p {
+  margin: 0;
+  color: var(--color-muted);
+  line-height: 1.55;
+}
+
+.railJobList {
+  display: grid;
+  gap: 0.65rem;
+}
+
+.railJobList a {
+  display: grid;
+  gap: 0.15rem;
+  padding-bottom: 0.65rem;
+  border-bottom: 1px solid rgba(11, 47, 107, 0.1);
+  text-decoration: none;
+}
+
+.railJobList a:last-child {
+  padding-bottom: 0;
+  border-bottom: 0;
+}
+
+.railJobList strong {
+  color: var(--color-navy);
+  line-height: 1.25;
+}
+
+.railJobList span {
+  color: var(--color-muted);
+  font-size: 0.9rem;
+}
+
+.proPanel {
+  background:
+    linear-gradient(135deg, rgba(116, 40, 200, 0.1), transparent 62%),
+    var(--color-surface);
+}
+
+.applyPanel p {
+  margin-top: 0;
+}
+
 @media (max-width: 520px) {
   :root {
     --header-height: 76px;
@@ -128,5 +558,47 @@ a {
 
   .hero h1 {
     max-width: 10ch;
+  }
+}
+
+@media (max-width: 900px) {
+  .jobFilters,
+  .jobDetailLayout,
+  .jobBoardLayout,
+  .homeJobGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .applyPanel,
+  .stickyRail {
+    position: static;
+  }
+}
+
+@media (max-width: 620px) {
+  .jobBoardShell,
+  .jobDetailShell {
+    width: min(100% - 1.5rem, 72rem);
+    padding-top: 1rem;
+  }
+
+  .publicHeader {
+    align-items: flex-start;
+  }
+
+  .jobCardHeader {
+    display: grid;
+  }
+
+  .jobBadges {
+    justify-content: flex-start;
+  }
+
+  .jobMeta {
+    display: grid;
+  }
+
+  .sectionHeading {
+    display: grid;
   }
 }
