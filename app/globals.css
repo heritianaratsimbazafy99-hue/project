@@ -953,6 +953,503 @@ a {
   padding: clamp(1.5rem, 5vw, 2.5rem);
 }
 
+.recruiterArea {
+  background:
+    linear-gradient(135deg, rgba(11, 47, 107, 0.09), transparent 30rem),
+    linear-gradient(315deg, rgba(40, 200, 245, 0.14), transparent 34rem),
+    var(--color-page);
+}
+
+.recruiterShell {
+  width: min(100% - 2rem, 78rem);
+  grid-template-columns: minmax(15rem, 19rem) minmax(0, 1fr);
+}
+
+.recruiterSidebar {
+  position: sticky;
+  top: 1rem;
+  display: grid;
+  gap: 1rem;
+  align-self: start;
+}
+
+.recruiterSidebarCard,
+.recruiterQuotaCard,
+.recruiterPanel,
+.recruiterOfferCard {
+  border: 1px solid rgba(11, 47, 107, 0.12);
+  border-radius: 0.5rem;
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow: 0 0.75rem 2rem rgba(11, 47, 107, 0.08);
+}
+
+.recruiterSidebarCard,
+.recruiterQuotaCard,
+.recruiterPanel,
+.recruiterOfferCard {
+  padding: 1.1rem;
+}
+
+.recruiterIdentity {
+  display: flex;
+  gap: 0.8rem;
+  align-items: center;
+  min-width: 0;
+}
+
+.recruiterIdentity p,
+.recruiterIdentity strong,
+.recruiterIdentity span {
+  display: block;
+  margin: 0;
+}
+
+.recruiterIdentity p,
+.recruiterEyebrow {
+  color: var(--color-purple);
+  font-size: 0.78rem;
+  font-weight: 850;
+  line-height: 1.35;
+  text-transform: uppercase;
+}
+
+.recruiterIdentity strong {
+  color: var(--color-navy);
+  line-height: 1.25;
+}
+
+.recruiterIdentity span {
+  color: var(--color-muted);
+  font-size: 0.9rem;
+  line-height: 1.4;
+}
+
+.recruiterAvatar {
+  display: grid;
+  width: 3.25rem;
+  height: 3.25rem;
+  flex: 0 0 auto;
+  place-items: center;
+  border-radius: 0.5rem;
+  background: var(--color-navy);
+  color: var(--color-surface);
+  font-size: 1.35rem;
+  font-weight: 850;
+}
+
+.recruiterNav {
+  display: grid;
+  gap: 0.35rem;
+  margin-top: 1rem;
+}
+
+.recruiterNav a,
+.recruiterNav > span,
+.recruiterTabs a {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  min-height: 2.5rem;
+  padding: 0.65rem 0.75rem;
+  border-radius: 0.45rem;
+  color: var(--color-navy);
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.recruiterNav a:hover,
+.recruiterNav a.isActive,
+.recruiterTabs a:hover,
+.recruiterTabs a.isActive {
+  background: rgba(40, 200, 245, 0.12);
+}
+
+.recruiterNav > span {
+  color: rgba(11, 47, 107, 0.46);
+  cursor: not-allowed;
+}
+
+.recruiterQuotaCard {
+  display: grid;
+  gap: 0.55rem;
+  background:
+    linear-gradient(135deg, rgba(142, 227, 33, 0.18), transparent 68%),
+    var(--color-surface);
+}
+
+.recruiterQuotaCard p,
+.recruiterQuotaCard h2,
+.recruiterQuotaCard strong {
+  margin: 0;
+}
+
+.recruiterQuotaCard p {
+  color: var(--color-purple);
+  font-size: 0.78rem;
+  font-weight: 850;
+  text-transform: uppercase;
+}
+
+.recruiterQuotaCard h2 {
+  color: var(--color-navy);
+  font-size: 1rem;
+}
+
+.recruiterQuotaCard strong {
+  color: var(--color-ink);
+}
+
+.recruiterQuotaCard a {
+  color: var(--color-navy);
+  font-weight: 850;
+  text-decoration: none;
+}
+
+.recruiterContent {
+  min-width: 0;
+}
+
+.recruiterStack,
+.recruiterForm {
+  display: grid;
+  gap: 1rem;
+}
+
+.recruiterHero {
+  padding: 0.5rem 0 0.25rem;
+}
+
+.recruiterHero.compact {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.recruiterHero h1 {
+  max-width: 18ch;
+  margin: 0.25rem 0 0;
+  color: var(--color-navy);
+  font-size: clamp(2rem, 5vw, 3.65rem);
+  line-height: 1;
+}
+
+.recruiterHero p:last-child,
+.recruiterPanel p,
+.recruiterEmptyState p,
+.recruiterOfferCard p,
+.recruiterHint {
+  margin: 0.5rem 0 0;
+  color: var(--color-muted);
+  line-height: 1.6;
+}
+
+.recruiterMetricGrid,
+.recruiterPanelGrid,
+.recruiterMethodGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.85rem;
+}
+
+.recruiterPanelGrid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.recruiterMetricGrid article,
+.recruiterMethodGrid article,
+.recruiterEmptyState,
+.recruiterNotice {
+  padding: 1.1rem;
+  border: 1px solid rgba(11, 47, 107, 0.12);
+  border-radius: 0.5rem;
+  background: rgba(255, 255, 255, 0.86);
+}
+
+.recruiterNotice {
+  border-color: rgba(142, 227, 33, 0.45);
+  background: rgba(142, 227, 33, 0.14);
+  color: var(--color-navy);
+  font-weight: 850;
+}
+
+.recruiterMetricGrid span,
+.recruiterMethodGrid span,
+.recruiterStatus {
+  color: var(--color-purple);
+  font-size: 0.78rem;
+  font-weight: 850;
+  text-transform: uppercase;
+}
+
+.recruiterMetricGrid strong {
+  display: block;
+  margin-top: 0.45rem;
+  color: var(--color-navy);
+  font-size: 2rem;
+  line-height: 1;
+}
+
+.recruiterMetricGrid p,
+.recruiterMethodGrid p {
+  margin: 0.55rem 0 0;
+  color: var(--color-muted);
+  line-height: 1.55;
+}
+
+.recruiterSectionHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.recruiterSectionHeader h2,
+.recruiterMethodGrid h3,
+.recruiterEmptyState h2,
+.recruiterEmptyState h3,
+.recruiterOfferCard h2 {
+  margin: 0;
+  color: var(--color-navy);
+  line-height: 1.25;
+}
+
+.recruiterSectionHeader span,
+.recruiterSectionHeader a {
+  color: var(--color-navy);
+  font-weight: 850;
+  text-decoration: none;
+}
+
+.recruiterStepList {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.75rem;
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+
+.recruiterStepList li {
+  display: grid;
+  gap: 0.65rem;
+  min-height: 7.5rem;
+  align-content: start;
+  padding: 0.9rem;
+  border: 1px solid rgba(11, 47, 107, 0.12);
+  border-radius: 0.5rem;
+  background: rgba(244, 248, 251, 0.78);
+  color: var(--color-ink);
+  font-weight: 800;
+}
+
+.recruiterStepList span {
+  display: grid;
+  width: 2rem;
+  height: 2rem;
+  place-items: center;
+  border-radius: 999px;
+  background: rgba(11, 47, 107, 0.1);
+  color: var(--color-navy);
+  font-size: 0.68rem;
+  font-weight: 900;
+}
+
+.recruiterStepList .isDone span {
+  background: var(--color-green);
+}
+
+.recruiterActivityList {
+  display: grid;
+  gap: 0.65rem;
+}
+
+.recruiterActivityList a {
+  display: grid;
+  gap: 0.2rem;
+  padding: 0.75rem 0;
+  border-top: 1px solid rgba(11, 47, 107, 0.1);
+  text-decoration: none;
+}
+
+.recruiterActivityList a:first-child {
+  border-top: 0;
+}
+
+.recruiterActivityList strong {
+  color: var(--color-navy);
+}
+
+.recruiterActivityList span {
+  color: var(--color-muted);
+}
+
+.recruiterTabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.recruiterTabs a {
+  border: 1px solid rgba(11, 47, 107, 0.12);
+  background: rgba(255, 255, 255, 0.84);
+}
+
+.recruiterOfferList {
+  display: grid;
+  gap: 0.85rem;
+}
+
+.recruiterOfferCard {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.recruiterOfferCard h2 {
+  margin-top: 0.35rem;
+  font-size: 1.25rem;
+}
+
+.recruiterBoosts {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.45rem;
+}
+
+.recruiterBoosts span {
+  padding: 0.35rem 0.55rem;
+  border-radius: 999px;
+  background: rgba(11, 47, 107, 0.08);
+  color: var(--color-navy);
+  font-size: 0.78rem;
+  font-weight: 850;
+}
+
+.recruiterEmptyState {
+  border-style: dashed;
+}
+
+.recruiterEmptyState.isLarge {
+  display: grid;
+  gap: 0.85rem;
+  justify-items: start;
+  padding: clamp(1.5rem, 5vw, 2.5rem);
+}
+
+.recruiterMethodGrid article.isActive {
+  border-color: rgba(11, 47, 107, 0.34);
+  background: rgba(40, 200, 245, 0.08);
+}
+
+.recruiterFormGrid,
+.recruiterTextGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.85rem;
+}
+
+.recruiterTextGrid {
+  grid-template-columns: 1fr;
+}
+
+.recruiterFormGrid label,
+.recruiterTextGrid label,
+.recruiterVisibilityGrid label {
+  display: grid;
+  gap: 0.35rem;
+  color: var(--color-ink);
+  font-size: 0.88rem;
+  font-weight: 850;
+}
+
+.recruiterFormGrid input,
+.recruiterTextGrid textarea {
+  width: 100%;
+  min-width: 0;
+  min-height: 2.75rem;
+  padding: 0.7rem 0.75rem;
+  border: 1px solid rgba(11, 47, 107, 0.2);
+  border-radius: 0.45rem;
+  background: var(--color-surface);
+  color: var(--color-ink);
+  font: inherit;
+}
+
+.recruiterTextGrid textarea {
+  resize: vertical;
+}
+
+.recruiterVisibilityGrid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.85rem;
+}
+
+.recruiterVisibilityGrid label {
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  min-height: 2.75rem;
+  padding: 0.65rem 0.8rem;
+  border: 1px solid rgba(11, 47, 107, 0.12);
+  border-radius: 0.45rem;
+  background: rgba(244, 248, 251, 0.78);
+  color: var(--color-muted);
+}
+
+.recruiterSubmitBar {
+  position: sticky;
+  bottom: 1rem;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.9rem;
+  border: 1px solid rgba(11, 47, 107, 0.14);
+  border-radius: 0.5rem;
+  background: rgba(255, 255, 255, 0.96);
+  box-shadow: 0 1rem 2.5rem rgba(11, 47, 107, 0.14);
+}
+
+.recruiterSubmitBar p {
+  margin: 0;
+  color: var(--color-muted);
+  font-weight: 750;
+  line-height: 1.45;
+}
+
+.recruiterSubmitBar div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  justify-content: flex-end;
+}
+
+.recruiterSubmitBar a,
+.recruiterSubmitBar button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 2.5rem;
+  padding: 0.65rem 0.85rem;
+  border-radius: 0.45rem;
+  color: var(--color-navy);
+  font: inherit;
+  font-weight: 850;
+  text-decoration: none;
+}
+
+.recruiterSubmitBar button {
+  border: 0;
+  background: var(--color-navy);
+  color: var(--color-surface);
+  cursor: pointer;
+}
+
 @media (max-width: 520px) {
   :root {
     --header-height: 76px;
@@ -986,17 +1483,25 @@ a {
   .candidateForm,
   .candidateForm.compact,
   .candidatePanelGrid,
-  .candidateSkillGrid {
+  .candidateSkillGrid,
+  .recruiterShell,
+  .recruiterMetricGrid,
+  .recruiterPanelGrid,
+  .recruiterMethodGrid,
+  .recruiterFormGrid {
     grid-template-columns: 1fr;
   }
 
   .applyPanel,
   .stickyRail,
-  .candidateSidebar {
+  .candidateSidebar,
+  .recruiterSidebar,
+  .recruiterSubmitBar {
     position: static;
   }
 
-  .onboardingList {
+  .onboardingList,
+  .recruiterStepList {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
@@ -1025,7 +1530,11 @@ a {
   }
 
   .sectionHeading,
-  .candidateSectionHeader {
+  .candidateSectionHeader,
+  .recruiterSectionHeader,
+  .recruiterHero.compact,
+  .recruiterOfferCard,
+  .recruiterSubmitBar {
     display: grid;
   }
 
@@ -1038,7 +1547,13 @@ a {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  .onboardingList {
+  .onboardingList,
+  .recruiterStepList {
     grid-template-columns: 1fr;
+  }
+
+  .recruiterBoosts,
+  .recruiterSubmitBar div {
+    justify-content: flex-start;
   }
 }
