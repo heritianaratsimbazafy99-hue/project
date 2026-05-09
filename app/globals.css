@@ -538,6 +538,39 @@ a {
   margin-top: 0;
 }
 
+.apply-form {
+  display: flex;
+  margin: 0;
+}
+
+.apply-form .btn {
+  border: 0;
+  font: inherit;
+  cursor: pointer;
+}
+
+.apply-feedback {
+  display: inline-flex;
+  width: fit-content;
+  max-width: 100%;
+  margin: 0 0 0.55rem;
+  padding: 0.35rem 0.6rem;
+  border-radius: 0.45rem;
+  font-size: 0.9rem;
+  font-weight: 850;
+  line-height: 1.35;
+}
+
+.apply-feedback.success {
+  background: rgba(142, 227, 33, 0.16);
+  color: #315b09;
+}
+
+.apply-feedback.error {
+  background: rgba(225, 93, 126, 0.12);
+  color: #bb3458;
+}
+
 .candidateArea {
   background:
     linear-gradient(135deg, rgba(40, 200, 245, 0.12), transparent 28rem),

@@ -1,6 +1,12 @@
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { cookies } from "next/headers";
+import { notFound, redirect } from "next/navigation";
 
+import { applyToJob } from "@/features/applications/actions";
+import {
+  getCandidateApplyState,
+  type CandidateApplyState
+} from "@/features/applications/apply-state";
 import { getPublishedJobBySlugOrNull } from "@/features/jobs/queries";
 import {
   CompanyLogo,
@@ -10,17 +16,120 @@ import {
   PublicJobCard
 } from "@/features/public/components";
 import { fallbackPublishedJobs, findPublicJob } from "@/features/public/demo-data";
+import { DEMO_SESSION_COOKIE, parseDemoSession } from "@/lib/auth/demo-session";
+import type { UserRole } from "@/types/database";
 
 export const dynamic = "force-dynamic";
 
 type JobDetailPageProps = {
   params: Promise<{ slug: string }>;
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
 };
 
-export default async function JobDetailPage({ params }: JobDetailPageProps) {
+type ApplyState = CandidateApplyState | { state: "demo_candidate" };
+
+function firstQueryValue(value: string | string[] | undefined) {
+  return Array.isArray(value) ? value[0] : value;
+}
+
+async function resolveApplyState(jobId: string): Promise<ApplyState> {
+  const cookieStore = await cookies();
+  const demoAccount = parseDemoSession(cookieStore.get(DEMO_SESSION_COOKIE)?.value);
+
+  if (demoAccount?.role === "candidate") {
+    return { state: "demo_candidate" };
+  }
+
+  if (demoAccount?.role) {
+    return { state: "wrong_role", role: demoAccount.role };
+  }
+
+  return getCandidateApplyState(jobId);
+}
+
+async function applyFromJobDetail(jobId: string, slug: string, cvPath: string) {
+  "use server";
+
+  const result = await applyToJob(jobId, cvPath);
+  const param = result.ok ? "applied" : "applyError";
+
+  redirect(`/emploi/${slug}?${param}=${encodeURIComponent(result.message)}`);
+}
+
+function ApplyCallToAction({
+  applyState,
+  jobId,
+  slug,
+  full = false
+}: {
+  applyState: ApplyState;
+  jobId: string;
+  slug: string;
+  full?: boolean;
+}) {
+  const { Send } = PublicIcons;
+  const style = full ? { width: "100%" } : undefined;
+
+  if (applyState.state === "ready") {
+    return (
+      <form className="apply-form" action={applyFromJobDetail.bind(null, jobId, slug, applyState.cvPath)}>
+        <button className="btn btn-primary" style={style} type="submit">
+          <Send size={18} aria-hidden="true" /> Postuler
+        </button>
+      </form>
+    );
+  }
+
+  if (applyState.state === "missing_cv") {
+    return (
+      <Link className="btn btn-primary" style={style} href="/candidat/profil">
+        <Send size={18} aria-hidden="true" /> Ajouter mon CV
+      </Link>
+    );
+  }
+
+  if (applyState.state === "already_applied") {
+    return (
+      <Link className="btn btn-primary" style={style} href="/candidat/candidatures">
+        <Send size={18} aria-hidden="true" /> Voir ma candidature
+      </Link>
+    );
+  }
+
+  if (applyState.state === "demo_candidate") {
+    return (
+      <Link className="btn btn-primary" style={style} href="/candidat/candidatures">
+        <Send size={18} aria-hidden="true" /> Voir le suivi démo
+      </Link>
+    );
+  }
+
+  const href = applyState.state === "wrong_role" ? "/connexion" : "/connexion";
+  const label = applyState.state === "wrong_role" ? "Changer de compte" : "Postuler";
+
+  return (
+    <Link className="btn btn-primary" style={style} href={href}>
+      <Send size={18} aria-hidden="true" /> {label}
+    </Link>
+  );
+}
+
+function roleLabel(role: UserRole | null) {
+  if (role === "recruiter") {
+    return "un compte candidat est nécessaire pour postuler.";
+  }
+
+  if (role === "admin") {
+    return "un compte candidat est nécessaire pour envoyer une candidature.";
+  }
+
+  return "connectez-vous avec un compte candidat.";
+}
+
+export default async function JobDetailPage({ params, searchParams }: JobDetailPageProps) {
   const { slug } = await params;
   const job = (await getPublishedJobBySlugOrNull(slug)) ?? findPublicJob(slug);
-  const { BriefcaseBusiness, Clock, FileText, Layers, MapPin, Send, Target, Users } = PublicIcons;
+  const { BriefcaseBusiness, Clock, FileText, Layers, MapPin, Target, Users } = PublicIcons;
 
   if (!job) {
     notFound();
@@ -29,6 +138,10 @@ export default async function JobDetailPage({ params }: JobDetailPageProps) {
   const similarJobs = fallbackPublishedJobs
     .filter((item) => item.sector === job.sector && item.slug !== job.slug)
     .slice(0, 4);
+  const applyState = await resolveApplyState(job.id);
+  const query = await searchParams;
+  const appliedMessage = firstQueryValue(query.applied);
+  const applyErrorMessage = firstQueryValue(query.applyError);
 
   return (
     <>
@@ -89,14 +202,17 @@ export default async function JobDetailPage({ params }: JobDetailPageProps) {
               <section className="apply-inline">
                 <div>
                   <h3>Cette offre vous correspond ?</h3>
+                  {appliedMessage ? <p className="apply-feedback success">{appliedMessage}</p> : null}
+                  {applyErrorMessage ? <p className="apply-feedback error">{applyErrorMessage}</p> : null}
                   <p>
-                    Connectez-vous ou créez votre profil candidat pour envoyer votre candidature à{" "}
-                    <strong>{job.company.name}</strong>.
+                    {applyState.state === "ready"
+                      ? `Votre CV sera transmis à ${job.company.name}.`
+                      : applyState.state === "wrong_role"
+                        ? roleLabel(applyState.role)
+                        : `Connectez-vous ou créez votre profil candidat pour envoyer votre candidature à ${job.company.name}.`}
                   </p>
                 </div>
-                <Link className="btn btn-primary" href="/connexion">
-                  <Send size={18} aria-hidden="true" /> Postuler
-                </Link>
+                <ApplyCallToAction applyState={applyState} jobId={job.id} slug={job.slug} />
               </section>
             </div>
 
@@ -123,9 +239,7 @@ export default async function JobDetailPage({ params }: JobDetailPageProps) {
                   <strong>Prise de poste</strong>
                   Dès que possible
                 </p>
-                <Link className="btn btn-primary" style={{ width: "100%" }} href="/connexion">
-                  <Send size={18} aria-hidden="true" /> Postuler maintenant
-                </Link>
+                <ApplyCallToAction applyState={applyState} jobId={job.id} slug={job.slug} full />
                 <small>Candidature gratuite et rapide via JobMada</small>
               </div>
               <div className="side-card">
