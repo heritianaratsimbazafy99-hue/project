@@ -1,7 +1,8 @@
 import Link from "next/link";
-import { BriefcaseBusiness, Clock, Eye, Layers, Plus, UsersRound } from "lucide-react";
+import { Archive, BriefcaseBusiness, Clock, Eye, Layers, Plus, UsersRound } from "lucide-react";
 
 import { demoRecruiterCompany, demoRecruiterJobs, demoRecruiterSubscription } from "@/features/demo/workspace";
+import { archiveRecruiterJobAndRedirect } from "@/features/jobs/actions";
 import { requireRole } from "@/lib/auth/require-role";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { JobStatus } from "@/types/database";
@@ -56,6 +57,8 @@ export default async function RecruiterOffersPage({ searchParams }: RecruiterOff
   const params = await searchParams;
   const requestedStatus = firstValue(params.status) as JobStatus | undefined;
   const created = firstValue(params.created) === "1";
+  const archived = firstValue(params.archived) === "1";
+  const error = firstValue(params.error);
   const activeStatus = tabs.some((tab) => tab.status === requestedStatus) ? requestedStatus : undefined;
   let company: CompanyRow | null = isDemo ? demoRecruiterCompany : null;
   let jobs: JobRow[] = isDemo ? demoRecruiterJobs : [];
@@ -132,6 +135,16 @@ export default async function RecruiterOffersPage({ searchParams }: RecruiterOff
           L'offre est envoyée à l'équipe JobMada pour revue.
         </div>
       ) : null}
+      {archived ? (
+        <div className="notice-line" role="status">
+          Offre archivée.
+        </div>
+      ) : null}
+      {error ? (
+        <div className="notice-line is-error" role="alert">
+          {error}
+        </div>
+      ) : null}
 
       <section className="panel offers-panel">
         <div className="toolbar">
@@ -167,9 +180,19 @@ export default async function RecruiterOffersPage({ searchParams }: RecruiterOff
                   </p>
                 </div>
                 <span className="pill rose">{statusLabels[job.status]}</span>
-                <Link className="btn btn-soft" href="/recruteur/offres/nouvelle">
-                  Modifier
-                </Link>
+                <div className="offer-row-actions">
+                  <Link className="btn btn-soft" href="/recruteur/offres/nouvelle">
+                    Modifier
+                  </Link>
+                  {job.status !== "archived" ? (
+                    <form action={archiveRecruiterJobAndRedirect.bind(null, job.id)}>
+                      <button type="submit" disabled={isDemo}>
+                        <Archive aria-hidden="true" size={15} />
+                        Archiver
+                      </button>
+                    </form>
+                  ) : null}
+                </div>
               </div>
             ))}
           </div>

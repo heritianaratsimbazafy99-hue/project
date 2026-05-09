@@ -124,6 +124,56 @@ export async function createJob(formData: FormData): Promise<CreateJobResult> {
   };
 }
 
+export async function archiveRecruiterJob(jobId: string): Promise<CreateJobResult> {
+  const normalizedJobId = jobId.trim();
+
+  if (!normalizedJobId) {
+    return {
+      ok: false,
+      message: "Offre introuvable."
+    };
+  }
+
+  const { isDemo } = await requireRole(["recruiter"]);
+
+  if (isDemo) {
+    return {
+      ok: false,
+      message: "Les offres démo ne peuvent pas être archivées."
+    };
+  }
+
+  const supabase = await createSupabaseServerClient();
+  const { data, error } = await supabase
+    .from("jobs")
+    .update({ status: "archived" })
+    .eq("id", normalizedJobId)
+    .select("id")
+    .maybeSingle<{ id: string }>();
+
+  if (error) {
+    return {
+      ok: false,
+      message: "L'offre n'a pas pu être archivée."
+    };
+  }
+
+  if (!data) {
+    return {
+      ok: false,
+      message: "Offre introuvable ou non autorisée."
+    };
+  }
+
+  revalidatePath("/recruteur/offres");
+  revalidatePath("/recruteur/dashboard");
+
+  return {
+    ok: true,
+    message: "Offre archivée."
+  };
+}
+
 export async function createJobAndRedirect(formData: FormData) {
   const result = await createJob(formData);
 
@@ -132,4 +182,14 @@ export async function createJobAndRedirect(formData: FormData) {
   }
 
   redirect(`/recruteur/offres/nouvelle?error=${encodeURIComponent(result.message)}`);
+}
+
+export async function archiveRecruiterJobAndRedirect(jobId: string) {
+  const result = await archiveRecruiterJob(jobId);
+
+  if (result.ok) {
+    redirect("/recruteur/offres?archived=1");
+  }
+
+  redirect(`/recruteur/offres?error=${encodeURIComponent(result.message)}`);
 }

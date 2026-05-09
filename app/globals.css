@@ -1318,6 +1318,55 @@ a {
   margin-top: 14px;
 }
 
+.notice-line {
+  padding: 0.95rem 1.05rem;
+  border: 1px solid rgba(142, 227, 33, 0.45);
+  border-radius: 0.5rem;
+  background: rgba(142, 227, 33, 0.14);
+  color: var(--color-navy);
+  font-weight: 850;
+}
+
+.notice-line.is-error {
+  border-color: rgba(225, 93, 126, 0.36);
+  background: rgba(225, 93, 126, 0.12);
+}
+
+.offer-row-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.45rem;
+}
+
+.offer-row-actions form {
+  margin: 0;
+}
+
+.offer-row-actions button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  min-height: 2.2rem;
+  padding: 0.48rem 0.65rem;
+  border: 1px solid rgba(225, 93, 126, 0.28);
+  border-radius: 0.45rem;
+  background: rgba(225, 93, 126, 0.08);
+  color: #bb3458;
+  font: inherit;
+  font-size: 0.82rem;
+  font-weight: 850;
+  line-height: 1;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.offer-row-actions button:disabled {
+  opacity: 0.52;
+  cursor: not-allowed;
+}
+
 .recruiter-applications-list small {
   display: block;
   margin-top: 5px;
