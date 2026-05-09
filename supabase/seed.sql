@@ -63,20 +63,166 @@ set
   last_sign_in_at = excluded.last_sign_in_at,
   updated_at = now();
 
-insert into public.profiles (id, role, display_name, email, onboarding_completion)
-values (
-  '00000000-0000-0000-0000-000000000001',
-  'recruiter',
-  'Recruteur demo JobMada',
-  'recruteur.demo@jobmada.mg',
-  100
+insert into auth.users (
+  id,
+  instance_id,
+  aud,
+  role,
+  email,
+  encrypted_password,
+  email_confirmed_at,
+  last_sign_in_at,
+  raw_app_meta_data,
+  raw_user_meta_data,
+  created_at,
+  updated_at,
+  confirmation_token,
+  email_change,
+  email_change_token_new,
+  recovery_token
 )
+values
+  (
+    '00000000-0000-0000-0000-000000000002',
+    '00000000-0000-0000-0000-000000000000',
+    'authenticated',
+    'authenticated',
+    'candidat.demo@jobmada.mg',
+    crypt('jobmada-demo-password', gen_salt('bf')),
+    now(),
+    now(),
+    '{"provider":"email","providers":["email"]}'::jsonb,
+    '{"role":"candidate"}'::jsonb,
+    now(),
+    now(),
+    '',
+    '',
+    '',
+    ''
+  ),
+  (
+    '00000000-0000-0000-0000-000000000003',
+    '00000000-0000-0000-0000-000000000000',
+    'authenticated',
+    'authenticated',
+    'admin.demo@jobmada.mg',
+    crypt('jobmada-demo-password', gen_salt('bf')),
+    now(),
+    now(),
+    '{"provider":"email","providers":["email"]}'::jsonb,
+    '{"role":"admin"}'::jsonb,
+    now(),
+    now(),
+    '',
+    '',
+    '',
+    ''
+  )
+on conflict (id) do nothing;
+
+insert into auth.identities (
+  id,
+  user_id,
+  provider_id,
+  identity_data,
+  provider,
+  last_sign_in_at,
+  created_at,
+  updated_at
+)
+values
+  (
+    '00000000-0000-0000-0000-000000000002',
+    '00000000-0000-0000-0000-000000000002',
+    'candidat.demo@jobmada.mg',
+    '{"sub":"00000000-0000-0000-0000-000000000002","email":"candidat.demo@jobmada.mg","email_verified":true,"phone_verified":false}'::jsonb,
+    'email',
+    now(),
+    now(),
+    now()
+  ),
+  (
+    '00000000-0000-0000-0000-000000000003',
+    '00000000-0000-0000-0000-000000000003',
+    'admin.demo@jobmada.mg',
+    '{"sub":"00000000-0000-0000-0000-000000000003","email":"admin.demo@jobmada.mg","email_verified":true,"phone_verified":false}'::jsonb,
+    'email',
+    now(),
+    now(),
+    now()
+  )
+on conflict (provider, provider_id) do update
+set
+  user_id = excluded.user_id,
+  identity_data = excluded.identity_data,
+  last_sign_in_at = excluded.last_sign_in_at,
+  updated_at = now();
+
+insert into public.profiles (id, role, display_name, email, onboarding_completion)
+values
+  (
+    '00000000-0000-0000-0000-000000000001',
+    'recruiter',
+    'Recruteur demo JobMada',
+    'recruteur.demo@jobmada.mg',
+    100
+  ),
+  (
+    '00000000-0000-0000-0000-000000000002',
+    'candidate',
+    'Candidat demo JobMada',
+    'candidat.demo@jobmada.mg',
+    75
+  ),
+  (
+    '00000000-0000-0000-0000-000000000003',
+    'admin',
+    'Admin demo JobMada',
+    'admin.demo@jobmada.mg',
+    100
+  )
 on conflict (id) do update
 set
   role = excluded.role,
   display_name = excluded.display_name,
   email = excluded.email,
   onboarding_completion = excluded.onboarding_completion,
+  updated_at = now();
+
+insert into public.candidate_profiles (
+  id,
+  user_id,
+  first_name,
+  last_name,
+  city,
+  sector,
+  desired_role,
+  salary_expectation,
+  cv_path,
+  profile_completion
+)
+values (
+  '00000000-0000-0000-0000-000000000301',
+  '00000000-0000-0000-0000-000000000002',
+  'Candidat',
+  'Demo',
+  'Antananarivo',
+  'Informatique & Digital',
+  'Designer UI/UX',
+  'Selon profil',
+  '00000000-0000-0000-0000-000000000002/demo-cv.pdf',
+  75
+)
+on conflict (user_id) do update
+set
+  first_name = excluded.first_name,
+  last_name = excluded.last_name,
+  city = excluded.city,
+  sector = excluded.sector,
+  desired_role = excluded.desired_role,
+  salary_expectation = excluded.salary_expectation,
+  cv_path = excluded.cv_path,
+  profile_completion = excluded.profile_completion,
   updated_at = now();
 
 insert into public.companies (id, owner_id, name, slug, sector, city, description, status)
@@ -100,6 +246,16 @@ values
     'Fianarantsoa',
     'Organisation humanitaire active a Madagascar.',
     'verified'
+  ),
+  (
+    '00000000-0000-0000-0000-000000000103',
+    '00000000-0000-0000-0000-000000000001',
+    'Baobab Labs',
+    'baobab-labs',
+    'Services & Conseil',
+    'Toamasina',
+    'Cabinet en croissance qui attend la validation JobMada.',
+    'pending_review'
   )
 on conflict (id) do update
 set
@@ -163,6 +319,23 @@ values
     true,
     'published',
     now()
+  ),
+  (
+    '00000000-0000-0000-0000-000000000203',
+    '00000000-0000-0000-0000-000000000101',
+    'Chargé de recrutement',
+    'charge-de-recrutement-media-click',
+    'CDI',
+    'Antananarivo',
+    'Ressources Humaines',
+    'Structurer le sourcing et la relation candidat.',
+    'Poste transverse entre RH, operations et managers.',
+    'Publication, tri, entretiens et coordination.',
+    'Aisance relationnelle et rigueur de suivi.',
+    false,
+    false,
+    'pending_review',
+    null
   )
 on conflict (id) do update
 set
@@ -181,6 +354,20 @@ set
   status = excluded.status,
   published_at = excluded.published_at,
   updated_at = now();
+
+insert into public.applications (job_id, candidate_id, cv_path, message, status)
+values (
+  '00000000-0000-0000-0000-000000000201',
+  '00000000-0000-0000-0000-000000000002',
+  '00000000-0000-0000-0000-000000000002/demo-cv.pdf',
+  'Candidature de demonstration pour valider le parcours JobMada.',
+  'submitted'
+)
+on conflict (job_id, candidate_id) do update
+set
+  cv_path = excluded.cv_path,
+  message = excluded.message,
+  status = excluded.status;
 
 insert into public.subscriptions (company_id, plan, status, job_quota, cv_access_enabled)
 values
