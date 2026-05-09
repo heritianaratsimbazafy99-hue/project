@@ -1,0 +1,132 @@
+:root {
+  --color-navy: #0b2f6b;
+  --color-green: #8ee321;
+  --color-purple: #7428c8;
+  --color-cyan: #28c8f5;
+  --color-yellow: #ffd83d;
+  --color-ink: #102033;
+  --color-muted: #5d6b7d;
+  --color-surface: #ffffff;
+  --color-page: #f4f8fb;
+  --header-height: 88px;
+  color-scheme: light;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  min-width: 320px;
+  text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  overflow-wrap: anywhere;
+  background:
+    linear-gradient(135deg, rgba(40, 200, 245, 0.14), transparent 36rem),
+    linear-gradient(315deg, rgba(142, 227, 33, 0.16), transparent 32rem),
+    var(--color-page);
+  color: var(--color-ink);
+  font-family:
+    Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+    sans-serif;
+}
+
+img {
+  display: block;
+  max-width: 100%;
+}
+
+a {
+  color: inherit;
+}
+
+.siteShell {
+  min-height: 100vh;
+}
+
+.siteHeader {
+  display: flex;
+  align-items: center;
+  min-height: var(--header-height);
+  padding: 1rem clamp(1rem, 5vw, 4rem);
+}
+
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
+  max-width: 100%;
+  color: var(--color-navy);
+  text-decoration: none;
+}
+
+.brand img {
+  width: 3.5rem;
+  height: 3.5rem;
+  flex: 0 0 auto;
+  border-radius: 0.75rem;
+  object-fit: cover;
+  box-shadow: 0 0.5rem 1.5rem rgba(11, 47, 107, 0.12);
+}
+
+.brand span {
+  min-width: 0;
+  font-size: clamp(1.25rem, 4vw, 1.6rem);
+  font-weight: 800;
+  line-height: 1.1;
+}
+
+.hero {
+  display: grid;
+  align-content: center;
+  width: min(100% - 2rem, 72rem);
+  min-height: calc(100vh - var(--header-height));
+  margin: 0 auto;
+  padding: clamp(3rem, 8vw, 6rem) 0;
+}
+
+.hero h1 {
+  max-width: 13ch;
+  margin: 0;
+  color: var(--color-navy);
+  font-size: clamp(2.75rem, 10vw, 6.5rem);
+  font-weight: 850;
+  line-height: 0.96;
+}
+
+.hero p {
+  max-width: 42rem;
+  margin: 1.5rem 0 0;
+  color: var(--color-muted);
+  font-size: clamp(1.05rem, 2.2vw, 1.35rem);
+  line-height: 1.6;
+}
+
+@media (max-width: 520px) {
+  :root {
+    --header-height: 76px;
+  }
+
+  .siteHeader {
+    padding-inline: 1rem;
+  }
+
+  .brand img {
+    width: 3rem;
+    height: 3rem;
+  }
+
+  .hero {
+    width: min(100% - 1.5rem, 72rem);
+  }
+
+  .hero h1 {
+    max-width: 10ch;
+  }
+}
