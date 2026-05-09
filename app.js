@@ -364,11 +364,28 @@ const filledJobs = [
   { title: "Commercial terrain", company: "Baobab Plus Madagascar", city: "Antananarivo", sector: "Commerce & Vente", contract: "CDI" },
 ];
 
-const recruiterOffers = [
-  { title: "Développeur Frontend", status: "Publiée", candidates: 18, views: 412, expires: "6 jours" },
-  { title: "Assistant Administratif", status: "Brouillon", candidates: 0, views: 0, expires: "Non publiée" },
-  { title: "Commercial Terrain", status: "En revue", candidates: 7, views: 156, expires: "12 jours" },
-];
+const recruiterOffers = [];
+
+const recruiterState = {
+  company: "1talentpourvous",
+  contact: "Heritiana R.",
+  firstName: "Heritiana",
+  lastName: "Ratsimbazafy",
+  email: "heritiana@1talentpourvous.fr",
+  plan: "Gratuit",
+  planPrice: "0 Ar",
+  offerQuota: 2,
+  offersUsed: 0,
+  profileCompletion: 0,
+  metrics: [
+    ["Offres actives", 0, "briefcase", "0 sur 2 · Plan Gratuit"],
+    ["Candidatures non lues", 0, "users", "Aucune nouvelle"],
+    ["Shortlistés en cours", 0, "file", "À créer"],
+    ["Vues totales", 0, "eye", "— vs sem. préc."],
+    ["Quota restant", 2, "file", "À faire"],
+  ],
+  activityDays: ["sam.", "dim.", "lun.", "mar.", "mer.", "jeu.", "ven."],
+};
 
 const candidates = [
   { name: "Profil Marketing Senior", role: "Marketing digital", city: "Antananarivo", match: 94, exp: "6 ans", skills: ["SEO", "Ads", "CRM"], status: "Nouveau" },
@@ -666,12 +683,12 @@ function homePage() {
           <div class="job-list" id="homeJobs">${visibleJobs().map(jobCard).join("")}</div>
           <p style="text-align:center;margin-top:28px"><a href="#/emploi">Voir toutes les offres →</a></p>
         </div>
-        <aside class="side-stack">
-          <div class="side-card">
+        <aside class="side-stack deadline-rail" data-sticky-rail>
+          <div class="side-card deadline-card" data-sticky-deadlines>
             <h3>${icon("clock")} Derniers jours pour postuler</h3>
             ${jobs.filter((j) => j.urgent).map((j) => `<a class="urgent-card" href="#/annonces/${j.slug}">${companyLogo(j.company)}<div><strong>${j.title}</strong><span>${j.company}</span><br><span class="pill rose">${j.deadline}</span></div></a>`).join("")}
           </div>
-          <div class="side-card dark">
+          <div class="side-card dark" data-sticky-pro>
             <h3>${icon("zap")} Asako Pro</h3>
             <p>Offres illimitées, CVthèque complète et matching IA. Trouvez votre perle rare, simplement.</p>
             <a class="btn btn-primary" style="width:100%" href="#/tarifs">Découvrir →</a>
@@ -1008,10 +1025,10 @@ function recruiterLayout(page, content) {
     <div class="recruiter-app">
       <div class="recruiter-shell">
         <aside class="recruiter-sidebar">
-          <div class="recruiter-account">${companyLogo("1talentpourvous", "avatar")}<div><strong>1talentpourvous</strong><span>Heritiana R.</span></div><a class="btn btn-soft" style="min-height:38px;padding:0;width:38px" href="#/">${icon("external")}</a></div>
+          <div class="recruiter-account">${companyLogo(recruiterState.company, "avatar")}<div><strong>${recruiterState.company}</strong><span>${recruiterState.contact}</span></div><a class="btn btn-soft" style="min-height:38px;padding:0;width:38px" href="#/">${icon("external")}</a></div>
           <div class="side-groups">${groups.map(([title, links]) => `<div class="side-group"><p class="side-group-title">${title}</p>${links.map(([label, key, ic]) => `<a class="side-link ${page === key ? "active" : ""}" href="#/recruteur/${key === "dashboard" ? "dashboard" : key}">${icon(ic)} ${label}</a>`).join("")}</div>`).join("")}</div>
           <div class="side-cta"><a class="btn btn-primary" style="width:100%" href="#/recruteur/offres/nouvelle">${icon("plus")} Publier une offre</a></div>
-          <div class="plan-mini"><strong>Plan Gratuit <span class="pill" style="float:right">0 Ar</span></strong><div class="quota-bar" style="margin:16px 0 10px"><span></span></div><p style="color:#e58200;font-size:12px">Plus que 2 offres disponibles</p><a class="btn btn-outline" style="width:100%;min-height:36px" href="#/recruteur/abonnement">Changer de plan →</a></div>
+          <div class="plan-mini"><strong>Plan ${recruiterState.plan} <span class="pill" style="float:right">${recruiterState.planPrice}</span></strong><div class="quota-bar" style="margin:16px 0 10px"><span style="width:${(recruiterState.offersUsed / recruiterState.offerQuota) * 100}%"></span></div><p style="color:#e58200;font-size:12px">Plus que ${recruiterState.offerQuota - recruiterState.offersUsed} offres disponibles</p><a class="btn btn-outline" style="width:100%;min-height:36px" href="#/recruteur/abonnement">Changer de plan →</a></div>
         </aside>
         <main class="recruiter-main">${content}</main>
       </div>
@@ -1020,7 +1037,7 @@ function recruiterLayout(page, content) {
 }
 
 function recruiterTop(title, subtitle, actions = "") {
-  return `<div class="recruiter-top"><div style="display:flex;align-items:center;gap:16px"><div class="progress-ring">0%</div><div><h1 style="margin:0;font-size:22px">${title}</h1><p style="margin:2px 0 0;color:var(--rose)">${subtitle}</p></div></div><div>${actions}</div></div>`;
+  return `<div class="recruiter-top"><div style="display:flex;align-items:center;gap:16px"><div class="progress-ring">${recruiterState.profileCompletion}%</div><div><h1 style="margin:0;font-size:22px">${title}</h1><p style="margin:2px 0 0;color:var(--rose)">${subtitle}</p></div></div><div>${actions}</div></div>`;
 }
 
 function recruiterPage(page) {
@@ -1041,7 +1058,7 @@ function recruiterPage(page) {
 
 function recruiterDashboard() {
   return `
-    <div class="dashboard-welcome"><h1>Bonsoir, Heritiana</h1><p>1talentpourvous — Plan Gratuit</p></div>
+    <div class="dashboard-welcome"><h1>Bonsoir, ${recruiterState.firstName}</h1><p>${recruiterState.company} — Plan ${recruiterState.plan}</p></div>
     <section class="onboarding-panel">
       <h2>${icon("zap")} Démarrez en 3 étapes</h2>
       <div class="onboarding-progress"><span></span></div>
@@ -1052,7 +1069,7 @@ function recruiterDashboard() {
       </div>
     </section>
     <div class="dashboard-grid">
-      ${[["Offres actives", "0", "briefcase"], ["Candidatures non lues", "0", "users"], ["Shortlistés en cours", "0", "file"], ["Vues totales", "0", "eye"], ["Quota restant", "2", "file"]].map(([l, v, ic]) => `<div class="metric-card"><span class="icon-tile">${icon(ic)}</span><strong>${v}</strong><span>${l}</span></div>`).join("")}
+      ${recruiterState.metrics.map(([label, value, ic, hint]) => `<div class="metric-card"><span class="icon-tile">${icon(ic)}</span><strong>${value}</strong><span>${label}</span><small>${hint}</small></div>`).join("")}
     </div>
     <div class="recruiter-two">
       <section class="panel todo-panel"><h2>À faire</h2><a href="#/recruteur/entreprise"><span class="icon-tile">${icon("briefcase")}</span><div><strong>Compléter votre profil entreprise</strong><p>Un profil complet attire 3x plus de candidatures</p></div><span>›</span></a><a href="#/recruteur/offres/nouvelle"><span class="icon-tile">${icon("plus")}</span><div><strong>Publier une nouvelle offre</strong><p>Trouvez votre prochain talent</p></div><span>›</span></a></section>
@@ -1067,38 +1084,117 @@ function iconOrStatus(status) {
 }
 
 function recruiterOffersPage() {
+  const statusTabs = [
+    ["Toutes", 0],
+    ["Actives", 0],
+    ["En attente", 0],
+    ["Rejetées", 0],
+    ["Brouillon", 0],
+    ["Expirées", 0],
+    ["Archivées", 0],
+  ];
   return `
-    ${recruiterTop("Mes offres", "Gérez vos annonces et leur performance", `<a class="btn btn-primary" href="#/recruteur/offres/nouvelle">${icon("plus")} Nouvelle offre</a>`)}
-    <section class="panel"><div class="toolbar"><input class="input" data-table-search placeholder="Rechercher une offre..."><select class="select"><option>Tous les statuts</option><option>Publiée</option><option>Brouillon</option></select></div><div class="table-list">${recruiterOffers.map((o) => `<div class="table-row" data-search-row><div><strong>${o.title}</strong><p>${o.views} vues · ${o.candidates} candidatures · expire: ${o.expires}</p></div><span class="pill ${iconOrStatus(o.status)}">${o.status}</span><button class="btn btn-soft" data-toast="Action simulée">Modifier</button></div>`).join("")}</div></section>
+    <div class="dashboard-welcome"><div><h1>Mes offres</h1><p>Gérez vos offres d'emploi et suivez leurs performances</p></div><a class="btn btn-primary" href="#/recruteur/offres/nouvelle">${icon("plus")} Publier une offre</a></div>
+    <div class="dashboard-grid offers-kpis">
+      ${[
+        ["Offres actives", "0", "briefcase", "0 sur 2 · Plan Gratuit"],
+        ["Candidatures", "0", "users", "Aucune nouvelle"],
+        ["Vues totales", "0", "eye", "— vs sem. préc."],
+        ["Expirent bientôt", "0", "clock", "Aucune"],
+      ].map(([label, value, ic, hint]) => `<div class="metric-card"><span class="icon-tile">${icon(ic)}</span><small>${label}</small><strong>${value}</strong><span>${hint}</span></div>`).join("")}
+    </div>
+    <section class="panel offers-panel">
+      <div class="toolbar">
+        <input class="input" data-table-search placeholder="Rechercher une offre...">
+        <select class="select"><option>Plus récentes</option><option>Plus de vues</option><option>Plus de candidatures</option></select>
+      </div>
+      <div class="status-tabs">${statusTabs.map(([label, count], index) => `<button class="${index === 0 ? "active" : ""}" type="button">${label} <span>${count}</span></button>`).join("")}</div>
+      ${recruiterOffers.length ? `<div class="table-list">${recruiterOffers.map((o) => `<div class="table-row" data-search-row><div><strong>${o.title}</strong><p>${o.views} vues · ${o.candidates} candidatures · expire: ${o.expires}</p></div><span class="pill ${iconOrStatus(o.status)}">${o.status}</span><button class="btn btn-soft" data-toast="Action simulée">Modifier</button></div>`).join("")}</div>` : `<div class="empty-state recruiter-empty">${icon("layers")}<p>Aucune offre</p></div>`}
+      <div class="panel-footer"><span>0 offres affichées</span><span>Plan Gratuit · 0/2 offres utilisées</span></div>
+    </section>
   `;
 }
 
 function newOfferPage() {
+  const params = new URLSearchParams((location.hash.split("?")[1] || ""));
+  if (params.get("method") !== "manual") {
+    return `
+      <div class="dashboard-welcome"><div><h1>Nouvelle offre</h1><p>Choisissez comment rédiger votre offre</p></div></div>
+      <section class="method-grid">
+        <article class="method-card">
+          <span class="icon-tile">${icon("file")}</span>
+          <h2>Je rédige mon offre</h2>
+          <p>Remplissez le formulaire étape par étape</p>
+          <ol><li>Remplissez les informations du poste</li><li>Rédigez la description et publiez</li></ol>
+          <a class="btn btn-outline" href="#/recruteur/offres/nouvelle?method=manual">${icon("file")} Commencer la rédaction</a>
+        </article>
+        <article class="method-card featured">
+          <span class="status-badge">NOUVEAU</span>
+          <span class="icon-tile">${icon("zap")}</span>
+          <h2>Générer avec l'IA</h2>
+          <p>Décrivez le poste en quelques lignes, l'IA génère une offre complète</p>
+          <ol><li>Décrivez le poste brièvement</li><li>L'IA génère titre + description</li><li>Ajustez et publiez</li></ol>
+          <a class="btn btn-primary" href="#/recruteur/offres/nouvelle?method=manual">${icon("zap")} Générer mon offre</a>
+        </article>
+      </section>
+      <div class="notice-line">${icon("circle")} Vous avez déjà une offre ? Vous pourrez aussi l'améliorer avec l'IA depuis le formulaire, grâce au bouton « Améliorer avec l'IA ».</div>
+    `;
+  }
   return `
-    ${recruiterTop("Publier une offre", "Rédigez une annonce claire et attractive", `<button class="btn btn-soft" data-toast="Aperçu généré">Aperçu</button>`)}
+    <div class="dashboard-welcome"><div><h1>Nouvelle offre</h1><p>Remplissez les informations de votre offre</p></div><a href="#/recruteur/offres/nouvelle">Changer de méthode ${icon("chevron")}</a></div>
+    <div class="quota-notice">${icon("zap")} Il vous reste <strong>2 offres</strong> sur votre plan Gratuit</div>
     <form data-save-form>
-      <section class="form-section"><div class="form-section-head"><div class="form-section-title"><span class="icon-tile">${icon("briefcase")}</span>Informations principales</div><span class="status-badge">À compléter</span></div><div class="form-body form-grid">
-        <div class="form-field"><label>Titre du poste*</label><input class="input" placeholder="Ex : Développeur Frontend"></div>
+      <section class="form-section"><div class="form-section-head"><div class="form-section-title"><span class="icon-tile">${icon("briefcase")}</span>Informations du poste</div><span class="status-badge">À compléter</span></div><div class="form-body form-grid">
+        <div class="form-field"><label>Titre du poste*</label><input class="input" placeholder="Ex : Développeur Full Stack React/Node.js"></div>
         <div class="form-field"><label>Type de contrat*</label><select class="select"><option>CDI</option><option>CDD</option><option>Stage</option><option>Freelance</option></select></div>
-        <div class="form-field"><label>Ville*</label><input class="input" placeholder="Ex : Antananarivo"></div>
-        <div class="form-field"><label>Secteur*</label><select class="select">${sectors.map(([s]) => `<option>${s}</option>`).join("")}</select></div>
-        <div class="form-field full"><label>Résumé court</label><input class="input" maxlength="180" placeholder="Une phrase qui donne envie de postuler"></div>
+        <div class="form-field"><label>Ville*</label><select class="select"><option>Sélectionner une ville</option><option>Antananarivo</option><option>Antsirabe</option><option>Fianarantsoa</option><option>Mahajanga</option><option>Toamasina</option><option>Toliara</option></select></div>
+        <div class="form-field"><label>Lieu de travail</label><input class="input" placeholder="Ex : Analakely, Antananarivo"></div>
+        <div class="form-field"><label>Fourchette de salaire mensuel</label><select class="select"><option>Sélectionner une fourchette</option><option>Moins de 500 000 Ar</option><option>500 000 à 1 200 000 Ar</option><option>1 200 000 à 2 000 000 Ar</option><option>Salaire non communiqué</option></select><label class="check-row compact"><input type="checkbox"> Salaire non communiqué</label></div>
+        <div class="form-field"><label>Votre référence interne</label><input class="input" placeholder="Ex : DEV-2026-042"><small>Visible dans votre dashboard pour tracker vos offres</small></div>
       </div></section>
-      <section class="form-section"><div class="form-section-head"><div class="form-section-title"><span class="icon-tile">${icon("file")}</span>Description</div><span class="status-badge">À compléter</span></div><div class="form-body form-grid">
-        <div class="form-field full"><label>Missions*</label><textarea class="textarea" placeholder="Listez les responsabilités principales..."></textarea></div>
-        <div class="form-field full"><label>Profil recherché*</label><textarea class="textarea" placeholder="Compétences, expérience, qualités..."></textarea></div>
+      <section class="form-section"><div class="form-section-head"><div class="form-section-title"><span class="icon-tile">${icon("file")}</span>Description de l'offre</div><span class="status-badge">À compléter</span></div><div class="form-body form-grid">
+        <p class="form-tip">Conseil : les offres avec plus de 200 caractères par section reçoivent en moyenne 3× plus de candidatures.</p>
+        ${editorField("Description du poste*", "Contexte de l'entreprise et responsabilités principales")}
+        ${editorField("Missions principales*", "Les tâches quotidiennes et objectifs du poste")}
+        ${editorField("Profil recherché*", "Compétences techniques et humaines attendues")}
+        <label class="check-row full"><input type="checkbox"> Ajouter des informations supplémentaires</label>
+        <div class="ai-row full"><div><strong>Améliorer avec l'IA</strong><p>L'IA restructure et professionnalise votre contenu</p></div><button class="btn btn-soft" type="button" data-toast="Amélioration IA simulée">${icon("zap")} Améliorer avec l'IA</button></div>
       </div></section>
-      <section class="form-section"><div class="form-section-head"><div class="form-section-title"><span class="icon-tile">${icon("zap")}</span>Boost</div><span class="status-badge ok">Optionnel</span></div><div class="form-body"><label class="check-row"><input type="checkbox"> Mettre cette offre en vedette pendant 7 jours</label><label class="check-row"><input type="checkbox"> Activer le matching IA avec la CVthèque</label></div></section>
-      <div class="sticky-actions"><a class="btn btn-soft" href="#/recruteur/offres">Annuler</a><button class="btn btn-primary" type="submit">${icon("save")} Enregistrer l'offre</button></div>
+      <section class="form-section"><div class="form-section-head"><div class="form-section-title"><span class="icon-tile">${icon("zap")}</span>Options de visibilité <small>(optionnel)</small></div></div><div class="form-body visibility-grid">
+        <article><div><strong>${icon("star")} Vedette</strong><span class="status-badge">Débloquer</span></div><p>Mise en avant en haut des résultats avec un badge doré.</p><small>Durée : 7 jours · Plan Booster+</small></article>
+        <article><div><strong>${icon("zap")} Urgent</strong><span class="status-badge">Débloquer</span></div><p>Badge rouge « Urgent » sur l'offre. Pour les recrutements à pourvoir vite.</p><small>Durée : 7 jours · Plan Starter+</small></article>
+        <p class="form-tip full">Les options s'activent après validation de l'offre par notre équipe.</p>
+      </div></section>
+      <div class="sticky-actions"><div class="progress-hint"><strong>10%</strong><span>Ajoutez la description<br>pour plus de visibilité</span></div><a class="btn btn-soft" href="#/recruteur/offres">Enregistrer en brouillon</a><button class="btn btn-primary" type="submit">${icon("send")} Publier l'offre</button></div>
     </form>
   `;
 }
 
-function applicationsPage() {
-  const statuses = ["Nouveau", "En cours", "Entretien", "Sélection"];
+function editorField(label, placeholder) {
   return `
-    ${recruiterTop("Candidatures", "Triez les profils et avancez votre pipeline")}
-    <div class="kanban">${statuses.map((status) => `<section class="kanban-col"><h2>${status}</h2>${candidates.filter((c) => c.status === status).map(candidateCard).join("") || `<div class="empty-state">Aucun profil</div>`}</section>`).join("")}</div>
+    <div class="form-field full editor-field">
+      <label>${label}</label>
+      <div class="editor-shell">
+        <div class="editor-toolbar"><button type="button">B</button><button type="button"><em>I</em></button><button type="button">≡</button><button type="button">1.</button></div>
+        <textarea class="textarea" placeholder="${placeholder}"></textarea>
+        <small>0 / 100 min. recommandé</small>
+      </div>
+    </div>
+  `;
+}
+
+function applicationsPage() {
+  return `
+    <div class="dashboard-welcome"><div><h1>Candidatures reçues</h1><p>0 candidatures au total</p></div></div>
+    <div class="dashboard-grid applications-kpis">
+      ${[["Total", "0", "users", "0 candidatures"], ["Nouvelles", "0", "briefcase", "Tout vu"], ["Consultées", "0", "eye", "Déjà vues"]].map(([label, value, ic, hint]) => `<div class="metric-card"><span class="icon-tile">${icon(ic)}</span><small>${label}</small><strong>${value}</strong><span>${hint}</span></div>`).join("")}
+    </div>
+    <section class="panel offers-panel">
+      <div class="toolbar"><input class="input" placeholder="Rechercher un candidat ou une offre..."><select class="select"><option>Toutes les offres</option></select><select class="select"><option>Plus récentes</option><option>Meilleur score</option><option>Nom A-Z</option></select></div>
+      <div class="status-tabs">${["Toutes", "À traiter", "Consultées", "Shortlistées", "Rejetées"].map((label, index) => `<button class="${index === 0 ? "active" : ""}" type="button">${label}</button>`).join("")}</div>
+      <div class="empty-state recruiter-empty">${icon("briefcase")}<p>Aucune candidature</p></div>
+      <div class="panel-footer"><span>0 candidatures affichées</span></div>
+    </section>
   `;
 }
 
@@ -1108,8 +1204,26 @@ function candidateCard(c) {
 
 function cvthequePage() {
   return `
-    ${recruiterTop("CVthèque", "Recherchez parmi les profils qualifiés", `<a class="btn btn-primary" href="#/recruteur/ma-selection">Ma sélection</a>`)}
-    <section class="panel"><div class="toolbar"><input class="input" id="cvSearch" placeholder="Compétence, ville, métier..."><select class="select" id="cvCity"><option value="">Toutes les villes</option><option>Antananarivo</option><option>Antsirabe</option><option>Toamasina</option><option>Mahajanga</option></select></div><div class="cv-grid" id="cvGrid">${candidates.map(cvCard).join("")}</div><div class="empty-state" id="cvEmpty" hidden>Aucun profil trouvé</div></section>
+    <div class="dashboard-welcome"><div><h1>CVthèque Asako</h1><p>Trouvez le candidat idéal parmi nos profils qualifiés.</p></div></div>
+    <div class="cv-stats">
+      ${[["13 491+", "Profils disponibles", "file"], ["13 491+", "CVs analysés par l'IA", "users"], ["15+", "Secteurs couverts", "layers"]].map(([value, label, ic]) => `<div class="metric-card"><span class="icon-tile">${icon(ic)}</span><strong>${value}</strong><span>${label}</span></div>`).join("")}
+    </div>
+    <section class="cv-search-panel">
+      <div class="segmented"><button class="active" type="button">${icon("search")} Recherche libre</button><button type="button">${icon("briefcase")} Matcher par offre</button></div>
+      <div class="panel">
+        <h2>Décrivez le profil que vous cherchez</h2>
+        <p>L'IA d'Asako trouve les candidats les plus pertinents pour votre recherche</p>
+        <div class="search-shell cv-search"><span>${icon("search")}</span><input id="cvSearch" placeholder="Je recherche un développeur React, 3 ans d'expérience, Antananarivo..."><button class="btn btn-primary" type="button">Rechercher</button></div>
+        <div class="popular-row"><strong>RECHERCHES POPULAIRES</strong>${["Développeur web", "Comptable", "Assistante RH", "Commercial"].map((label) => `<button type="button">${label}</button>`).join("")}</div>
+      </div>
+    </section>
+    <section class="limited-cv">
+      <div class="notice-line">${icon("zap")} <strong>Accès limité à la CVthèque</strong><span>Passez à un plan payant pour consulter les profils complets et contacter les candidats.</span></div>
+      <p>519 profils correspondent à votre recherche, voici les 20 meilleurs</p>
+      <div class="cv-grid" id="cvGrid">${candidates.slice(0, 6).map(cvCard).join("")}</div>
+      <div class="upgrade-card"><strong>ACCÈS COMPLET CVTHÈQUE</strong><p>Consultez ces profils et 40 000 autres. Avec un plan payant, accédez aux profils complets, consultez jusqu'à 50 candidats par mois et contactez-les directement.</p><a class="btn btn-primary" href="#/recruteur/abonnement">Voir tous les plans →</a></div>
+      <div class="empty-state" id="cvEmpty" hidden>Aucun profil trouvé</div>
+    </section>
   `;
 }
 
@@ -1119,8 +1233,9 @@ function cvCard(c) {
 
 function selectionPage() {
   return `
-    ${recruiterTop("Ma sélection", "Profils sauvegardés pour vos prochains échanges")}
-    <section class="panel"><div class="cv-grid">${candidates.slice(0, 3).map(cvCard).join("")}</div></section>
+    <div class="dashboard-welcome"><div><h1>${icon("star")} Ma sélection</h1><p>Vos candidats enregistrés et vos profils consultés récemment.</p></div></div>
+    <div class="segmented selection-tabs"><button class="active" type="button">${icon("star")} Ma sélection (0)</button><button type="button">${icon("clock")} Consultés récemment (0)</button></div>
+    <div class="empty-state selection-empty">${icon("zap")}<h2>Passez à Starter pour enregistrer des profils</h2><p>La CVthèque et les favoris candidat sont inclus dans les plans Starter, Booster et Agence.</p><a class="btn btn-primary" href="#/recruteur/abonnement">Voir les plans</a></div>
   `;
 }
 
@@ -1146,16 +1261,23 @@ function companyFormPage() {
 
 function subscriptionPage() {
   return `
-    ${recruiterTop("Mon abonnement", "Votre plan actuel et vos quotas")}
-    <section class="panel"><h2>Plan Gratuit</h2><p>0 Ar · 2 offres disponibles ce mois-ci</p><div class="quota-bar"><span></span></div></section>
-    <section class="section" style="padding-top:18px"><div class="pricing-grid">${plans.map(priceCard).join("")}</div></section>
+    <div class="dashboard-welcome"><div><h1>Mon abonnement</h1><p>Gérez votre plan et suivez vos quotas</p></div></div>
+    <section class="panel plan-current"><div class="plan-current-head"><span class="icon-tile">${icon("circle")}</span><div><h2>Plan Gratuit <span class="status-badge ok">ACTIF</span></h2><p>0 Ar/mois • 2 offres/mois • Visible 7 jours</p></div></div><div class="panel-footer"><span>Passez à un plan supérieur pour débloquer <strong>plus de fonctionnalités</strong></span><a class="btn btn-primary" href="#plans-recruteur">Voir les plans →</a></div></section>
+    <section class="panel quota-panel"><h2>${icon("trend")} Quotas restants</h2><div class="quota-grid">
+      ${[["Offres", "2/2", 100, "briefcase"], ["Vedette", "—", 0, "star"], ["Urgent", "—", 0, "zap"], ["Remontée", "—", 0, "trend"], ["Facebook", "Bientôt", 0, "users"], ["CVthèque", "—", 0, "users"]].map(([label, value, width, ic]) => `<div><span>${icon(ic)} ${label}</span><strong>${value}</strong><div class="quota-bar"><span style="width:${width}%"></span></div></div>`).join("")}
+    </div></section>
+    <section class="panel" id="plans-recruteur"><div class="panel-title-row"><h2>${icon("layers")} Changer de plan</h2><div class="billing-toggle" data-billing><button class="active" data-cycle="monthly">Mensuel</button><button data-cycle="quarterly">Trimestriel <span>-15%</span></button></div></div><div class="pricing-grid">${plans.map(priceCard).join("")}</div></section>
+    <section class="panel latest-empty"><h2>Historique des transactions</h2><div class="empty-state">Aucune transaction pour le moment</div></section>
   `;
 }
 
 function profilePage() {
   return `
-    ${recruiterTop("Mon profil", "Paramètres du compte recruteur")}
-    <form class="panel form-grid" data-save-form><div class="form-field"><label>Nom affiché</label><input class="input" value="Heritiana R."></div><div class="form-field"><label>Email professionnel</label><input class="input" value="heritiana@1talentpourvous.mg"></div><div class="form-field"><label>Téléphone</label><input class="input" placeholder="+261 ..."></div><div class="form-field"><label>Notifications</label><select class="select"><option>Recevoir les candidatures par email</option><option>Résumé quotidien</option></select></div><div class="form-field full"><button class="btn btn-primary" type="submit">Sauvegarder</button></div></form>
+    <div class="profile-page">
+      <div class="dashboard-welcome"><div><h1>Mon profil</h1><p>Gérez vos informations personnelles</p></div></div>
+      <form class="panel form-grid profile-panel" data-save-form><h2 class="form-field full">${icon("user")} Informations personnelles</h2><div class="form-field"><label>Prénom *</label><input class="input" value="${recruiterState.firstName}"></div><div class="form-field"><label>Nom *</label><input class="input" value="${recruiterState.lastName}"></div><div class="form-field full"><label>Email</label><input class="input" value="${recruiterState.email}" disabled><small>L'email est lié à votre compte et ne peut pas être modifié</small></div><div class="form-field full"><button class="btn btn-primary" type="submit">${icon("save")} Enregistrer</button></div></form>
+      <form class="panel form-grid profile-panel" data-save-form><h2 class="form-field full">${icon("save")} Changer le mot de passe</h2><div class="form-field full"><label>Mot de passe actuel</label><input class="input" type="password" placeholder="Votre mot de passe actuel"></div><div class="form-field"><label>Nouveau mot de passe</label><input class="input" type="password" placeholder="Nouveau mot de passe"></div><div class="form-field"><label>Confirmer le mot de passe</label><input class="input" type="password" placeholder="Confirmer le mot de passe"></div><div class="form-field full"><button class="btn btn-outline" type="submit">Modifier le mot de passe</button></div></form>
+    </div>
   `;
 }
 
@@ -1272,8 +1394,8 @@ function bindCvFilters() {
   const search = document.querySelector("#cvSearch");
   const city = document.querySelector("#cvCity");
   const apply = () => {
-    const q = (search.value || "").toLowerCase();
-    const cityValue = city.value;
+    const q = (search?.value || "").toLowerCase();
+    const cityValue = city?.value || "";
     let count = 0;
     document.querySelectorAll("[data-cv-card]").forEach((card) => {
       const visible = (!q || card.dataset.text.toLowerCase().includes(q)) && (!cityValue || card.dataset.city === cityValue);
@@ -1282,8 +1404,8 @@ function bindCvFilters() {
     });
     document.querySelector("#cvEmpty").hidden = count !== 0;
   };
-  search.addEventListener("input", apply);
-  city.addEventListener("change", apply);
+  search?.addEventListener("input", apply);
+  city?.addEventListener("change", apply);
 }
 
 function bindTableSearch() {
