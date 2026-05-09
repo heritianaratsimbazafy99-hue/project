@@ -774,6 +774,20 @@ a {
   cursor: pointer;
 }
 
+.candidateNotice {
+  padding: 0.95rem 1.05rem;
+  border: 1px solid rgba(142, 227, 33, 0.45);
+  border-radius: 0.5rem;
+  background: rgba(142, 227, 33, 0.14);
+  color: var(--color-navy);
+  font-weight: 850;
+}
+
+.candidateNotice.isError {
+  border-color: rgba(225, 93, 126, 0.36);
+  background: rgba(225, 93, 126, 0.12);
+}
+
 .onboardingList {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -916,6 +930,12 @@ a {
   background: var(--color-surface);
   color: var(--color-ink);
   font: inherit;
+}
+
+.onboardingList a {
+  color: inherit;
+  font-weight: inherit;
+  text-decoration: none;
 }
 
 .candidateSkillGrid textarea {

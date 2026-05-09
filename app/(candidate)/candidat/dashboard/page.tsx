@@ -1,23 +1,65 @@
 import Link from "next/link";
 
+import { calculateCandidateCompletion } from "@/features/candidate/completion";
 import { fallbackPublishedJobs } from "@/features/public/demo-data";
 import { getPublishedJobsOrEmpty } from "@/features/jobs/queries";
 import { requireRole } from "@/lib/auth/require-role";
+import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
 
-const onboardingSteps = [
-  { label: "Compte créé", done: true },
-  { label: "Déposer votre CV", done: false },
-  { label: "Indiquer le poste recherché", done: false },
-  { label: "Activer une alerte emploi", done: false }
-];
+type CandidateProfileRow = {
+  cv_path: string | null;
+  desired_role: string | null;
+};
 
 export default async function CandidateDashboardPage() {
-  const { profile, isDemo } = await requireRole(["candidate"]);
+  const { user, profile, isDemo } = await requireRole(["candidate"]);
+  let candidateProfile: CandidateProfileRow | null = isDemo
+    ? {
+        cv_path: "demo/cv.pdf",
+        desired_role: "Designer UI/UX"
+      }
+    : null;
+  let alertCount = isDemo ? 1 : 0;
+
+  if (!isDemo) {
+    const supabase = await createSupabaseServerClient();
+    const [{ data: candidateProfileData }, { count }] = await Promise.all([
+      supabase
+        .from("candidate_profiles")
+        .select("cv_path, desired_role")
+        .eq("user_id", user.id)
+        .maybeSingle<CandidateProfileRow>(),
+      supabase
+        .from("job_alerts")
+        .select("id", { count: "exact", head: true })
+        .eq("candidate_id", user.id)
+    ]);
+
+    candidateProfile = candidateProfileData;
+    alertCount = count ?? 0;
+  }
+
   const recentJobs = isDemo
     ? fallbackPublishedJobs.slice(0, 3)
     : (await getPublishedJobsOrEmpty({ query: "", contract: "", city: "", sector: "" })).slice(0, 3);
+  const onboardingSteps = [
+    { label: "Compte créé", done: true, href: "/candidat/dashboard" },
+    { label: "Déposer votre CV", done: Boolean(candidateProfile?.cv_path), href: "/candidat/profil" },
+    {
+      label: "Indiquer le poste recherché",
+      done: Boolean(candidateProfile?.desired_role),
+      href: "/candidat/profil#infos"
+    },
+    { label: "Activer une alerte emploi", done: alertCount > 0, href: "/candidat/alertes" }
+  ];
+  const completion = calculateCandidateCompletion({
+    accountCreated: true,
+    hasCv: Boolean(candidateProfile?.cv_path),
+    hasDesiredRole: Boolean(candidateProfile?.desired_role),
+    hasAlert: alertCount > 0
+  });
   const completedSteps = onboardingSteps.filter((step) => step.done).length;
 
   return (
@@ -38,7 +80,7 @@ export default async function CandidateDashboardPage() {
             <h2 id="onboarding-title">Vos premières étapes</h2>
           </div>
           <span>
-            {completedSteps} étapes sur {onboardingSteps.length} complétées
+            {completedSteps} étapes sur {onboardingSteps.length} complétées · {completion.percent}%
           </span>
         </div>
 
@@ -46,7 +88,7 @@ export default async function CandidateDashboardPage() {
           {onboardingSteps.map((step) => (
             <li key={step.label} className={step.done ? "isDone" : undefined}>
               <span aria-hidden="true">{step.done ? "OK" : ""}</span>
-              {step.label}
+              {step.done ? step.label : <Link href={step.href}>{step.label}</Link>}
             </li>
           ))}
         </ol>

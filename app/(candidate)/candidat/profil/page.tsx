@@ -1,9 +1,14 @@
 import { CvUploadCard } from "@/features/candidate/components/cv-upload-card";
+import { saveCandidateProfileAndRedirect } from "@/features/candidate/actions";
 import { demoCandidateProfile } from "@/features/demo/workspace";
 import { requireRole } from "@/lib/auth/require-role";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
+
+type CandidateProfilePageProps = {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+};
 
 type CandidateProfileRow = {
   first_name: string | null;
@@ -14,7 +19,11 @@ type CandidateProfileRow = {
   salary_expectation: string | null;
 };
 
-export default async function CandidateProfilePage() {
+function firstQueryValue(value: string | string[] | undefined) {
+  return Array.isArray(value) ? value[0] : value;
+}
+
+export default async function CandidateProfilePage({ searchParams }: CandidateProfilePageProps) {
   const { user, profile, isDemo } = await requireRole(["candidate"]);
   let candidateProfile: CandidateProfileRow | null = isDemo
     ? {
@@ -38,6 +47,10 @@ export default async function CandidateProfilePage() {
     candidateProfile = data;
   }
 
+  const query = await searchParams;
+  const saved = firstQueryValue(query.saved);
+  const error = firstQueryValue(query.error);
+
   return (
     <div className="candidateStack">
       <section className="candidateHero" aria-labelledby="profile-title">
@@ -47,6 +60,17 @@ export default async function CandidateProfilePage() {
       </section>
 
       <CvUploadCard />
+
+      {saved ? (
+        <div className="candidateNotice" role="status">
+          Profil candidat enregistré.
+        </div>
+      ) : null}
+      {error ? (
+        <div className="candidateNotice isError" role="alert">
+          {error}
+        </div>
+      ) : null}
 
       <div className="candidateTabs" aria-label="Sections du profil">
         <a href="#infos">Infos personnelles</a>
@@ -62,7 +86,7 @@ export default async function CandidateProfilePage() {
           </div>
         </div>
 
-        <form className="candidateForm">
+        <form action={saveCandidateProfileAndRedirect} className="candidateForm">
           <label>
             Prénom
             <input name="first_name" defaultValue={candidateProfile?.first_name ?? ""} />
@@ -73,7 +97,7 @@ export default async function CandidateProfilePage() {
           </label>
           <label>
             Email
-            <input name="email" type="email" defaultValue={profile.email || user.email || ""} />
+            <input name="email" type="email" defaultValue={profile.email || user.email || ""} readOnly />
           </label>
           <label>
             Téléphone
@@ -96,7 +120,7 @@ export default async function CandidateProfilePage() {
             <input name="salary_expectation" defaultValue={candidateProfile?.salary_expectation ?? ""} />
           </label>
           <div className="candidateFormActions">
-            <button type="button">Enregistrer le profil</button>
+            <button type="submit">Enregistrer le profil</button>
           </div>
         </form>
       </section>
