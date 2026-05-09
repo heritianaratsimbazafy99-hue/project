@@ -1,10 +1,10 @@
-# Asako Dynamic Recruiter Implementation Plan
+# JobMada Dynamic Recruiter Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Move the static Asako prototype toward a dynamic, recruiter-focused experience that matches the audited Asako.mg public and recruiter UX.
+**Goal:** Move the static JobMada prototype toward a dynamic, recruiter-focused experience that matches the audited JobMada public and recruiter UX.
 
-**Architecture:** Keep the current vanilla SPA and enrich it with data-driven renderers, local demo state, route-specific recruiter empty states, and Asako-like sticky panels. The implementation stays in `app.js` and `styles.css`, with a dependency-free Node smoke test that evaluates route HTML.
+**Architecture:** Keep the current vanilla SPA and enrich it with data-driven renderers, local demo state, route-specific recruiter empty states, and JobMada-like sticky panels. The implementation stays in `app.js` and `styles.css`, with a dependency-free Node smoke test that evaluates route HTML.
 
 **Tech Stack:** HTML, CSS custom properties, vanilla JavaScript, Node built-ins for tests, Chrome for visual verification.
 
@@ -13,15 +13,15 @@
 ### Task 1: Lock Expected Behaviors With Tests
 
 **Files:**
-- Create: `tests/asako-dynamic.test.mjs`
+- Create: `tests/jobmada-dynamic.test.mjs`
 
 - [ ] Add a Node VM smoke test that loads `app.js` with a minimal browser stub.
 - [ ] Assert the home route renders a sticky `Derniers jours pour postuler` rail with `data-sticky-deadlines`.
-- [ ] Assert recruiter offers renders an Asako-like empty state and does not render seeded fake offer rows.
+- [ ] Assert recruiter offers renders a JobMada-like empty state and does not render seeded fake offer rows.
 - [ ] Assert the new offer route renders method cards for manual writing and AI generation.
 - [ ] Assert the CVthèque route renders search modes plus the free-plan access limit.
 - [ ] Assert the subscription route renders quotas and monthly/quarterly controls.
-- [ ] Run `node tests/asako-dynamic.test.mjs` and verify it fails before production edits.
+- [ ] Run `node tests/jobmada-dynamic.test.mjs` and verify it fails before production edits.
 
 ### Task 2: Public Home Sticky Deadline Rail
 
@@ -34,7 +34,7 @@
 - [ ] Keep the Pro CTA visible below the deadline card without pushing the sticky card out of view.
 - [ ] Ensure mobile collapses the rail below the job list without sticky overlap.
 
-### Task 3: Recruiter State And Asako-Accurate Empty Offers
+### Task 3: Recruiter State And JobMada-Accurate Empty Offers
 
 **Files:**
 - Modify: `app.js`
@@ -53,7 +53,7 @@
 
 - [ ] Render the first new-offer screen with two method cards: `Je rédige mon offre` and `Générer avec l'IA`.
 - [ ] Use a `method=manual` hash query to show the detailed form.
-- [ ] Add fields matching Asako: title, contract, city select, location, salary range, internal reference, description, missions, profile, optional extra info.
+- [ ] Add fields matching JobMada: title, contract, city select, location, salary range, internal reference, description, missions, profile, optional extra info.
 - [ ] Add editor-like toolbars, character counters, AI improve CTA, locked visibility options, progress hint, draft/publish sticky bottom bar.
 
 ### Task 5: CVthèque Free-Plan Experience
@@ -74,7 +74,7 @@
 - Modify: `styles.css`
 
 - [ ] Render current plan, quotas, plan-change section, monthly/quarterly switch, and transaction empty state in the recruiter subscription route.
-- [ ] Align recruiter profile route with Asako: personal info card plus password-change card.
+- [ ] Align recruiter profile route with JobMada: personal info card plus password-change card.
 - [ ] Keep the existing public pricing page intact while reusing plan data.
 
 ### Task 7: Verification
@@ -82,7 +82,7 @@
 **Files:**
 - No source edits unless fixes are needed.
 
-- [ ] Run `node tests/asako-dynamic.test.mjs` and confirm it passes.
+- [ ] Run `node tests/jobmada-dynamic.test.mjs` and confirm it passes.
 - [ ] Start a local static server with `python3 -m http.server`.
 - [ ] Use Chrome to inspect desktop home, recruiter dashboard, new offer manual form, CVthèque, and subscription pages.
 - [ ] Inspect a mobile viewport for overlap, sticky behavior, and text fit.

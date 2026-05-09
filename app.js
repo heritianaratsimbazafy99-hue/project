@@ -408,14 +408,14 @@ const plans = [
     name: "Starter",
     audience: "PME locales avec besoins réguliers",
     monthly: 80000,
-    color: "#A78BCD",
+    color: "#7428C8",
     features: ["10 offres/mois, visibles 14 jours", "1 annonce Urgent/mois", "1 remontée en tête/semaine", "IA avancée", "Statistiques des offres", "Support email"],
   },
   {
     name: "Booster",
     audience: "BPO et entreprises en secteur compétitif",
     monthly: 350000,
-    color: "#F2537B",
+    color: "#8EE321",
     featured: true,
     features: ["Offres illimitées, visibles 14 jours", "1 annonce Vedette/semaine", "5 annonces Urgent/mois", "3 remontées/semaine", "CVthèque — 50 CVs/mois", "IA illimitée", "Matching IA candidats-offres", "Statistiques des offres"],
   },
@@ -423,7 +423,7 @@ const plans = [
     name: "Agence",
     audience: "Cabinets RH et grands groupes",
     monthly: 950000,
-    color: "#474476",
+    color: "#0B2F6B",
     features: ["Offres illimitées, republication auto", "2 annonces Vedette/semaine", "Remontée quotidienne", "Urgent illimité", "CVthèque complète (40k+ CVs)", "IA illimitée", "Matching IA candidats-offres", "Support WhatsApp dédié"],
   },
 ];
@@ -546,7 +546,7 @@ function icon(name) {
 }
 
 function brand() {
-  return `<a class="brand" href="#/" aria-label="Asako accueil"><span class="brand-text">asako</span><span class="brand-dot">.</span><span class="brand-mg">mg</span></a>`;
+  return `<a class="brand" href="#/" aria-label="JobMada accueil"><img class="brand-logo" src="assets/logos/jobmada-logo.jpg" alt="JobMada"><span class="brand-name">JobMada</span></a>`;
 }
 
 function publicHeader() {
@@ -582,12 +582,12 @@ function footer() {
       <div class="container">
         <div class="footer-grid">
           <div>${brand()}<p><em>Mon travail, mon avenir.</em></p></div>
-          <div><h3>Candidats</h3><a href="#/emploi">Offres d'emploi</a><a href="#/inscription/candidat">Créer mon profil</a><a href="#/candidat/dashboard">Mon Asako</a><a href="#/blog">Blog</a></div>
-          <div><h3>Recruteurs</h3><a href="#/recruteur/offres/nouvelle">Publier une offre</a><a href="#/inscription/recruteur">Asako Recruteur</a><a href="#/tarifs">Tarifs</a><a href="#/entreprises">Annuaire entreprises</a></div>
+          <div><h3>Candidats</h3><a href="#/emploi">Offres d'emploi</a><a href="#/inscription/candidat">Créer mon profil</a><a href="#/candidat/dashboard">Mon JobMada</a><a href="#/blog">Blog</a></div>
+          <div><h3>Recruteurs</h3><a href="#/recruteur/offres/nouvelle">Publier une offre</a><a href="#/inscription/recruteur">JobMada Recruteur</a><a href="#/tarifs">Tarifs</a><a href="#/entreprises">Annuaire entreprises</a></div>
           <div><h3>Ressources</h3><a href="#/apropos">À propos</a><a href="#/contact">Contact</a><a href="#/guides">Nos guides</a></div>
           <div><h3>Légal</h3><a href="#/mentions-legales">Mentions légales</a><a href="#/conditions-utilisation">CGU</a><a href="#/politique-confidentialite">Politique de confidentialité</a></div>
         </div>
-        <div class="footer-bottom">© 2026 Asako.mg — Le premier site d'emploi de Madagascar</div>
+        <div class="footer-bottom">© 2026 JobMada — Le premier site d'emploi de Madagascar</div>
       </div>
     </footer>
   `;
@@ -665,7 +665,7 @@ function homePage() {
     <section class="section alt" style="padding:28px 0">
       <div class="container">
         <div class="pro-banner">
-          <p><span class="pill">SPONSORISÉ</span> Recrutez plus vite avec <em>Asako Pro</em> — CVthèque, boost vedette, matching IA</p>
+          <p><span class="pill">SPONSORISÉ</span> Recrutez plus vite avec <em>JobMada Pro</em> — CVthèque, boost vedette, matching IA</p>
           <a class="btn btn-primary" href="#/tarifs">Découvrir →</a>
         </div>
       </div>
@@ -689,7 +689,7 @@ function homePage() {
             ${jobs.filter((j) => j.urgent).map((j) => `<a class="urgent-card" href="#/annonces/${j.slug}">${companyLogo(j.company)}<div><strong>${j.title}</strong><span>${j.company}</span><br><span class="pill rose">${j.deadline}</span></div></a>`).join("")}
           </div>
           <div class="side-card dark" data-sticky-pro>
-            <h3>${icon("zap")} Asako Pro</h3>
+            <h3>${icon("zap")} JobMada Pro</h3>
             <p>Offres illimitées, CVthèque complète et matching IA. Trouvez votre perle rare, simplement.</p>
             <a class="btn btn-primary" style="width:100%" href="#/tarifs">Découvrir →</a>
           </div>
@@ -754,7 +754,7 @@ function ctaSection() {
     <section class="section">
       <div class="container cta-grid">
         <div class="cta-panel"><span class="eyebrow">Candidats</span><h2>Votre prochain emploi commence ici</h2><p>Créez votre profil gratuitement, uploadez votre CV et postulez aux offres qui vous correspondent.</p><a class="btn btn-primary" href="#/inscription/candidat">Créer mon profil gratuitement →</a></div>
-        <div class="cta-panel dark"><span class="pill">Recruteurs</span><h2>Trouvez votre perle rare avec <span style="color:var(--rose)">Asako</span></h2><p>Publiez vos offres et accédez à 40 000+ CVs qualifiés.</p><a class="btn btn-primary" href="#/recruteur/offres/nouvelle">Publier une offre →</a></div>
+        <div class="cta-panel dark"><span class="pill">Recruteurs</span><h2>Trouvez votre perle rare avec <span style="color:var(--rose)">JobMada</span></h2><p>Publiez vos offres et accédez à 40 000+ CVs qualifiés.</p><a class="btn btn-primary" href="#/recruteur/offres/nouvelle">Publier une offre →</a></div>
       </div>
     </section>
   `;
@@ -765,7 +765,7 @@ function aboutSection() {
     <section class="section">
       <div class="container about-grid">
         <div class="logo-orbit">${brand()}<span class="badge one">40k+<br><small>CVs qualifiés</small></span><span class="badge two">250+<br><small>offres actives</small></span></div>
-        <div><h2 class="section-title"><span class="icon-tile">${icon("eye")}</span>L'emploi à Madagascar, <strong>simplement</strong></h2><p>Asako.mg est né d'une conviction simple : chaque Malgache mérite un chemin clair vers l'emploi qui lui correspond. Que vous cherchiez un CDI, un CDD, un stage ou une mission freelance, Asako connecte candidats et recruteurs dans tous les secteurs.</p>${["Des offres fraîches chaque jour", "Postulez en un clic", "Transparence totale"].map((t, i) => `<div class="feature-line"><span class="icon-tile">${icon(i === 0 ? "zap" : i === 1 ? "file" : "eye")}</span><div><strong>${t}</strong><p>${i === 0 ? "Mises à jour quotidiennes, indexées pour être trouvées rapidement." : i === 1 ? "Votre profil est transmis directement au recruteur." : "Suivez vos candidatures et les consultations de votre CV."}</p></div></div>`).join("")}</div>
+        <div><h2 class="section-title"><span class="icon-tile">${icon("eye")}</span>L'emploi à Madagascar, <strong>simplement</strong></h2><p>JobMada est né d'une conviction simple : chaque Malgache mérite un chemin clair vers l'emploi qui lui correspond. Que vous cherchiez un CDI, un CDD, un stage ou une mission freelance, JobMada connecte candidats et recruteurs dans tous les secteurs.</p>${["Des offres fraîches chaque jour", "Postulez en un clic", "Transparence totale"].map((t, i) => `<div class="feature-line"><span class="icon-tile">${icon(i === 0 ? "zap" : i === 1 ? "file" : "eye")}</span><div><strong>${t}</strong><p>${i === 0 ? "Mises à jour quotidiennes, indexées pour être trouvées rapidement." : i === 1 ? "Votre profil est transmis directement au recruteur." : "Suivez vos candidatures et les consultations de votre CV."}</p></div></div>`).join("")}</div>
       </div>
     </section>
   `;
@@ -843,10 +843,10 @@ function jobDetailPage(slug) {
           <div class="job-intro">En pleine croissance, nous recherchons un profil talentueux pour rejoindre notre équipe.</div>
           <section class="content-section"><h2>${icon("target")} Missions principales</h2><ul>${missions.map((item) => `<li>${item}</li>`).join("")}</ul></section>
           <section class="content-section"><h2>${icon("users")} Profil recherché</h2><ul>${profile.map((item) => `<li>${item}</li>`).join("")}</ul></section>
-          <section class="apply-inline"><div><h3>Cette offre vous correspond ?</h3><p>Envoyez votre candidature à <strong>${job.company}</strong> directement via Asako. Votre CV et profil sont transmis automatiquement.</p></div><button class="btn btn-primary" data-open-apply>${icon("send")} Postuler</button></section>
+          <section class="apply-inline"><div><h3>Cette offre vous correspond ?</h3><p>Envoyez votre candidature à <strong>${job.company}</strong> directement via JobMada. Votre CV et profil sont transmis automatiquement.</p></div><button class="btn btn-primary" data-open-apply>${icon("send")} Postuler</button></section>
         </div>
         <aside class="side-stack">
-          <div class="side-card job-summary-card"><p><span>${icon("layers")}</span><strong>Métier</strong>${job.title.split(" ").slice(0, 3).join(" ")}</p><p><span>${icon("file")}</span><strong>Contrat</strong>${job.contract} — Temps plein</p><p><span>${icon("clock")}</span><strong>Prise de poste</strong>Dès que possible</p><p><span>${icon("calendar")}</span><strong>Expire le</strong>${job.deadline}</p><button class="btn btn-primary" style="width:100%" data-open-apply>${icon("send")} Postuler maintenant</button><small>Candidature gratuite et rapide via Asako</small></div>
+          <div class="side-card job-summary-card"><p><span>${icon("layers")}</span><strong>Métier</strong>${job.title.split(" ").slice(0, 3).join(" ")}</p><p><span>${icon("file")}</span><strong>Contrat</strong>${job.contract} — Temps plein</p><p><span>${icon("clock")}</span><strong>Prise de poste</strong>Dès que possible</p><p><span>${icon("calendar")}</span><strong>Expire le</strong>${job.deadline}</p><button class="btn btn-primary" style="width:100%" data-open-apply>${icon("send")} Postuler maintenant</button><small>Candidature gratuite et rapide via JobMada</small></div>
           <div class="side-card"><h3>L'entreprise</h3><div class="company-card-head">${companyLogo(job.company)}<div><strong>${job.company}</strong><br><span>${company.jobs} offres actives</span></div></div><p style="margin-top:14px">${company.about}</p><a class="btn btn-soft" style="width:100%" href="#/profil-entreprise/${slugify(job.company)}">Voir le profil ›</a></div>
           ${relatedCompanyJobs.length ? `<div class="side-card"><h3>Autres offres chez ${job.company}</h3><div class="side-mini-list">${relatedCompanyJobs.map((item) => `<a href="#/annonces/${item.slug}"><strong>${item.title}</strong><span>${icon("pin")} ${item.city} <em>${item.contract}</em></span></a>`).join("")}</div><a href="#/profil-entreprise/${slugify(job.company)}">Voir les ${company.jobs} offres →</a></div>` : ""}
         </aside>
@@ -863,7 +863,7 @@ function companiesPage() {
     <section class="page-hero">
       <div class="container">
         <h1>Les entreprises qui recrutent à <span class="underline">Madagascar</span></h1>
-        <p>Ces entreprises publient régulièrement des offres sur Asako. Explorez leurs profils et trouvez celle qui vous correspond.</p>
+        <p>Ces entreprises publient régulièrement des offres sur JobMada. Explorez leurs profils et trouvez celle qui vous correspond.</p>
         <div class="company-searchbar">
           <span>${icon("search")}</span>
           <input id="companySearch" placeholder="Rechercher une entreprise..." />
@@ -886,7 +886,7 @@ function companiesPage() {
     <section class="section alt">
       <div class="container seo-copy">
         <h2><span class="icon-tile">${icon("file")}</span>Annuaire des entreprises qui recrutent à Madagascar</h2>
-        <p>Asako.mg référence les entreprises qui publient régulièrement des offres d'emploi à Madagascar. De l'industrie BPO aux ONG, en passant par l'informatique, la finance et l'hôtellerie, ces entreprises font confiance à Asako pour trouver leurs prochains talents.</p>
+        <p>JobMada référence les entreprises qui publient régulièrement des offres d'emploi à Madagascar. De l'industrie BPO aux ONG, en passant par l'informatique, la finance et l'hôtellerie, ces entreprises font confiance à JobMada pour trouver leurs prochains talents.</p>
         <p>Chaque profil d'entreprise regroupe ses offres actives, son secteur d'activité et ses informations clés. Explorez les profils, découvrez les entreprises qui vous intéressent et postulez directement aux offres qui vous correspondent.</p>
         <p>Vous êtes recruteur ? <a href="#/inscription/recruteur">Créez votre espace</a> et publiez vos offres pour apparaître dans cet annuaire.</p>
       </div>
@@ -944,7 +944,7 @@ function companyProfilePage(slug) {
           <p><span>${icon("pin")}</span><strong>Localisation</strong>${company.city}</p>
           <p><span>${icon("layers")}</span><strong>Secteur</strong>${company.sector}</p>
           <p><span>${icon("users")}</span><strong>Taille de l'équipe</strong>${company.size}</p>
-          <p><span>${icon("clock")}</span><strong>Présente sur Asako depuis</strong>${company.since}</p>
+          <p><span>${icon("clock")}</span><strong>Présente sur JobMada depuis</strong>${company.since}</p>
         </div>
       </div>
     </section>
@@ -969,10 +969,10 @@ function pricingPage() {
   return pageShell(`
     <section class="page-hero"><div class="container"><span class="eyebrow">Tarifs recruteurs</span><h1>Recrutez <span class="underline">sans compter</span>, payez selon vos besoins</h1><p>De la startup qui embauche son premier collaborateur au BPO qui recrute chaque semaine.</p><div style="display:flex;gap:18px;justify-content:center;flex-wrap:wrap;margin-top:18px"><span>✓ 2 offres gratuites/mois</span><span>✓ Sans engagement</span><span>✓ Annulez à tout moment</span></div></div></section>
     <section class="section"><div class="container" style="text-align:center"><div class="billing-toggle" data-billing><button class="active" data-cycle="monthly">Mensuel</button><button data-cycle="quarterly">Trimestriel <span style="color:var(--rose)">-15%</span></button></div><div class="pricing-grid">${plans.map(priceCard).join("")}</div><div class="included-strip"><strong>Inclus dans tous les plans</strong><span>${icon("globe")} Google Jobs</span><span>${icon("layers")} Pipeline de suivi</span><span>${icon("briefcase")} Page entreprise</span><span>${icon("bell")} Alertes candidats</span></div></div></section>
-    <section class="section alt"><div class="container"><h2 class="section-title" style="justify-content:center">Ils recrutent avec <strong>Asako</strong></h2><div class="proof-grid">${[["100k+", "Communauté Facebook", "users"], ["40 000+", "CVs dans la base", "file"], ["~30", "Candidatures par offre", "send"], ["500+", "Entreprises inscrites", "briefcase"]].map(([value, label, ic]) => `<div class="proof-card"><span class="icon-tile">${icon(ic)}</span><strong>${value}</strong><span>${label}</span></div>`).join("")}</div><div class="testimonial-grid">${[
+    <section class="section alt"><div class="container"><h2 class="section-title" style="justify-content:center">Ils recrutent avec <strong>JobMada</strong></h2><div class="proof-grid">${[["100k+", "Communauté Facebook", "users"], ["40 000+", "CVs dans la base", "file"], ["~30", "Candidatures par offre", "send"], ["500+", "Entreprises inscrites", "briefcase"]].map(([value, label, ic]) => `<div class="proof-card"><span class="icon-tile">${icon(ic)}</span><strong>${value}</strong><span>${label}</span></div>`).join("")}</div><div class="testimonial-grid">${[
       ["On a publié le matin, à midi on avait 15 candidatures qualifiées. Le pipeline nous aide à ne perdre aucun profil.", "Hery R.", "DRH — Agence Web Madagascar"],
       ["On a commencé avec le Gratuit. En une semaine, 20 candidatures. On est passé au Booster et on ne revient pas en arrière.", "Naina R.", "RH — Retail, Antsirabe"],
-      ["Avant Asako, on publiait sur Facebook et on priait. Maintenant tout est organisé, on sait qui a postulé et où on en est.", "Andry R.", "CEO — Media Click"],
+      ["Avant JobMada, on publiait sur Facebook et on priait. Maintenant tout est organisé, on sait qui a postulé et où on en est.", "Andry R.", "CEO — Media Click"],
     ].map(([quote, name, role]) => `<article class="testimonial-card"><div class="stars">★★★★★</div><p>${quote}</p><strong>${name}</strong><span>${role}</span></article>`).join("")}</div></div></section>
     <section class="section"><div class="container"><h2 class="section-title" style="justify-content:center">Questions <strong>fréquentes</strong></h2><div class="company-grid faq-grid" style="margin-top:28px">${[
       ["C'est vraiment gratuit ?", "Oui. 2 offres/mois, sans carte bancaire. Suffisant pour tester et recevoir vos premières candidatures."],
@@ -1005,13 +1005,13 @@ function authPage(type) {
   return pageShell(`
     <section class="auth-shell">
       <div class="auth-art">${brand()}<h1>${isRecruiter ? "Publiez votre première offre en 2 minutes." : "Votre prochain emploi commence ici."}</h1><p>${isRecruiter ? "Créez votre espace recruteur, gérez vos offres et trouvez des profils qualifiés." : "Créez votre profil, déposez votre CV et postulez en un clic."}</p></div>
-      <div class="auth-card"><span class="eyebrow">${isRecruiter ? "Asako Recruteur" : "Espace candidat"}</span><h1>${isRecruiter ? "Créer un compte recruteur" : "Créer mon profil"}</h1><form data-save-form><input class="input" placeholder="${isRecruiter ? "Nom de l'entreprise" : "Nom complet"}"><input class="input" placeholder="Email"><input class="input" placeholder="Mot de passe" type="password"><select class="select"><option>${isRecruiter ? "Secteur d'activité" : "Métier recherché"}</option>${sectors.slice(0, 8).map(([s]) => `<option>${s}</option>`).join("")}</select><button class="btn btn-primary" type="submit">${isRecruiter ? "Commencer gratuitement" : "Créer mon profil gratuitement"}</button></form></div>
+      <div class="auth-card"><span class="eyebrow">${isRecruiter ? "JobMada Recruteur" : "Espace candidat"}</span><h1>${isRecruiter ? "Créer un compte recruteur" : "Créer mon profil"}</h1><form data-save-form><input class="input" placeholder="${isRecruiter ? "Nom de l'entreprise" : "Nom complet"}"><input class="input" placeholder="Email"><input class="input" placeholder="Mot de passe" type="password"><select class="select"><option>${isRecruiter ? "Secteur d'activité" : "Métier recherché"}</option>${sectors.slice(0, 8).map(([s]) => `<option>${s}</option>`).join("")}</select><button class="btn btn-primary" type="submit">${isRecruiter ? "Commencer gratuitement" : "Créer mon profil gratuitement"}</button></form></div>
     </section>
   `);
 }
 
 function simplePage(title, copy = "Cette page est reproduite sous forme de prototype local avec les composants principaux de la plateforme.") {
-  return pageShell(`<section class="page-hero"><div class="container"><span class="eyebrow">Asako.mg</span><h1>${title}</h1><p>${copy}</p></div></section><section class="section"><div class="container"><div class="empty-state"><h2>Prototype disponible</h2><p>Les liens, styles, formulaires et états principaux sont inclus dans cette version locale.</p><a class="btn btn-primary" href="#/emploi">Explorer les offres</a></div></div></section>`);
+  return pageShell(`<section class="page-hero"><div class="container"><span class="eyebrow">JobMada</span><h1>${title}</h1><p>${copy}</p></div></section><section class="section"><div class="container"><div class="empty-state"><h2>Prototype disponible</h2><p>Les liens, styles, formulaires et états principaux sont inclus dans cette version locale.</p><a class="btn btn-primary" href="#/emploi">Explorer les offres</a></div></div></section>`);
 }
 
 function recruiterLayout(page, content) {
@@ -1028,7 +1028,7 @@ function recruiterLayout(page, content) {
           <div class="recruiter-account">${companyLogo(recruiterState.company, "avatar")}<div><strong>${recruiterState.company}</strong><span>${recruiterState.contact}</span></div><a class="btn btn-soft" style="min-height:38px;padding:0;width:38px" href="#/">${icon("external")}</a></div>
           <div class="side-groups">${groups.map(([title, links]) => `<div class="side-group"><p class="side-group-title">${title}</p>${links.map(([label, key, ic]) => `<a class="side-link ${page === key ? "active" : ""}" href="#/recruteur/${key === "dashboard" ? "dashboard" : key}">${icon(ic)} ${label}</a>`).join("")}</div>`).join("")}</div>
           <div class="side-cta"><a class="btn btn-primary" style="width:100%" href="#/recruteur/offres/nouvelle">${icon("plus")} Publier une offre</a></div>
-          <div class="plan-mini"><strong>Plan ${recruiterState.plan} <span class="pill" style="float:right">${recruiterState.planPrice}</span></strong><div class="quota-bar" style="margin:16px 0 10px"><span style="width:${(recruiterState.offersUsed / recruiterState.offerQuota) * 100}%"></span></div><p style="color:#e58200;font-size:12px">Plus que ${recruiterState.offerQuota - recruiterState.offersUsed} offres disponibles</p><a class="btn btn-outline" style="width:100%;min-height:36px" href="#/recruteur/abonnement">Changer de plan →</a></div>
+          <div class="plan-mini"><strong>Plan ${recruiterState.plan} <span class="pill" style="float:right">${recruiterState.planPrice}</span></strong><div class="quota-bar" style="margin:16px 0 10px"><span style="width:${(recruiterState.offersUsed / recruiterState.offerQuota) * 100}%"></span></div><p style="color:var(--mauve);font-size:12px">Plus que ${recruiterState.offerQuota - recruiterState.offersUsed} offres disponibles</p><a class="btn btn-outline" style="width:100%;min-height:36px" href="#/recruteur/abonnement">Changer de plan →</a></div>
         </aside>
         <main class="recruiter-main">${content}</main>
       </div>
@@ -1204,7 +1204,7 @@ function candidateCard(c) {
 
 function cvthequePage() {
   return `
-    <div class="dashboard-welcome"><div><h1>CVthèque Asako</h1><p>Trouvez le candidat idéal parmi nos profils qualifiés.</p></div></div>
+    <div class="dashboard-welcome"><div><h1>CVthèque JobMada</h1><p>Trouvez le candidat idéal parmi nos profils qualifiés.</p></div></div>
     <div class="cv-stats">
       ${[["13 491+", "Profils disponibles", "file"], ["13 491+", "CVs analysés par l'IA", "users"], ["15+", "Secteurs couverts", "layers"]].map(([value, label, ic]) => `<div class="metric-card"><span class="icon-tile">${icon(ic)}</span><strong>${value}</strong><span>${label}</span></div>`).join("")}
     </div>
@@ -1212,7 +1212,7 @@ function cvthequePage() {
       <div class="segmented"><button class="active" type="button">${icon("search")} Recherche libre</button><button type="button">${icon("briefcase")} Matcher par offre</button></div>
       <div class="panel">
         <h2>Décrivez le profil que vous cherchez</h2>
-        <p>L'IA d'Asako trouve les candidats les plus pertinents pour votre recherche</p>
+        <p>L'IA de JobMada trouve les candidats les plus pertinents pour votre recherche</p>
         <div class="search-shell cv-search"><span>${icon("search")}</span><input id="cvSearch" placeholder="Je recherche un développeur React, 3 ans d'expérience, Antananarivo..."><button class="btn btn-primary" type="button">Rechercher</button></div>
         <div class="popular-row"><strong>RECHERCHES POPULAIRES</strong>${["Développeur web", "Comptable", "Assistante RH", "Commercial"].map((label) => `<button type="button">${label}</button>`).join("")}</div>
       </div>

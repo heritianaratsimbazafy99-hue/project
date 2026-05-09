@@ -1,8 +1,8 @@
-# Asako Clone Implementation Plan
+# JobMada Clone Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Build a static, high-fidelity Asako.mg-inspired jobboard and recruiter dashboard in `/Users/heritiana/Documents/Asako2`.
+**Goal:** Build a static, high-fidelity JobMada-inspired jobboard and recruiter dashboard in `le workspace local`.
 
 **Architecture:** A single-page vanilla app renders public pages and recruiter pages from structured data. Routing uses `location.hash`, keeping deployment simple and avoiding framework setup in an empty workspace.
 
@@ -18,7 +18,7 @@
 - Create: `app.js`
 
 - [ ] Create semantic HTML with root containers, metadata, and linked assets.
-- [ ] Define CSS variables for Asako colors, typography, spacing, radii, shadows.
+- [ ] Define CSS variables for JobMada colors, typography, spacing, radii, shadows.
 - [ ] Add a router in `app.js` that maps hash routes to page renderers.
 - [ ] Verify `index.html` opens locally.
 
