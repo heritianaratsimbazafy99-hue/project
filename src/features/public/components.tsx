@@ -1,17 +1,20 @@
 import Link from "next/link";
 import {
   Bell,
+  Building2,
   BriefcaseBusiness,
   ChevronDown,
   Clock,
   FileText,
   Layers,
+  LogIn,
   MapPin,
   Search,
   Send,
   Star,
   Target,
   UserRound,
+  UserPlus,
   Users,
   Zap
 } from "lucide-react";
@@ -43,7 +46,7 @@ function logoIndex(name: string) {
   return [...name].reduce((sum, char) => sum + char.charCodeAt(0), 0) % logoPositions.length;
 }
 
-export function PublicHeader({ active = "/" }: { active?: string }) {
+export function PublicHeader({ active = "/", variant = "default" }: { active?: string; variant?: "default" | "auth" }) {
   const nav = [
     ["Offres d'emploi", "/emploi"],
     ["Emploi CDD", "/emploi?contract=CDD"],
@@ -51,6 +54,33 @@ export function PublicHeader({ active = "/" }: { active?: string }) {
     ["Offre de stage", "/emploi?contract=Stage"],
     ["Offres urgentes", "/emploi?urgent=1"]
   ];
+
+  if (variant === "auth") {
+    return (
+      <header className="site-header auth-site-header">
+        <div className="container header-inner auth-header-inner">
+          <BrandMark />
+          <nav className="top-nav auth-top-nav" aria-label="Navigation principale">
+            {nav.map(([label, href]) => (
+              <Link key={label} href={href}>
+                {label}
+              </Link>
+            ))}
+          </nav>
+          <div className="auth-header-actions">
+            <Link className="auth-login-link" href="/connexion" aria-current="page">
+              <LogIn size={18} aria-hidden="true" />
+              Connexion
+            </Link>
+            <Link className="auth-profile-pill" href="/inscription/candidat">
+              <UserPlus size={18} aria-hidden="true" />
+              Créer mon profil
+            </Link>
+          </div>
+        </div>
+      </header>
+    );
+  }
 
   return (
     <header className="site-header">
@@ -244,16 +274,19 @@ export function SearchShell({ defaultValue = "" }: { defaultValue?: string }) {
 
 export const PublicIcons = {
   Bell,
+  Building2,
   BriefcaseBusiness,
   Clock,
   FileText,
   Layers,
+  LogIn,
   MapPin,
   Search,
   Send,
   Star,
   Target,
   UserRound,
+  UserPlus,
   Users,
   Zap
 };

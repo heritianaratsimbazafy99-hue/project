@@ -20,4 +20,17 @@ describe("public Next UI routes", () => {
     expect(existsSync(resolve(process.cwd(), "app/(public)/inscription/[type]/page.tsx"))).toBe(true);
     expect(existsSync(resolve(process.cwd(), "app/(public)/tarifs/page.tsx"))).toBe(true);
   });
+
+  it("keeps the connexion page close to the observed Asako login structure", () => {
+    const connexion = read("app/(public)/connexion/page.tsx");
+
+    expect(connexion).toContain('PublicHeader variant="auth"');
+    expect(connexion).toContain("Content de");
+    expect(connexion).toContain("Mot de passe oublié ?");
+    expect(connexion).toContain("Pas encore de compte ?");
+    expect(connexion).toContain("Je cherche un emploi");
+    expect(connexion).toContain("Je recrute");
+    expect(read("app/globals.css")).toContain(".login-card-shell");
+    expect(read("app/globals.css")).toContain(".auth-profile-pill");
+  });
 });

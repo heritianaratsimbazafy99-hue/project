@@ -1,7 +1,8 @@
 import Link from "next/link";
+import { Building2, Eye, FileText, LockKeyhole, LogIn, Mail } from "lucide-react";
 
 import { signInWithPassword } from "@/features/auth/actions";
-import { PublicFooter, PublicHeader } from "@/features/public/components";
+import { PublicHeader } from "@/features/public/components";
 
 export const dynamic = "force-dynamic";
 
@@ -15,44 +16,77 @@ export default async function ConnexionPage({ searchParams }: ConnexionPageProps
 
   return (
     <>
-      <PublicHeader />
-      <main>
-        <section className="auth-shell">
-          <div className="auth-art">
-            <h1>Votre espace JobMada vous attend.</h1>
-            <p>Connectez-vous pour retrouver vos candidatures, vos offres recruteur ou votre file de revue admin.</p>
-          </div>
-          <div className="auth-card">
-            <span className="eyebrow">Connexion</span>
-            <h1>Accéder à mon compte</h1>
+      <PublicHeader variant="auth" />
+      <main className="login-main">
+        <section className="login-card-shell" aria-labelledby="login-title">
+          <div className="login-card">
+            <div className="login-heading">
+              <h1 id="login-title">
+                Content de <strong>vous revoir</strong>
+              </h1>
+              <p>Connectez-vous pour accéder à votre espace</p>
+            </div>
             {error ? (
-              <div className="empty-state" role="alert" style={{ padding: 16, marginTop: 18 }}>
+              <div className="login-alert" role="alert">
                 <strong>Connexion impossible</strong>
                 <p>Vérifiez votre email, votre mot de passe ou la configuration Supabase.</p>
               </div>
             ) : null}
-            <form action={signInWithPassword}>
-              <input className="input" name="email" placeholder="Email" type="email" autoComplete="email" required />
-              <input
-                className="input"
-                name="password"
-                placeholder="Mot de passe"
-                type="password"
-                autoComplete="current-password"
-                required
-              />
-              <button className="btn btn-primary" type="submit">
+            <form className="login-form" action={signInWithPassword}>
+              <label className="login-field">
+                <span>Adresse email</span>
+                <div className="login-input-wrap">
+                  <Mail size={21} aria-hidden="true" />
+                  <input name="email" placeholder="votre@email.com" type="email" autoComplete="email" required />
+                </div>
+              </label>
+              <label className="login-field">
+                <span className="login-label-row">
+                  <span>Mot de passe</span>
+                  <Link href="/connexion?reset=1">Mot de passe oublié ?</Link>
+                </span>
+                <div className="login-input-wrap">
+                  <LockKeyhole size={21} aria-hidden="true" />
+                  <input
+                    name="password"
+                    placeholder="Votre mot de passe"
+                    type="password"
+                    autoComplete="current-password"
+                    required
+                  />
+                  <Eye size={21} aria-hidden="true" />
+                </div>
+              </label>
+              <button className="login-submit" type="submit">
+                <LogIn size={22} aria-hidden="true" />
                 Se connecter
               </button>
             </form>
-            <div className="auth-links">
-              <Link href="/inscription/candidat">Créer un profil candidat</Link>
-              <Link href="/inscription/recruteur">Créer un espace recruteur</Link>
+            <div className="login-divider">
+              <span />
+              <p>Pas encore de compte ?</p>
+              <span />
+            </div>
+            <div className="login-signup-grid">
+              <Link className="login-signup-card candidate" href="/inscription/candidat">
+                <span>
+                  <FileText size={28} aria-hidden="true" />
+                </span>
+                <strong>Je cherche un emploi</strong>
+                <small>Créez votre profil gratuitement</small>
+              </Link>
+              <Link className="login-signup-card recruiter" href="/inscription/recruteur">
+                <span>
+                  <Building2 size={28} aria-hidden="true" />
+                </span>
+                <strong>Je recrute</strong>
+                <small>Publiez votre première offre</small>
+              </Link>
             </div>
           </div>
         </section>
       </main>
-      <PublicFooter />
+      <footer className="login-footer-band" aria-hidden="true" />
     </>
   );
 }
