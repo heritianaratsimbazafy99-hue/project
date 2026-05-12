@@ -144,8 +144,14 @@ export default async function CandidateAlertsPage({ searchParams }: CandidateAle
           </div>
         ) : null}
 
-        <form action={createCandidateJobAlertAndRedirect} className="candidateForm compact">
-          <label>
+        <div className="candidateAlertGuide" aria-label="Conseils pour créer une alerte">
+          <span>1. Choisissez le poste</span>
+          <span>2. Affinez ville et contrat</span>
+          <span>3. Recevez les offres ciblées</span>
+        </div>
+
+        <form action={createCandidateJobAlertAndRedirect} className="candidateForm compact candidateAlertForm">
+          <label className="candidateFormLead">
             Mot-clé
             <input name="query" placeholder="Designer UI/UX, comptable, React..." />
           </label>
@@ -200,6 +206,12 @@ export default async function CandidateAlertsPage({ searchParams }: CandidateAle
                 </h2>
               </div>
             </div>
+            <div className="candidateAlertTableHead" aria-hidden="true">
+              <span>Recherche</span>
+              <span>Fréquence</span>
+              <span>Statut</span>
+              <span>Actions</span>
+            </div>
             {alerts.map((alert) => (
               <article key={alert.id}>
                 <div>
@@ -223,9 +235,12 @@ export default async function CandidateAlertsPage({ searchParams }: CandidateAle
             ))}
           </div>
         ) : (
-          <div className="candidateEmptyState">
+          <div className="candidateEmptyState isLarge">
             <h2 id="alerts-empty-title">Pas encore d’alertes</h2>
             <p>Vos alertes sauvegardées apparaîtront ici dès leur création.</p>
+            <a className="primaryAction" href="#alert-form-title">
+              Créer ma première alerte
+            </a>
           </div>
         )}
       </section>

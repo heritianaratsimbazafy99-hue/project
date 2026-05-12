@@ -49,6 +49,11 @@ export default async function CandidateLayout({ children }: CandidateLayoutProps
     hasDesiredRole: Boolean(candidateProfile?.desired_role),
     hasAlert: Boolean(alertCount && alertCount > 0)
   });
+  const readiness = [
+    { label: "CV", done: Boolean(candidateProfile?.cv_path), href: "/candidat/profil" },
+    { label: "Poste recherché", done: Boolean(candidateProfile?.desired_role), href: "/candidat/profil#infos" },
+    { label: "Alerte emploi", done: Boolean(alertCount && alertCount > 0), href: "/candidat/alertes" }
+  ];
 
   return (
     <main className="siteShell candidateArea">
@@ -67,6 +72,7 @@ export default async function CandidateLayout({ children }: CandidateLayoutProps
           email={profile.email || user.email || null}
           displayName={profile.display_name}
           completion={completion}
+          readiness={readiness}
         />
         <div className="candidateContent">{children}</div>
       </div>

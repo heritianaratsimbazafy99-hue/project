@@ -2,25 +2,35 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { Bell, BriefcaseBusiness, CheckCircle2, Circle, LayoutDashboard, LogOut, UserRound } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 
 import type { CandidateCompletion } from "@/features/candidate/completion";
+
+type CandidateReadinessItem = {
+  done: boolean;
+  href: string;
+  label: string;
+};
 
 type CandidateSidebarProps = {
   email: string | null;
   displayName?: string | null;
   completion: CandidateCompletion;
+  readiness: CandidateReadinessItem[];
 };
 
-const navItems = [
-  { href: "/candidat/dashboard", label: "Dashboard" },
-  { href: "/candidat/profil", label: "Mon profil" },
-  { href: "/candidat/candidatures", label: "Mes candidatures" },
-  { href: "/candidat/alertes", label: "Mes alertes" }
+const navItems: Array<{ href: string; label: string; Icon: LucideIcon }> = [
+  { href: "/candidat/dashboard", label: "Dashboard", Icon: LayoutDashboard },
+  { href: "/candidat/profil", label: "Mon profil", Icon: UserRound },
+  { href: "/candidat/candidatures", label: "Mes candidatures", Icon: BriefcaseBusiness },
+  { href: "/candidat/alertes", label: "Mes alertes", Icon: Bell }
 ];
 
-export function CandidateSidebar({ email, displayName, completion }: CandidateSidebarProps) {
+export function CandidateSidebar({ email, displayName, completion, readiness }: CandidateSidebarProps) {
   const pathname = usePathname();
   const initial = (displayName || email || "C").trim().charAt(0).toUpperCase();
+  const nextMissing = readiness.find((item) => !item.done);
 
   return (
     <aside className="candidateSidebar" aria-label="Espace candidat">
@@ -37,16 +47,20 @@ export function CandidateSidebar({ email, displayName, completion }: CandidateSi
         </div>
 
         <nav className="candidateNav" aria-label="Navigation candidat">
-          {navItems.map((item) => {
-            const isActive = pathname === item.href;
+          {navItems.map(({ href, label, Icon }) => {
+            const isActive = pathname === href;
 
             return (
-              <Link key={item.href} className={isActive ? "isActive" : undefined} href={item.href}>
-                {item.label}
+              <Link key={href} className={isActive ? "isActive" : undefined} href={href}>
+                <Icon aria-hidden="true" size={18} strokeWidth={2.2} />
+                <span>{label}</span>
               </Link>
             );
           })}
-          <Link href="/connexion">Déconnexion</Link>
+          <Link href="/connexion">
+            <LogOut aria-hidden="true" size={18} strokeWidth={2.2} />
+            <span>Déconnexion</span>
+          </Link>
         </nav>
       </section>
 
@@ -61,7 +75,19 @@ export function CandidateSidebar({ email, displayName, completion }: CandidateSi
         <p>
           {completion.completedSteps} étapes sur {completion.totalSteps} complétées
         </p>
-        <Link href={completion.percent === 100 ? "/emploi" : "/candidat/profil"}>
+        <div className="candidateReadinessList" aria-label="État du profil candidat">
+          {readiness.map((item) => (
+            <Link key={item.label} href={item.href} className={item.done ? "isDone" : undefined}>
+              {item.done ? (
+                <CheckCircle2 aria-hidden="true" size={16} />
+              ) : (
+                <Circle aria-hidden="true" size={16} />
+              )}
+              <span>{item.label}</span>
+            </Link>
+          ))}
+        </div>
+        <Link className="candidatePrimaryLink" href={completion.percent === 100 ? "/emploi" : nextMissing?.href ?? "/candidat/profil"}>
           {completion.percent === 100 ? "Voir les offres" : "Compléter mon profil"}
         </Link>
       </section>

@@ -667,6 +667,7 @@ a {
 .candidateTabs a {
   display: flex;
   align-items: center;
+  gap: 0.55rem;
   min-height: 2.5rem;
   padding: 0.65rem 0.75rem;
   border-radius: 0.45rem;
@@ -733,6 +734,45 @@ a {
   text-decoration: none;
 }
 
+.candidateReadinessList {
+  display: grid;
+  gap: 0.4rem;
+}
+
+.candidateReadinessList a {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  min-height: 2rem;
+  padding: 0.4rem 0.5rem;
+  border-radius: 0.45rem;
+  background: rgba(11, 47, 107, 0.06);
+  color: var(--color-muted);
+  font-size: 0.88rem;
+}
+
+.candidateReadinessList a.isDone {
+  background: rgba(142, 227, 33, 0.16);
+  color: var(--color-navy);
+}
+
+.candidatePrimaryLink,
+.candidateEmptyState .primaryAction {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  width: fit-content;
+  max-width: 100%;
+  min-height: 2.5rem;
+  padding: 0.65rem 0.9rem;
+  border-radius: 0.45rem;
+  background: var(--color-navy);
+  color: var(--color-surface);
+  font-weight: 850;
+  text-decoration: none;
+}
+
 .candidateContent {
   min-width: 0;
 }
@@ -754,12 +794,45 @@ a {
   line-height: 1;
 }
 
-.candidateHero p:last-child {
+.candidateHero > p:not(.candidateEyebrow) {
   max-width: 46rem;
   margin: 1rem 0 0;
   color: var(--color-muted);
   font-size: 1.05rem;
   line-height: 1.65;
+}
+
+.candidateHeroSummary,
+.candidateProfileChips,
+.candidateAlertGuide,
+.candidateStatusGuide {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+
+.candidateHeroSummary span,
+.candidateProfileChips span,
+.candidateAlertGuide span,
+.candidateStatusGuide span {
+  display: inline-flex;
+  align-items: center;
+  min-height: 2rem;
+  padding: 0.4rem 0.65rem;
+  border: 1px solid rgba(11, 47, 107, 0.1);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.82);
+  color: var(--color-navy);
+  font-size: 0.82rem;
+  font-weight: 850;
+}
+
+.candidateDashboardGrid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.8fr) minmax(18rem, 0.8fr);
+  gap: 1rem;
+  align-items: stretch;
 }
 
 .candidateCard h2,
@@ -836,6 +909,45 @@ a {
   line-height: 1;
 }
 
+.candidateNextStepCard {
+  display: grid;
+  align-content: start;
+  gap: 0.85rem;
+  min-height: 100%;
+  padding: 1.1rem;
+  border: 1px solid rgba(116, 40, 200, 0.14);
+  border-radius: 0.5rem;
+  background:
+    linear-gradient(135deg, rgba(116, 40, 200, 0.12), transparent 68%),
+    rgba(255, 255, 255, 0.92);
+  box-shadow: 0 0.75rem 2rem rgba(11, 47, 107, 0.08);
+}
+
+.candidateNextStepCard h2,
+.candidateNextStepCard p {
+  margin: 0;
+}
+
+.candidateNextStepCard h2 {
+  color: var(--color-navy);
+  line-height: 1.2;
+}
+
+.candidateNextStepCard p:not(.candidateEyebrow) {
+  color: var(--color-muted);
+  line-height: 1.6;
+}
+
+.candidateNextStepIcon {
+  display: grid;
+  width: 2.75rem;
+  height: 2.75rem;
+  place-items: center;
+  border-radius: 999px;
+  background: rgba(142, 227, 33, 0.18);
+  color: var(--color-navy);
+}
+
 .candidateNotice {
   padding: 0.95rem 1.05rem;
   border: 1px solid rgba(142, 227, 33, 0.45);
@@ -860,6 +972,7 @@ a {
 }
 
 .onboardingList li {
+  position: relative;
   display: grid;
   gap: 0.65rem;
   min-height: 8rem;
@@ -899,6 +1012,24 @@ a {
   background: var(--color-green);
 }
 
+.onboardingList b {
+  position: absolute;
+  right: 0.75rem;
+  top: 0.65rem;
+  color: rgba(11, 47, 107, 0.16);
+  font-size: 1.4rem;
+  line-height: 1;
+}
+
+.onboardingList em,
+.onboardingList a {
+  width: fit-content;
+  color: var(--color-navy);
+  font-style: normal;
+  font-weight: 850;
+  text-decoration: none;
+}
+
 .onboardingProgress {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -923,6 +1054,7 @@ a {
 
 .candidateJobList a {
   display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
   gap: 0.2rem;
   padding: 0.85rem 0;
   border-top: 1px solid rgba(11, 47, 107, 0.1);
@@ -937,7 +1069,18 @@ a {
   color: var(--color-navy);
 }
 
-.candidateJobList span {
+.candidateJobList a > span:first-child {
+  display: grid;
+  grid-row: 1 / span 2;
+  width: 2rem;
+  height: 2rem;
+  place-items: center;
+  border-radius: 999px;
+  background: rgba(40, 200, 245, 0.11);
+  color: var(--color-navy);
+}
+
+.candidateJobList a > span:last-child {
   color: var(--color-muted);
   line-height: 1.45;
 }
@@ -976,6 +1119,22 @@ a {
 .cvCurrent.isMissing {
   background: rgba(11, 47, 107, 0.08);
   color: var(--color-muted);
+}
+
+.cvTrustList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.8rem;
+}
+
+.cvTrustList span {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  color: var(--color-muted);
+  font-size: 0.85rem;
+  font-weight: 800;
 }
 
 .cvUploadForm {
@@ -1027,6 +1186,10 @@ a {
   align-items: end;
 }
 
+.candidateAlertForm .candidateFormLead {
+  grid-column: span 2;
+}
+
 .candidateForm label,
 .candidateSkillGrid label {
   display: grid;
@@ -1053,6 +1216,26 @@ a {
 .candidateAlertList {
   display: grid;
   gap: 0.75rem;
+}
+
+.candidateAlertGuide {
+  margin: 0 0 1rem;
+}
+
+.candidateAlertTableHead {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto minmax(8rem, auto);
+  gap: 0.85rem;
+  padding: 0 0.8rem;
+  color: var(--color-purple);
+  font-size: 0.72rem;
+  font-weight: 900;
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+
+.candidateAlertList article {
+  grid-template-columns: minmax(0, 1fr) auto auto auto auto;
 }
 
 .candidateApplicationList {
@@ -1107,10 +1290,30 @@ a {
   font-weight: 850;
 }
 
-.onboardingList a {
-  color: inherit;
-  font-weight: inherit;
-  text-decoration: none;
+.candidateStatusGuide {
+  margin-top: 0;
+  padding: 0.2rem;
+  border: 1px solid rgba(11, 47, 107, 0.08);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.72);
+}
+
+.candidateTimeline {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.3rem;
+  margin-top: 0.6rem;
+  max-width: 12rem;
+}
+
+.candidateTimeline span {
+  height: 0.28rem;
+  border-radius: 999px;
+  background: rgba(11, 47, 107, 0.12);
+}
+
+.candidateTimeline span.isDone {
+  background: var(--color-green);
 }
 
 .candidateSkillGrid textarea {
@@ -1134,6 +1337,53 @@ a {
   gap: 0.85rem;
 }
 
+.candidateProfileGuide {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+.candidateProfileGuide article {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 0.7rem;
+  align-items: center;
+  padding: 0.9rem;
+  border: 1px solid rgba(11, 47, 107, 0.1);
+  border-radius: 0.5rem;
+  background: rgba(255, 255, 255, 0.86);
+}
+
+.candidateProfileGuide article > span {
+  display: grid;
+  width: 2.35rem;
+  height: 2.35rem;
+  place-items: center;
+  border-radius: 999px;
+  background: rgba(40, 200, 245, 0.1);
+  color: var(--color-navy);
+}
+
+.candidateProfileGuide strong,
+.candidateProfileGuide small {
+  display: block;
+}
+
+.candidateProfileGuide strong {
+  color: var(--color-navy);
+}
+
+.candidateProfileGuide small {
+  color: var(--color-muted);
+  font-weight: 750;
+  line-height: 1.4;
+}
+
+.candidateProfileGuide .isDone {
+  border-color: rgba(142, 227, 33, 0.38);
+  background: rgba(142, 227, 33, 0.1);
+}
+
 .candidateEmptyState {
   padding: 1.1rem;
   border: 1px dashed rgba(11, 47, 107, 0.28);
@@ -1146,6 +1396,10 @@ a {
   gap: 0.85rem;
   justify-items: start;
   padding: clamp(1.5rem, 5vw, 2.5rem);
+}
+
+.candidateSecurityCard {
+  background: rgba(255, 255, 255, 0.76);
 }
 
 .recruiterArea {
@@ -2050,7 +2304,9 @@ a {
   .jobBoardLayout,
   .homeJobGrid,
   .dashboardShell,
+  .candidateDashboardGrid,
   .candidateMetricGrid,
+  .candidateProfileGuide,
   .adminShell,
   .adminMetricGrid,
   .cvUploadCard,
@@ -2113,6 +2369,7 @@ a {
   .recruiterHero.compact,
   .adminTableHeader,
   .adminTableRow,
+  .candidateAlertTableHead,
   .recruiterOfferCard,
   .recruiterSubmitBar {
     display: grid;

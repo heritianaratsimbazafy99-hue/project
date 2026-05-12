@@ -1,3 +1,5 @@
+import { FileCheck2, LockKeyhole } from "lucide-react";
+
 import { uploadCandidateCvAndRedirect } from "@/features/candidate/actions";
 
 type CvUploadCardProps = {
@@ -20,6 +22,16 @@ export function CvUploadCard({ cvPath }: CvUploadCardProps) {
         <p className={hasCv ? "cvCurrent" : "cvCurrent isMissing"}>
           {hasCv ? `CV actuel : ${cvFileName(cvPath!)}` : "Aucun CV enregistré pour le moment"}
         </p>
+        <div className="cvTrustList" aria-label="Garanties CV">
+          <span>
+            <FileCheck2 aria-hidden="true" size={16} />
+            Prêt pour postuler
+          </span>
+          <span>
+            <LockKeyhole aria-hidden="true" size={16} />
+            Visible seulement lors de vos candidatures
+          </span>
+        </div>
       </div>
 
       <form className="cvUploadForm" action={uploadCandidateCvAndRedirect}>

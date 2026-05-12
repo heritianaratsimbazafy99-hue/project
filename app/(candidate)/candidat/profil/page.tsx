@@ -1,3 +1,5 @@
+import { CheckCircle2, Circle, FileText, ShieldCheck, Target } from "lucide-react";
+
 import { CvUploadCard } from "@/features/candidate/components/cv-upload-card";
 import {
   addCandidateEducationAndRedirect,
@@ -180,6 +182,26 @@ export default async function CandidateProfilePage({ searchParams }: CandidatePr
   const skillsSaved = firstQueryValue(query.skills);
   const passwordSaved = firstQueryValue(query.password);
   const error = firstQueryValue(query.error);
+  const profileGuide = [
+    {
+      done: Boolean(candidateProfile?.cv_path),
+      hint: candidateProfile?.cv_path ? "CV prêt à être transmis" : "Ajoutez un fichier PDF ou Word",
+      label: "CV",
+      Icon: FileText
+    },
+    {
+      done: Boolean(candidateProfile?.desired_role),
+      hint: candidateProfile?.desired_role || "Indiquez le poste ciblé",
+      label: "Poste recherché",
+      Icon: Target
+    },
+    {
+      done: Boolean(candidateProfile?.sector && candidateProfile?.city),
+      hint: [candidateProfile?.sector, candidateProfile?.city].filter(Boolean).join(" · ") || "Précisez secteur et ville",
+      label: "Ciblage",
+      Icon: ShieldCheck
+    }
+  ];
 
   return (
     <div className="candidateStack">
@@ -237,6 +259,21 @@ export default async function CandidateProfilePage({ searchParams }: CandidatePr
         <a href="#parcours">Parcours</a>
         <a href="#competences">Compétences</a>
       </div>
+
+      <section className="candidateProfileGuide" aria-label="Priorités du profil">
+        {profileGuide.map(({ done, hint, label, Icon }) => (
+          <article key={label} className={done ? "isDone" : undefined}>
+            <span aria-hidden="true">
+              <Icon size={18} />
+            </span>
+            <div>
+              <strong>{label}</strong>
+              <small>{hint}</small>
+            </div>
+            {done ? <CheckCircle2 aria-hidden="true" size={18} /> : <Circle aria-hidden="true" size={18} />}
+          </article>
+        ))}
+      </section>
 
       <section className="candidateCard" id="infos" aria-labelledby="infos-title">
         <div className="candidateSectionHeader">
@@ -296,28 +333,6 @@ export default async function CandidateProfilePage({ searchParams }: CandidatePr
           </label>
           <div className="candidateFormActions">
             <button type="submit">Enregistrer le profil</button>
-          </div>
-        </form>
-      </section>
-
-      <section className="candidateCard" aria-labelledby="security-title">
-        <div className="candidateSectionHeader">
-          <div>
-            <p className="candidateEyebrow">Sécurité</p>
-            <h2 id="security-title">Accès au compte</h2>
-          </div>
-        </div>
-        <form action={updateCandidatePasswordAndRedirect} className="candidateForm compact">
-          <label>
-            Nouveau mot de passe
-            <input name="password" type="password" minLength={8} autoComplete="new-password" />
-          </label>
-          <label>
-            Confirmation
-            <input name="password_confirm" type="password" minLength={8} autoComplete="new-password" />
-          </label>
-          <div className="candidateFormActions">
-            <button type="submit">Mettre à jour le mot de passe</button>
           </div>
         </form>
       </section>
@@ -496,6 +511,28 @@ export default async function CandidateProfilePage({ searchParams }: CandidatePr
           </form>
         </section>
       ) : null}
+
+      <section className="candidateCard candidateSecurityCard" aria-labelledby="security-title">
+        <div className="candidateSectionHeader">
+          <div>
+            <p className="candidateEyebrow">Sécurité</p>
+            <h2 id="security-title">Accès au compte</h2>
+          </div>
+        </div>
+        <form action={updateCandidatePasswordAndRedirect} className="candidateForm compact">
+          <label>
+            Nouveau mot de passe
+            <input name="password" type="password" minLength={8} autoComplete="new-password" />
+          </label>
+          <label>
+            Confirmation
+            <input name="password_confirm" type="password" minLength={8} autoComplete="new-password" />
+          </label>
+          <div className="candidateFormActions">
+            <button type="submit">Mettre à jour le mot de passe</button>
+          </div>
+        </form>
+      </section>
     </div>
   );
 }

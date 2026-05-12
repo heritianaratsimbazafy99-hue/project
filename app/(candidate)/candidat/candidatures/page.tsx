@@ -30,6 +30,25 @@ const statusFilterOptions: Array<{ value: "all" | ApplicationStatus; label: stri
   { value: "hired", label: statusLabels.hired }
 ];
 
+const statusHints: Record<ApplicationStatus, string> = {
+  submitted: "Votre candidature est bien transmise.",
+  viewed: "Le recruteur a consulté votre profil.",
+  shortlisted: "Votre profil est retenu pour la suite.",
+  rejected: "Cette piste est fermée, continuez à postuler.",
+  interview: "Préparez vos disponibilités pour l'entretien.",
+  hired: "Félicitations, le processus est terminé."
+};
+
+const timelineStatuses: ApplicationStatus[] = ["submitted", "viewed", "shortlisted", "interview"];
+const statusStageIndex: Record<ApplicationStatus, number> = {
+  submitted: 0,
+  viewed: 1,
+  shortlisted: 2,
+  rejected: 0,
+  interview: 3,
+  hired: 3
+};
+
 function firstQueryValue(value: string | string[] | undefined) {
   return Array.isArray(value) ? value[0] : value;
 }
@@ -97,6 +116,13 @@ export default async function CandidateApplicationsPage({ searchParams }: Candid
         </article>
       </section>
 
+      <section className="candidateStatusGuide" aria-label="Lecture du suivi des candidatures">
+        <span>Envoyée</span>
+        <span>Consultée</span>
+        <span>Shortlist</span>
+        <span>Entretien</span>
+      </section>
+
       <section className="candidateCard" aria-labelledby="applications-empty-title">
         <div className="candidateTabs" aria-label="Filtrer les candidatures par statut">
           {statusFilterOptions.map((option) => (
@@ -134,6 +160,12 @@ export default async function CandidateApplicationsPage({ searchParams }: Candid
                     {application.job.contract || "Contrat à préciser"}
                   </p>
                   <small>Envoyée le {formatApplicationDate(application.created_at)}</small>
+                  <div className="candidateTimeline" aria-label={`Statut: ${statusLabels[application.status]}`}>
+                    {timelineStatuses.map((status, index) => (
+                      <span key={status} className={index <= statusStageIndex[application.status] ? "isDone" : undefined} aria-hidden="true" />
+                    ))}
+                  </div>
+                  <small>{statusHints[application.status]}</small>
                 </div>
                 <span>{statusLabels[application.status]}</span>
                 <Link href={`/emploi/${application.job.slug}`}>Voir l'offre</Link>

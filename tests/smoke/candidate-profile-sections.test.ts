@@ -23,6 +23,18 @@ describe("candidate profile pages", () => {
     expect(source).not.toContain('type="button">Modifier le mot de passe');
   });
 
+  it("renders the candidate layout with richer sidebar readiness signals", () => {
+    const layoutSource = readWorkspaceFile("app/(candidate)/candidat/layout.tsx");
+    const sidebarSource = readWorkspaceFile("src/features/candidate/components/candidate-sidebar.tsx");
+
+    expect(layoutSource).toContain("readiness");
+    expect(layoutSource).toContain("CandidateSidebar");
+    expect(sidebarSource).toContain("candidateReadinessList");
+    expect(sidebarSource).toContain("candidatePrimaryLink");
+    expect(sidebarSource).toContain("LayoutDashboard");
+    expect(sidebarSource).toContain("LogOut");
+  });
+
   it("uses guided profile selectors inspired by the Asako candidate flow", () => {
     const source = readWorkspaceFile("app/(candidate)/candidat/profil/page.tsx");
 
@@ -32,6 +44,8 @@ describe("candidate profile pages", () => {
     expect(source).toContain("Sélectionner une ville");
     expect(source).toContain("Sélectionner un secteur");
     expect(source).toContain("Sélectionner une fourchette");
+    expect(source).toContain("candidateProfileGuide");
+    expect(source.indexOf("id=\"competences\"")).toBeLessThan(source.indexOf("candidateSecurityCard"));
   });
 
   it("renders the Asako-style onboarding checklist on the candidate dashboard", () => {
@@ -44,6 +58,9 @@ describe("candidate profile pages", () => {
     expect(source).toContain("Activer une alerte emploi");
     expect(source).toContain("onboardingProgress");
     expect(source).toContain("recommendedJobs");
+    expect(source).toContain("candidateHeroSummary");
+    expect(source).toContain("candidateNextStepCard");
+    expect(source).toContain("Action prioritaire");
   });
 
   it("renders operational alert controls for pause resume and delete", () => {
@@ -64,6 +81,9 @@ describe("candidate profile pages", () => {
     expect(source).toContain("Toutes les villes");
     expect(source).toContain("Tous les secteurs");
     expect(source).toContain("activeAlerts");
+    expect(source).toContain("candidateAlertGuide");
+    expect(source).toContain("candidateAlertTableHead");
+    expect(source).toContain("Créer ma première alerte");
   });
 
   it("renders application status filters from search params", () => {
@@ -82,5 +102,19 @@ describe("candidate profile pages", () => {
     expect(source).toContain("Actives");
     expect(source).toContain("Consultées");
     expect(source).toContain("Shortlist");
+    expect(source).toContain("candidateStatusGuide");
+    expect(source).toContain("candidateTimeline");
+    expect(source).toContain("statusHints");
+  });
+
+  it("keeps candidate UI polish classes available in global styles", () => {
+    const source = readWorkspaceFile("app/globals.css");
+
+    expect(source).toContain(".candidateDashboardGrid");
+    expect(source).toContain(".candidateNextStepCard");
+    expect(source).toContain(".candidateProfileGuide");
+    expect(source).toContain(".candidateReadinessList");
+    expect(source).toContain(".cvTrustList");
+    expect(source).toContain(".candidateTimeline");
   });
 });
