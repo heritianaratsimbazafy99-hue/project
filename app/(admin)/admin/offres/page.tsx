@@ -42,6 +42,13 @@ type PendingJobRow = {
     | null;
 };
 
+type AdminReviewRow = {
+  target_id: string;
+  decision: "approve" | "reject";
+  note: string | null;
+  created_at: string;
+};
+
 const statusLabels: Record<JobStatus, string> = {
   draft: "Brouillon",
   pending_review: "En revue",
@@ -85,7 +92,7 @@ export default async function AdminOffersPage() {
   const { data, error } = await supabase
     .from("jobs")
     .select("id, title, status, created_at, company:companies(name, status, owner:profiles(display_name, email))")
-    .eq("status", "pending_review")
+    .in("status", ["pending_review", "rejected"])
     .order("created_at", { ascending: true });
 
   if (error) {
@@ -93,6 +100,26 @@ export default async function AdminOffersPage() {
   }
 
   const jobs = (data ?? []) as unknown as PendingJobRow[];
+  const jobIds = jobs.map((job) => job.id);
+  let reviewsByJob = new Map<string, AdminReviewRow[]>();
+
+  if (jobIds.length > 0) {
+    const { data: reviews, error: reviewsError } = await supabase
+      .from("admin_reviews")
+      .select("target_id, decision, note, created_at")
+      .eq("target_table", "jobs")
+      .in("target_id", jobIds)
+      .order("created_at", { ascending: false });
+
+    if (reviewsError) {
+      throw new Error("Impossible de charger l'historique de modération des offres.");
+    }
+
+    reviewsByJob = ((reviews ?? []) as AdminReviewRow[]).reduce((map, review) => {
+      map.set(review.target_id, [...(map.get(review.target_id) ?? []), review]);
+      return map;
+    }, new Map<string, AdminReviewRow[]>());
+  }
 
   return (
     <div className="adminStack">
@@ -111,31 +138,54 @@ export default async function AdminOffersPage() {
             <span role="columnheader">Créée</span>
             <span role="columnheader">Décision</span>
           </div>
-          {jobs.map((job) => (
-            <article key={job.id} className="adminTableRow" role="row">
-              <strong role="cell">{job.title}</strong>
-              <span role="cell">{getCompanyName(job.company)}</span>
-              <span role="cell">{getRecruiterLabel(job.company)}</span>
-              <time role="cell" dateTime={job.created_at}>
-                {formatDate(job.created_at)}
-              </time>
-              <div className="adminActions" role="cell">
-                <span className="adminStatus">{statusLabels[job.status]}</span>
-                {isCompanyVerified(job.company) ? (
-                  <form action={reviewJob.bind(null, job.id, "approve")}>
-                    <button type="submit">Approuver</button>
-                  </form>
-                ) : (
-                  <span className="adminActionHint">Entreprise à vérifier</span>
-                )}
-                <form action={reviewJob.bind(null, job.id, "reject")}>
-                  <button className="isDanger" type="submit">
-                    Rejeter
-                  </button>
-                </form>
-              </div>
-            </article>
-          ))}
+          {jobs.map((job) => {
+            const reviews = reviewsByJob.get(job.id) ?? [];
+            const canReview = job.status === "pending_review";
+
+            return (
+              <article key={job.id} className="adminTableRow" role="row">
+                <strong role="cell">{job.title}</strong>
+                <span role="cell">{getCompanyName(job.company)}</span>
+                <span role="cell">{getRecruiterLabel(job.company)}</span>
+                <time role="cell" dateTime={job.created_at}>
+                  {formatDate(job.created_at)}
+                </time>
+                <div className="adminActions" role="cell">
+                  <span className="adminStatus">{statusLabels[job.status]}</span>
+                  {reviews.length > 0 ? (
+                    <div className="adminActionHint">
+                      Historique:
+                      {reviews.map((review) => (
+                        <span key={`${review.created_at}-${review.decision}`}>
+                          {formatDate(review.created_at)} · {review.decision === "approve" ? "Approuvée" : "Rejetée"}
+                          {review.note ? ` · ${review.note}` : ""}
+                        </span>
+                      ))}
+                    </div>
+                  ) : null}
+                  {canReview && isCompanyVerified(job.company) ? (
+                    <form action={reviewJob.bind(null, job.id, "approve")}>
+                      <button type="submit">Approuver</button>
+                    </form>
+                  ) : null}
+                  {canReview && !isCompanyVerified(job.company) ? (
+                    <span className="adminActionHint">Entreprise à vérifier</span>
+                  ) : null}
+                  {canReview ? (
+                    <form action={reviewJob.bind(null, job.id, "reject")}>
+                      <label>
+                        Note de rejet
+                        <textarea name="note" required minLength={5} placeholder="Expliquez ce que le recruteur doit corriger." />
+                      </label>
+                      <button className="isDanger" type="submit">
+                        Rejeter
+                      </button>
+                    </form>
+                  ) : null}
+                </div>
+              </article>
+            );
+          })}
         </div>
       ) : (
         <section className="adminEmptyState" aria-labelledby="admin-offers-empty-title">

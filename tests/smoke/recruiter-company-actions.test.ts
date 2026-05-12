@@ -3,7 +3,8 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 const mocks = vi.hoisted(() => ({
   requireRole: vi.fn(),
   revalidatePath: vi.fn(),
-  from: vi.fn()
+  from: vi.fn(),
+  storageFrom: vi.fn()
 }));
 
 vi.mock("next/cache", () => ({
@@ -16,7 +17,10 @@ vi.mock("@/lib/auth/require-role", () => ({
 
 vi.mock("@/lib/supabase/server", () => ({
   createSupabaseServerClient: vi.fn(async () => ({
-    from: mocks.from
+    from: mocks.from,
+    storage: {
+      from: mocks.storageFrom
+    }
   }))
 }));
 
@@ -48,6 +52,7 @@ describe("recruiter company actions", () => {
     mocks.requireRole.mockReset();
     mocks.revalidatePath.mockReset();
     mocks.from.mockReset();
+    mocks.storageFrom.mockReset();
     mocks.requireRole.mockResolvedValue({
       user: { id: "recruiter-1" },
       profile: { role: "recruiter" },
@@ -96,6 +101,69 @@ describe("recruiter company actions", () => {
     expect(updateChain.eq).toHaveBeenNthCalledWith(1, "id", "company-1");
     expect(updateChain.eq).toHaveBeenNthCalledWith(2, "owner_id", "recruiter-1");
     expect(mocks.revalidatePath).toHaveBeenCalledWith("/recruteur/entreprise");
+    expect(mocks.storageFrom).not.toHaveBeenCalled();
+  });
+
+  it("uploads logo and cover files to public company buckets before updating company paths", async () => {
+    const existingCompanyQuery = setupExistingCompanyQuery({ id: "company-1" });
+    const updateChain = {
+      eq: vi.fn()
+    };
+    const update = vi.fn(() => updateChain);
+    const uploadLogo = vi.fn(async () => ({ error: null }));
+    const uploadCover = vi.fn(async () => ({ error: null }));
+
+    mocks.from.mockImplementation((table: string) => {
+      if (table === "companies") {
+        return {
+          ...existingCompanyQuery,
+          update
+        };
+      }
+
+      throw new Error(`Unexpected table ${table}`);
+    });
+    mocks.storageFrom.mockImplementation((bucket: string) => {
+      if (bucket === "company-logos") {
+        return { upload: uploadLogo };
+      }
+
+      if (bucket === "company-covers") {
+        return { upload: uploadCover };
+      }
+
+      throw new Error(`Unexpected bucket ${bucket}`);
+    });
+    updateChain.eq.mockReturnValueOnce(updateChain).mockResolvedValueOnce({ error: null });
+
+    const formData = companyForm({
+      name: "Media Click",
+      sector: "Informatique & Digital",
+      city: "Antananarivo",
+      website: "https://mediaclick.mg",
+      description: "Studio digital malgache."
+    });
+    formData.set("logo", new File(["logo"], "Logo Media.png", { type: "image/png" }));
+    formData.set("cover", new File(["cover"], "cover.jpg", { type: "image/jpeg" }));
+
+    const { saveRecruiterCompany } = await import("@/features/recruiter/company-actions");
+    const result = await saveRecruiterCompany(formData);
+
+    expect(result).toEqual({ ok: true, message: "Profil entreprise enregistré." });
+    expect(uploadLogo).toHaveBeenCalledWith("company-1/logo-media.png", expect.any(File), {
+      contentType: "image/png",
+      upsert: true
+    });
+    expect(uploadCover).toHaveBeenCalledWith("company-1/cover.jpg", expect.any(File), {
+      contentType: "image/jpeg",
+      upsert: true
+    });
+    expect(update).toHaveBeenCalledWith(
+      expect.objectContaining({
+        logo_path: "company-1/logo-media.png",
+        cover_path: "company-1/cover.jpg"
+      })
+    );
   });
 
   it("creates a company and free subscription when a recruiter has no company yet", async () => {

@@ -178,10 +178,24 @@ create table if not exists public.subscriptions (
   company_id uuid not null unique references public.companies(id) on delete cascade,
   plan text not null default 'free',
   status text not null default 'active',
-  job_quota integer not null default 1 check (job_quota >= 0),
+  job_quota integer not null default 2 check (job_quota >= 0),
   cv_access_enabled boolean not null default false,
   starts_at timestamptz not null default now(),
   ends_at timestamptz,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+create table if not exists public.plan_change_requests (
+  id uuid primary key default gen_random_uuid(),
+  company_id uuid not null references public.companies(id) on delete cascade,
+  requested_plan text not null check (requested_plan in ('free', 'starter', 'booster', 'agency')),
+  status text not null default 'pending' check (status in ('pending', 'approved', 'rejected', 'canceled')),
+  requested_by uuid not null references public.profiles(id) on delete cascade,
+  reviewed_by uuid references public.profiles(id) on delete set null,
+  review_note text,
+  requested_at timestamptz not null default now(),
+  reviewed_at timestamptz,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
@@ -212,6 +226,8 @@ create index if not exists applications_job_id_idx on public.applications (job_i
 create index if not exists saved_jobs_candidate_id_idx on public.saved_jobs (candidate_id);
 create index if not exists saved_jobs_job_id_idx on public.saved_jobs (job_id);
 create index if not exists job_alerts_candidate_id_idx on public.job_alerts (candidate_id);
+create index if not exists plan_change_requests_company_id_idx on public.plan_change_requests (company_id);
+create index if not exists plan_change_requests_status_idx on public.plan_change_requests (status, requested_at desc);
 create index if not exists admin_reviews_reviewer_id_idx on public.admin_reviews (reviewer_id);
 create index if not exists admin_reviews_target_idx on public.admin_reviews (target_table, target_id);
 
@@ -398,6 +414,15 @@ begin
     return new;
   end if;
 
+  if tg_op = 'INSERT'
+    and new.plan = 'free'
+    and new.status = 'active'
+    and new.job_quota = 2
+    and new.cv_access_enabled = false
+    and public.owns_company(new.company_id) then
+    return new;
+  end if;
+
   raise exception 'Subscription entitlements are admin-managed';
 end;
 $$;
@@ -557,6 +582,7 @@ alter table public.applications enable row level security;
 alter table public.saved_jobs enable row level security;
 alter table public.job_alerts enable row level security;
 alter table public.subscriptions enable row level security;
+alter table public.plan_change_requests enable row level security;
 alter table public.admin_reviews enable row level security;
 
 do $$
@@ -602,9 +628,15 @@ begin
       'subscriptions_select_owner_or_admin',
       'subscriptions_insert_owner_or_admin',
       'subscriptions_update_owner_or_admin',
+      'plan_change_requests_select_owner_or_admin',
+      'plan_change_requests_insert_owner',
+      'plan_change_requests_update_owner_cancel_or_admin',
       'admin_reviews_select_admin',
+      'admin_reviews_select_owner_or_admin',
       'admin_reviews_insert_admin',
       'cvs_select_owner_or_admin',
+      'cvs_select_owner_recruiter_or_admin',
+      'cvs_select_applicant_owner_recruiter_or_admin',
       'cvs_insert_owner',
       'cvs_update_owner_or_admin',
       'cvs_delete_owner_or_admin',
@@ -932,9 +964,52 @@ create policy subscriptions_update_owner_or_admin on public.subscriptions
   using ((select public.is_admin()))
   with check ((select public.is_admin()));
 
-create policy admin_reviews_select_admin on public.admin_reviews
+create policy plan_change_requests_select_owner_or_admin on public.plan_change_requests
   for select to authenticated
-  using ((select public.is_admin()));
+  using ((select public.is_admin()) or (select public.owns_company(company_id)));
+
+create policy plan_change_requests_insert_owner on public.plan_change_requests
+  for insert to authenticated
+  with check (
+    requested_by = (select auth.uid())
+    and status = 'pending'
+    and reviewed_by is null
+    and reviewed_at is null
+    and (select public.owns_company(company_id))
+  );
+
+create policy plan_change_requests_update_owner_cancel_or_admin on public.plan_change_requests
+  for update to authenticated
+  using ((select public.is_admin()) or (select public.owns_company(company_id)))
+  with check (
+    (select public.is_admin())
+    or ((select public.owns_company(company_id)) and status = 'canceled')
+  );
+
+create policy admin_reviews_select_owner_or_admin on public.admin_reviews
+  for select to authenticated
+  using (
+    (select public.is_admin())
+    or (
+      target_table = 'companies'
+      and exists (
+        select 1
+        from public.companies
+        where public.companies.id = public.admin_reviews.target_id
+          and public.companies.owner_id = (select auth.uid())
+      )
+    )
+    or (
+      target_table = 'jobs'
+      and exists (
+        select 1
+        from public.jobs
+        join public.companies on public.companies.id = public.jobs.company_id
+        where public.jobs.id = public.admin_reviews.target_id
+          and public.companies.owner_id = (select auth.uid())
+      )
+    )
+  );
 
 create policy admin_reviews_insert_admin on public.admin_reviews
   for insert to authenticated
@@ -954,6 +1029,22 @@ create policy cvs_select_owner_or_admin on storage.objects
     and (
       (storage.foldername(name))[1] = (select auth.uid())::text
       or (select public.is_admin())
+    )
+  );
+
+create policy cvs_select_applicant_owner_recruiter_or_admin on storage.objects
+  for select to authenticated
+  using (
+    bucket_id = 'cvs'
+    and (
+      (storage.foldername(name))[1] = (select auth.uid())::text
+      or (select public.is_admin())
+      or exists (
+        select 1
+        from public.applications
+        where public.applications.cv_path = storage.objects.name
+          and (select public.owns_job(public.applications.job_id))
+      )
     )
   );
 

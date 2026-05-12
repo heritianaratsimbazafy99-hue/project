@@ -14,6 +14,14 @@ export type CompanyStatus =
   | "verified"
   | "rejected";
 
+export type SubscriptionPlan = "free" | "starter" | "booster" | "agency";
+
+export type PlanChangeRequestStatus =
+  | "pending"
+  | "approved"
+  | "rejected"
+  | "canceled";
+
 export type ApplicationStatus =
   | "submitted"
   | "viewed"

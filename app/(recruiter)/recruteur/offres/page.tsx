@@ -1,8 +1,12 @@
 import Link from "next/link";
-import { Archive, BriefcaseBusiness, Clock, Eye, Layers, Plus, UsersRound } from "lucide-react";
+import { Archive, BriefcaseBusiness, Clock, Copy, Eye, Layers, Pencil, Plus, RotateCcw, UsersRound } from "lucide-react";
 
 import { demoRecruiterCompany, demoRecruiterJobs, demoRecruiterSubscription } from "@/features/demo/workspace";
-import { archiveRecruiterJobAndRedirect } from "@/features/jobs/actions";
+import {
+  archiveRecruiterJobAndRedirect,
+  duplicateRecruiterJobAndRedirect,
+  unarchiveRecruiterJobAndRedirect
+} from "@/features/jobs/actions";
 import { requireRole } from "@/lib/auth/require-role";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { JobStatus } from "@/types/database";
@@ -17,6 +21,11 @@ type CompanyRow = {
   id: string;
 };
 
+type SubscriptionRow = {
+  plan: string | null;
+  job_quota: number | null;
+};
+
 type JobRow = {
   id: string;
   title: string;
@@ -26,6 +35,13 @@ type JobRow = {
   status: JobStatus;
   is_featured: boolean | null;
   is_urgent: boolean | null;
+  created_at: string;
+};
+
+type AdminReviewRow = {
+  target_id: string;
+  note: string | null;
+  decision: "approve" | "reject";
   created_at: string;
 };
 
@@ -56,12 +72,20 @@ export default async function RecruiterOffersPage({ searchParams }: RecruiterOff
   const { user, isDemo } = await requireRole(["recruiter"]);
   const params = await searchParams;
   const requestedStatus = firstValue(params.status) as JobStatus | undefined;
+  const query = (firstValue(params.q) ?? "").toLowerCase();
+  const sort = firstValue(params.sort) || "recent";
   const created = firstValue(params.created) === "1";
+  const draft = firstValue(params.draft) === "1";
   const archived = firstValue(params.archived) === "1";
+  const restored = firstValue(params.restored) === "1";
+  const duplicated = firstValue(params.duplicated) === "1";
+  const updated = firstValue(params.updated);
   const error = firstValue(params.error);
   const activeStatus = tabs.some((tab) => tab.status === requestedStatus) ? requestedStatus : undefined;
   let company: CompanyRow | null = isDemo ? demoRecruiterCompany : null;
-  let jobs: JobRow[] = isDemo ? demoRecruiterJobs : [];
+  let allJobs: JobRow[] = isDemo ? demoRecruiterJobs : [];
+  let subscription: SubscriptionRow = isDemo ? demoRecruiterSubscription : { plan: "free", job_quota: 2 };
+  let reviewsByJob = new Map<string, AdminReviewRow[]>();
 
   if (!isDemo) {
     const supabase = await createSupabaseServerClient();
@@ -77,27 +101,52 @@ export default async function RecruiterOffersPage({ searchParams }: RecruiterOff
     company = companyData;
 
     if (company) {
-      let request = supabase
-        .from("jobs")
-        .select("id, title, contract, city, sector, status, is_featured, is_urgent, created_at")
-        .eq("company_id", company.id)
-        .order("created_at", { ascending: false });
+      const [{ data: jobData }, { data: subscriptionData }] = await Promise.all([
+        supabase
+          .from("jobs")
+          .select("id, title, contract, city, sector, status, is_featured, is_urgent, created_at")
+          .eq("company_id", company.id)
+          .order("created_at", { ascending: false }),
+        supabase
+          .from("subscriptions")
+          .select("plan, job_quota")
+          .eq("company_id", company.id)
+          .maybeSingle<SubscriptionRow>()
+      ]);
 
-      if (activeStatus) {
-        request = request.eq("status", activeStatus);
+      allJobs = (jobData ?? []) as JobRow[];
+      subscription = subscriptionData ?? subscription;
+
+      const jobIds = allJobs.map((job) => job.id);
+      if (jobIds.length > 0) {
+        const { data: reviews } = await supabase
+          .from("admin_reviews")
+          .select("target_id, decision, note, created_at")
+          .eq("target_table", "jobs")
+          .in("target_id", jobIds)
+          .order("created_at", { ascending: false });
+
+        reviewsByJob = ((reviews ?? []) as AdminReviewRow[]).reduce((map, review) => {
+          map.set(review.target_id, [...(map.get(review.target_id) ?? []), review]);
+          return map;
+        }, new Map<string, AdminReviewRow[]>());
       }
-
-      const { data } = await request;
-      jobs = (data ?? []) as JobRow[];
     }
-  } else if (activeStatus) {
-    jobs = demoRecruiterJobs.filter((job) => job.status === activeStatus);
+  }
+
+  let jobs = activeStatus ? allJobs.filter((job) => job.status === activeStatus) : allJobs;
+  if (query) {
+    jobs = jobs.filter((job) => `${job.title} ${job.contract} ${job.city} ${job.sector}`.toLowerCase().includes(query));
+  }
+  if (sort === "title") {
+    jobs = [...jobs].sort((left, right) => left.title.localeCompare(right.title, "fr"));
   }
 
   const total = jobs.length;
-  const published = jobs.filter((job) => job.status === "published").length;
-  const inReview = jobs.filter((job) => job.status === "pending_review").length;
-  const quota = demoRecruiterSubscription.job_quota;
+  const published = allJobs.filter((job) => job.status === "published").length;
+  const inReview = allJobs.filter((job) => job.status === "pending_review").length;
+  const quota = subscription.job_quota ?? demoRecruiterSubscription.job_quota;
+  const planLabel = subscription.plan ? subscription.plan.toUpperCase() : "GRATUIT";
 
   return (
     <>
@@ -114,7 +163,7 @@ export default async function RecruiterOffersPage({ searchParams }: RecruiterOff
 
       <section className="dashboard-grid offers-kpis" aria-label="Indicateurs offres">
         {([
-          ["Offres actives", published, BriefcaseBusiness, `${published} sur ${quota} · Plan Gratuit`],
+          ["Offres actives", published, BriefcaseBusiness, `${published} sur ${quota} · Plan ${planLabel}`],
           ["Candidatures", 0, UsersRound, "Aucune nouvelle"],
           ["Vues totales", isDemo ? 128 : 0, Eye, isDemo ? "+12 cette semaine" : "— vs sem. préc."],
           ["En revue", inReview, Clock, "Validation JobMada"]
@@ -135,9 +184,29 @@ export default async function RecruiterOffersPage({ searchParams }: RecruiterOff
           L'offre est envoyée à l'équipe JobMada pour revue.
         </div>
       ) : null}
+      {draft ? (
+        <div className="notice-line" role="status">
+          Brouillon enregistré.
+        </div>
+      ) : null}
       {archived ? (
         <div className="notice-line" role="status">
           Offre archivée.
+        </div>
+      ) : null}
+      {restored ? (
+        <div className="notice-line" role="status">
+          Offre restaurée en brouillon.
+        </div>
+      ) : null}
+      {duplicated ? (
+        <div className="notice-line" role="status">
+          Offre dupliquée en brouillon.
+        </div>
+      ) : null}
+      {updated ? (
+        <div className="notice-line" role="status">
+          {updated}
         </div>
       ) : null}
       {error ? (
@@ -147,19 +216,20 @@ export default async function RecruiterOffersPage({ searchParams }: RecruiterOff
       ) : null}
 
       <section className="panel offers-panel">
-        <div className="toolbar">
-          <input className="input" placeholder="Rechercher une offre..." />
-          <select className="select" defaultValue="recent">
+        <form className="toolbar" action="/recruteur/offres">
+          {activeStatus ? <input type="hidden" name="status" value={activeStatus} /> : null}
+          <input className="input" name="q" defaultValue={firstValue(params.q)} placeholder="Rechercher une offre..." />
+          <select className="select" name="sort" defaultValue={sort}>
             <option value="recent">Plus récentes</option>
-            <option value="views">Plus de vues</option>
-            <option value="applications">Plus de candidatures</option>
+            <option value="title">Titre A-Z</option>
           </select>
-        </div>
+          <button className="btn btn-soft" type="submit">Filtrer</button>
+        </form>
 
         <div className="status-tabs" aria-label="Filtrer les offres">
           {tabs.map((tab) => {
             const isActive = tab.status === activeStatus || (!tab.status && !activeStatus);
-            const count = tab.status ? jobs.filter((job) => job.status === tab.status).length : total;
+            const count = tab.status ? allJobs.filter((job) => job.status === tab.status).length : allJobs.length;
 
             return (
               <Link className={isActive ? "active" : undefined} href={tab.href} key={tab.href}>
@@ -178,12 +248,26 @@ export default async function RecruiterOffersPage({ searchParams }: RecruiterOff
                   <p>
                     {job.contract} · {job.city} · {job.sector}
                   </p>
+                  {reviewsByJob.get(job.id)?.map((review) =>
+                    review.decision === "reject" && review.note ? (
+                      <small className="adminActionHint" key={`${review.created_at}-${review.note}`}>
+                        Rejet JobMada: {review.note}
+                      </small>
+                    ) : null
+                  )}
                 </div>
                 <span className="pill rose">{statusLabels[job.status]}</span>
                 <div className="offer-row-actions">
-                  <Link className="btn btn-soft" href="/recruteur/offres/nouvelle">
+                  <Link className="btn btn-soft" href={`/recruteur/offres/${job.id}/modifier`}>
+                    <Pencil aria-hidden="true" size={15} />
                     Modifier
                   </Link>
+                  <form action={duplicateRecruiterJobAndRedirect.bind(null, job.id)}>
+                    <button type="submit" disabled={isDemo}>
+                      <Copy aria-hidden="true" size={15} />
+                      Dupliquer
+                    </button>
+                  </form>
                   {job.status !== "archived" ? (
                     <form action={archiveRecruiterJobAndRedirect.bind(null, job.id)}>
                       <button type="submit" disabled={isDemo}>
@@ -191,7 +275,14 @@ export default async function RecruiterOffersPage({ searchParams }: RecruiterOff
                         Archiver
                       </button>
                     </form>
-                  ) : null}
+                  ) : (
+                    <form action={unarchiveRecruiterJobAndRedirect.bind(null, job.id)}>
+                      <button type="submit" disabled={isDemo}>
+                        <RotateCcw aria-hidden="true" size={15} />
+                        Restaurer
+                      </button>
+                    </form>
+                  )}
                 </div>
               </div>
             ))}
@@ -205,7 +296,7 @@ export default async function RecruiterOffersPage({ searchParams }: RecruiterOff
 
         <div className="panel-footer">
           <span>{jobs.length} offres affichées</span>
-          <span>Plan Gratuit · {total}/{quota} offres utilisées</span>
+          <span>Plan {planLabel} · {allJobs.filter((job) => job.status !== "archived").length}/{quota} offres utilisées</span>
         </div>
       </section>
     </>

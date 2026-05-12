@@ -1099,7 +1099,7 @@ p {
   padding: 5px;
 }
 
-.billing-toggle button {
+.billing-toggle span {
   border: 0;
   border-radius: 999px;
   background: transparent;
@@ -1108,7 +1108,7 @@ p {
   font-weight: 900;
 }
 
-.billing-toggle button.active {
+.billing-toggle span.active {
   background: #fff;
   box-shadow: var(--shadow-sm);
 }
@@ -1715,7 +1715,7 @@ p {
   padding: 9px 14px;
 }
 
-.editor-toolbar button {
+.editor-toolbar span {
   display: grid;
   width: 30px;
   height: 28px;
@@ -1727,13 +1727,13 @@ p {
   font-weight: 900;
 }
 
-.recruiter-app.compact-ui .editor-toolbar button {
+.recruiter-app.compact-ui .editor-toolbar span {
   width: 30px;
   height: 30px;
   color: #625e86;
 }
 
-.editor-toolbar button:hover {
+.editor-toolbar span:hover {
   background: var(--page);
 }
 

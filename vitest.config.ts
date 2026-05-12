@@ -8,6 +8,6 @@ export default defineConfig({
     }
   },
   test: {
-    include: ["tests/smoke/**/*.test.ts"]
+    include: ["tests/smoke/**/*.test.ts", "tests/rls/**/*.test.ts"]
   }
 });

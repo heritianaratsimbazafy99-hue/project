@@ -9,10 +9,11 @@ export default async function AdminOverviewPage() {
   await requireRole(["admin"]);
   const supabase = await createSupabaseServerClient();
 
-  const [pendingJobsResult, pendingCompaniesResult, usersResult, applicationsResult] =
+  const [pendingJobsResult, pendingCompaniesResult, planRequestsResult, usersResult, applicationsResult] =
     await Promise.all([
       supabase.from("jobs").select("id", { count: "exact", head: true }).eq("status", "pending_review"),
       supabase.from("companies").select("id", { count: "exact", head: true }).eq("status", "pending_review"),
+      supabase.from("plan_change_requests").select("id", { count: "exact", head: true }).eq("status", "pending"),
       supabase.from("profiles").select("id", { count: "exact", head: true }),
       supabase.from("applications").select("id", { count: "exact", head: true })
     ]);
@@ -20,6 +21,7 @@ export default async function AdminOverviewPage() {
   if (
     pendingJobsResult.error ||
     pendingCompaniesResult.error ||
+    planRequestsResult.error ||
     usersResult.error ||
     applicationsResult.error
   ) {
@@ -45,11 +47,16 @@ export default async function AdminOverviewPage() {
           <strong>{pendingCompaniesResult.count ?? 0}</strong>
           <p>Fiches à vérifier.</p>
         </Link>
-        <article>
+        <Link href="/admin/utilisateurs">
           <span>Utilisateurs</span>
           <strong>{usersResult.count ?? 0}</strong>
           <p>Profils inscrits.</p>
-        </article>
+        </Link>
+        <Link href="/admin/abonnements">
+          <span>Demandes de plan</span>
+          <strong>{planRequestsResult.count ?? 0}</strong>
+          <p>À approuver ou rejeter.</p>
+        </Link>
         <article>
           <span>Candidatures</span>
           <strong>{applicationsResult.count ?? 0}</strong>

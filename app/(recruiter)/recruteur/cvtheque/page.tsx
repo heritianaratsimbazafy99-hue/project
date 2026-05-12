@@ -1,51 +1,56 @@
 import Link from "next/link";
-import { FileSearch, Search, UsersRound, Zap } from "lucide-react";
+import { FileSearch, LockKeyhole, ShieldCheck, Zap } from "lucide-react";
 
 import { requireRole } from "@/lib/auth/require-role";
+import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
 
-const demoProfiles = [
-  {
-    name: "Profil Marketing Senior",
-    role: "Marketing digital",
-    city: "Antananarivo",
-    exp: "6 ans",
-    skills: ["SEO", "Ads", "CRM"]
-  },
-  {
-    name: "Candidat Frontend A",
-    role: "React / UI",
-    city: "Antsirabe",
-    exp: "4 ans",
-    skills: ["React", "Figma", "CSS"]
-  },
-  {
-    name: "Profil Finance B",
-    role: "Comptabilité",
-    city: "Toamasina",
-    exp: "8 ans",
-    skills: ["Paie", "Sage", "Audit"]
-  }
-];
+type CompanySubscriptionRow = {
+  id: string;
+  subscriptions?: { plan: string; cv_access_enabled: boolean } | Array<{ plan: string; cv_access_enabled: boolean }> | null;
+};
+
+function firstSubscription(company: CompanySubscriptionRow | null) {
+  const subscriptions = company?.subscriptions;
+  return Array.isArray(subscriptions) ? subscriptions[0] : subscriptions;
+}
 
 export default async function RecruiterCvLibraryPage() {
-  await requireRole(["recruiter"]);
+  const { user, isDemo } = await requireRole(["recruiter"]);
+  let company: CompanySubscriptionRow | null = null;
+
+  if (!isDemo) {
+    const supabase = await createSupabaseServerClient();
+    const { data } = await supabase
+      .from("companies")
+      .select("id, subscriptions(plan, cv_access_enabled)")
+      .eq("owner_id", user.id)
+      .order("created_at", { ascending: true })
+      .limit(1)
+      .maybeSingle<CompanySubscriptionRow>();
+
+    company = data;
+  }
+
+  const subscription = firstSubscription(company);
+  const hasCvAccess = Boolean(subscription?.cv_access_enabled);
+  const planLabel = subscription?.plan ? subscription.plan.toUpperCase() : "GRATUIT";
 
   return (
     <>
       <div className="dashboard-welcome">
         <div>
           <h1>CVthèque JobMada</h1>
-          <p>Trouvez le candidat idéal parmi nos profils qualifiés.</p>
+          <p>Accès aux profils candidat selon votre plan et les autorisations JobMada.</p>
         </div>
       </div>
 
       <section className="cv-stats" aria-label="Statistiques CVthèque">
         {([
-          ["13 491+", "Profils disponibles", FileSearch],
-          ["13 491+", "CVs analysés par l'IA", UsersRound],
-          ["15+", "Secteurs couverts", Zap]
+          [planLabel, "Plan actuel", FileSearch],
+          [hasCvAccess ? "Activé" : "Non activé", "Accès CVthèque", LockKeyhole],
+          ["V1", "Accès contrôlé", ShieldCheck]
         ] as const).map(([value, label, Icon]) => (
           <article className="metric-card" key={String(label)}>
             <span className="icon-tile">
@@ -57,87 +62,23 @@ export default async function RecruiterCvLibraryPage() {
         ))}
       </section>
 
-      <section className="cv-search-panel">
-        <div className="segmented">
-          <button className="active" type="button">
-            <Search aria-hidden="true" size={18} />
-            Recherche libre
-          </button>
-          <button type="button">
-            <BriefcaseIcon />
-            Matcher par offre
-          </button>
-        </div>
-        <div className="panel">
-          <h2>Décrivez le profil que vous cherchez</h2>
-          <p>L'IA de JobMada trouve les candidats les plus pertinents pour votre recherche.</p>
-          <div className="search-shell cv-search">
-            <Search aria-hidden="true" size={18} />
-            <input placeholder="Je recherche un développeur React, 3 ans d'expérience, Antananarivo..." />
-            <button className="btn btn-primary" type="button">
-              Rechercher
-            </button>
-          </div>
-          <div className="popular-row">
-            <strong>RECHERCHES POPULAIRES</strong>
-            {["Développeur web", "Comptable", "Assistante RH", "Commercial"].map((label) => (
-              <button type="button" key={label}>
-                {label}
-              </button>
-            ))}
-          </div>
-        </div>
-      </section>
-
       <section className="limited-cv">
         <div className="notice-line">
           <Zap aria-hidden="true" size={18} />
-          <strong>Accès limité à la CVthèque</strong>
-          <span>Passez à un plan payant pour consulter les profils complets et contacter les candidats.</span>
-        </div>
-        <p>519 profils correspondent à votre recherche, voici les meilleurs aperçus.</p>
-        <div className="cv-grid">
-          {demoProfiles.map((profile) => (
-            <article className="cv-card" key={profile.name}>
-              <div className="candidate-card-head">
-                <div className="avatar" aria-hidden="true">
-                  {profile.name
-                    .split(" ")
-                    .map((word) => word[0])
-                    .join("")
-                    .slice(0, 2)}
-                </div>
-                <div>
-                  <strong>{profile.name}</strong>
-                  <p>
-                    {profile.role} · {profile.exp}
-                  </p>
-                </div>
-              </div>
-              <div className="skill-tags">
-                {profile.skills.map((skill) => (
-                  <span key={skill}>{skill}</span>
-                ))}
-              </div>
-              <p>{profile.city} · Disponible sous 15 jours</p>
-              <button className="btn btn-outline" type="button">
-                Ajouter à ma sélection
-              </button>
-            </article>
-          ))}
+          <strong>CVthèque non disponible en libre recherche</strong>
+          <span>La V1 affiche uniquement les candidats ayant postulé à vos offres dans l'espace candidatures.</span>
         </div>
         <div className="upgrade-card">
-          <strong>ACCÈS COMPLET CVTHÈQUE</strong>
-          <p>Consultez ces profils et 40 000 autres avec un plan Starter, Booster ou Agence.</p>
+          <strong>ACCÈS CVTHÈQUE</strong>
+          <p>Demandez un plan avec accès CVthèque pour activer la recherche de profils lorsqu'elle sera validée pour votre entreprise.</p>
           <Link className="btn btn-primary" href="/recruteur/abonnement">
-            Voir tous les plans →
+            Voir les plans
+          </Link>
+          <Link className="btn btn-outline" href="/recruteur/candidatures">
+            Voir mes candidatures
           </Link>
         </div>
       </section>
     </>
   );
-}
-
-function BriefcaseIcon() {
-  return <FileSearch aria-hidden="true" size={18} />;
 }

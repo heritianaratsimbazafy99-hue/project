@@ -20,6 +20,8 @@ const companySavePaths = [
   "/recruteur/dashboard",
   "/recruteur/offres/nouvelle"
 ] as const;
+const maxCompanyImageSizeBytes = 2 * 1024 * 1024;
+const allowedCompanyImageTypes = ["image/jpeg", "image/png"] as const;
 
 function formValue(formData: FormData, key: string) {
   const value = formData.get(key);
@@ -29,6 +31,27 @@ function formValue(formData: FormData, key: string) {
 function optionalFormValue(formData: FormData, key: string) {
   const value = formValue(formData, key);
   return value || null;
+}
+
+function uploadedImageFile(formData: FormData, key: string) {
+  const file = formData.get(key);
+
+  return file instanceof File && file.size > 0 ? file : null;
+}
+
+function isAllowedCompanyImage(file: File) {
+  return allowedCompanyImageTypes.includes(file.type as (typeof allowedCompanyImageTypes)[number]);
+}
+
+function sanitizeImageFileName(fileName: string) {
+  const normalizedName = fileName
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9.]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+
+  return normalizedName || "image.png";
 }
 
 function slugify(value: string) {
@@ -50,6 +73,77 @@ function buildCompanySlug(companyName: string, ownerId: string) {
 
 function revalidateCompanyWorkspace() {
   companySavePaths.forEach((path) => revalidatePath(path));
+}
+
+async function uploadCompanyImage(
+  supabase: Awaited<ReturnType<typeof createSupabaseServerClient>>,
+  companyId: string,
+  bucket: "company-logos" | "company-covers",
+  file: File | null
+) {
+  if (!file) {
+    return { ok: true as const, path: null };
+  }
+
+  if (!isAllowedCompanyImage(file)) {
+    return {
+      ok: false as const,
+      message: "Ajoutez une image JPG ou PNG."
+    };
+  }
+
+  if (file.size > maxCompanyImageSizeBytes) {
+    return {
+      ok: false as const,
+      message: "L'image doit faire moins de 2 Mo."
+    };
+  }
+
+  const path = `${companyId}/${sanitizeImageFileName(file.name)}`;
+  const { error } = await supabase.storage.from(bucket).upload(path, file, {
+    contentType: file.type || "application/octet-stream",
+    upsert: true
+  });
+
+  if (error) {
+    return {
+      ok: false as const,
+      message: "L'image n'a pas pu être envoyée."
+    };
+  }
+
+  return { ok: true as const, path };
+}
+
+async function uploadCompanyAssets(
+  supabase: Awaited<ReturnType<typeof createSupabaseServerClient>>,
+  companyId: string,
+  formData: FormData
+) {
+  const logoUpload = await uploadCompanyImage(supabase, companyId, "company-logos", uploadedImageFile(formData, "logo"));
+
+  if (!logoUpload.ok) {
+    return logoUpload;
+  }
+
+  const coverUpload = await uploadCompanyImage(
+    supabase,
+    companyId,
+    "company-covers",
+    uploadedImageFile(formData, "cover")
+  );
+
+  if (!coverUpload.ok) {
+    return coverUpload;
+  }
+
+  return {
+    ok: true as const,
+    values: {
+      ...(logoUpload.path ? { logo_path: logoUpload.path } : {}),
+      ...(coverUpload.path ? { cover_path: coverUpload.path } : {})
+    }
+  };
 }
 
 export async function saveRecruiterCompany(formData: FormData): Promise<SaveRecruiterCompanyResult> {
@@ -88,9 +182,18 @@ export async function saveRecruiterCompany(formData: FormData): Promise<SaveRecr
   }
 
   if (existingCompany) {
+    const assetUpload = await uploadCompanyAssets(supabase, existingCompany.id, formData);
+
+    if (!assetUpload.ok) {
+      return {
+        ok: false,
+        message: assetUpload.message
+      };
+    }
+
     const { error } = await supabase
       .from("companies")
-      .update(values)
+      .update({ ...values, ...assetUpload.values })
       .eq("id", existingCompany.id)
       .eq("owner_id", user.id);
 
@@ -125,6 +228,30 @@ export async function saveRecruiterCompany(formData: FormData): Promise<SaveRecr
       ok: false,
       message: "L'entreprise n'a pas pu être créée."
     };
+  }
+
+  const assetUpload = await uploadCompanyAssets(supabase, company.id, formData);
+
+  if (!assetUpload.ok) {
+    return {
+      ok: false,
+      message: assetUpload.message
+    };
+  }
+
+  if (Object.keys(assetUpload.values).length > 0) {
+    const { error } = await supabase
+      .from("companies")
+      .update(assetUpload.values)
+      .eq("id", company.id)
+      .eq("owner_id", user.id);
+
+    if (error) {
+      return {
+        ok: false,
+        message: "Le profil est créé, mais les images n'ont pas pu être enregistrées."
+      };
+    }
   }
 
   const { error: subscriptionError } = await supabase.from("subscriptions").insert({

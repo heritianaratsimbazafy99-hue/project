@@ -1,6 +1,11 @@
 import Link from "next/link";
 
-import { buildJobFilters, getPublishedJobsOrEmpty, type JobFilters } from "@/features/jobs/queries";
+import {
+  buildJobFilters,
+  buildJobPageHref,
+  getPublishedJobsPageOrEmpty,
+  type JobFilters
+} from "@/features/jobs/queries";
 import {
   PublicFooter,
   PublicHeader,
@@ -19,8 +24,15 @@ type EmploymentPageProps = {
 export default async function EmploymentPage({ searchParams }: EmploymentPageProps) {
   const rawParams = await searchParams;
   const filters = buildJobFilters(rawParams);
-  const liveJobs = await getPublishedJobsOrEmpty(filters);
-  const jobs = liveJobs.length > 0 ? liveJobs : filterFallbackJobs(fallbackPublishedJobs, filters, rawParams);
+  const livePage = await getPublishedJobsPageOrEmpty(filters);
+  const fallbackMatches = filterFallbackJobs(fallbackPublishedJobs, filters);
+  const fallbackStart = ((filters.page ?? 1) - 1) * (filters.pageSize ?? 12);
+  const fallbackJobs = fallbackMatches.slice(fallbackStart, fallbackStart + (filters.pageSize ?? 12));
+  const usingFallbackJobs = livePage.jobs.length === 0 && fallbackJobs.length > 0;
+  const jobs = usingFallbackJobs ? fallbackJobs : livePage.jobs;
+  const totalJobs = usingFallbackJobs ? fallbackMatches.length : livePage.total;
+  const hasMore = (filters.page ?? 1) * (filters.pageSize ?? 12) < totalJobs;
+  const hasPrevious = (filters.page ?? 1) > 1;
   const { Bell, Layers } = PublicIcons;
 
   return (
@@ -31,7 +43,7 @@ export default async function EmploymentPage({ searchParams }: EmploymentPagePro
           <div className="container">
             <h1>Offres d'emploi à Madagascar</h1>
             <p>
-              <strong>{jobs.length || 169}</strong> offres disponibles
+              <strong>{totalJobs || 169}</strong> offres disponibles
             </p>
             <SearchShell defaultValue={filters.query} />
           </div>
@@ -40,6 +52,11 @@ export default async function EmploymentPage({ searchParams }: EmploymentPagePro
         <section className="section">
           <div className="container jobs-layout jobs-listing-layout">
             <div>
+              {usingFallbackJobs ? (
+                <div className="notice-line" role="status">
+                  Aucune offre publiée n'a été trouvée dans Supabase pour ces filtres. Les cartes affichées ci-dessous sont des exemples locaux pour prévisualiser le parcours.
+                </div>
+              ) : null}
               {jobs.length > 0 ? (
                 <div className="job-list" id="jobsList">
                   {jobs.map((job) => (
@@ -55,18 +72,33 @@ export default async function EmploymentPage({ searchParams }: EmploymentPagePro
 
               <div className="load-more-block">
                 <p>
-                  Vous voyez <strong id="jobCount">{jobs.length}</strong> offres sur 169
+                  Vous voyez <strong id="jobCount">{jobs.length}</strong> offres sur {totalJobs || jobs.length}
                 </p>
                 <span className="progress-line">
-                  <span style={{ width: `${Math.min(100, Math.round((jobs.length / 169) * 100))}%` }} />
+                  <span style={{ width: `${Math.min(100, Math.round((jobs.length / Math.max(totalJobs, 1)) * 100))}%` }} />
                 </span>
-                <Link className="btn btn-outline" href="/emploi">
-                  Charger plus d'offres
-                </Link>
+                <div className="pagination-actions">
+                  {hasPrevious ? (
+                    <Link className="btn btn-outline" href={buildJobPageHref(filters, (filters.page ?? 1) - 1)}>
+                      Page précédente
+                    </Link>
+                  ) : null}
+                  {hasMore ? (
+                    <Link className="btn btn-outline" href={buildJobPageHref(filters, (filters.page ?? 1) + 1)}>
+                      Page suivante
+                    </Link>
+                  ) : (
+                    <span className="btn btn-outline" aria-disabled="true">
+                      Toutes les offres sont affichées
+                    </span>
+                  )}
+                </div>
               </div>
             </div>
 
-            <aside className="filter-panel">
+            <form className="filter-panel" action="/emploi">
+              {filters.query ? <input type="hidden" name="q" value={filters.query} /> : null}
+              {filters.company ? <input type="hidden" name="company" value={filters.company} /> : null}
               <h3>
                 <Layers size={18} aria-hidden="true" /> Filtres
               </h3>
@@ -110,6 +142,22 @@ export default async function EmploymentPage({ searchParams }: EmploymentPagePro
                   ))}
                 </select>
               </div>
+              <label className="check-row">
+                <input type="checkbox" name="urgent" value="1" defaultChecked={filters.urgent} />{" "}
+                <span>Offres urgentes</span>
+                <em>{fallbackPublishedJobs.filter((job) => job.is_urgent).length}</em>
+              </label>
+              <div>
+                <h4>Tri</h4>
+                <select className="select" name="sort" defaultValue={filters.sort ?? "recent"}>
+                  <option value="recent">Plus récentes</option>
+                  <option value="title">Titre A-Z</option>
+                  <option value="company">Entreprise A-Z</option>
+                </select>
+              </div>
+              <button className="btn btn-primary" type="submit">
+                Appliquer les filtres
+              </button>
               <Link className="btn btn-soft" href="/emploi">
                 Réinitialiser
               </Link>
@@ -121,7 +169,7 @@ export default async function EmploymentPage({ searchParams }: EmploymentPagePro
                   Créer mon alerte
                 </Link>
               </div>
-            </aside>
+            </form>
           </div>
         </section>
       </main>
@@ -132,11 +180,9 @@ export default async function EmploymentPage({ searchParams }: EmploymentPagePro
 
 function filterFallbackJobs(
   jobs: typeof fallbackPublishedJobs,
-  filters: JobFilters,
-  rawParams: Record<string, string | string[] | undefined>
+  filters: JobFilters
 ) {
-  const urgent = rawParams.urgent === "1";
-  return useFallbackJobs(jobs).filter((job) => {
+  const filteredJobs = useFallbackJobs(jobs).filter((job) => {
     const text = `${job.title} ${job.company.name} ${job.summary} ${job.city} ${job.sector}`.toLowerCase();
     if (filters.query && !text.includes(filters.query.toLowerCase())) {
       return false;
@@ -150,9 +196,22 @@ function filterFallbackJobs(
     if (filters.sector && job.sector !== filters.sector) {
       return false;
     }
-    if (urgent && !job.is_urgent) {
+    if (filters.company && job.company.name !== filters.company) {
+      return false;
+    }
+    if (filters.urgent && !job.is_urgent) {
       return false;
     }
     return true;
   });
+
+  if (filters.sort === "title") {
+    return filteredJobs.sort((left, right) => left.title.localeCompare(right.title, "fr"));
+  }
+
+  if (filters.sort === "company") {
+    return filteredJobs.sort((left, right) => left.company.name.localeCompare(right.company.name, "fr"));
+  }
+
+  return filteredJobs;
 }

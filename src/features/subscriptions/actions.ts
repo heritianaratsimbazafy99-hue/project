@@ -1,0 +1,228 @@
+"use server";
+
+import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
+
+import { isSubscriptionPlan, planEntitlements } from "@/features/subscriptions/plans";
+import { requireRole } from "@/lib/auth/require-role";
+import { createSupabaseServerClient } from "@/lib/supabase/server";
+
+type ActionResult = {
+  ok: boolean;
+  message: string;
+};
+
+function formNote(formData: FormData) {
+  const value = formData.get("note");
+  return typeof value === "string" && value.trim() ? value.trim() : null;
+}
+
+async function getOwnedCompanyId(userId: string) {
+  const supabase = await createSupabaseServerClient();
+  const { data: company, error } = await supabase
+    .from("companies")
+    .select("id")
+    .eq("owner_id", userId)
+    .order("created_at", { ascending: true })
+    .limit(1)
+    .maybeSingle<{ id: string }>();
+
+  if (error || !company?.id) {
+    return null;
+  }
+
+  return company.id;
+}
+
+export async function requestSubscriptionPlan(plan: string): Promise<ActionResult> {
+  if (!isSubscriptionPlan(plan)) {
+    return {
+      ok: false,
+      message: "Plan demandé invalide."
+    };
+  }
+
+  const { user } = await requireRole(["recruiter"]);
+  const companyId = await getOwnedCompanyId(user.id);
+
+  if (!companyId) {
+    return {
+      ok: false,
+      message: "Créez votre entreprise avant de changer de plan."
+    };
+  }
+
+  const supabase = await createSupabaseServerClient();
+  const { error } = await supabase.from("plan_change_requests").insert({
+    company_id: companyId,
+    requested_plan: plan,
+    requested_by: user.id,
+    status: "pending"
+  });
+
+  if (error) {
+    return {
+      ok: false,
+      message: "La demande de changement de plan n'a pas pu être enregistrée."
+    };
+  }
+
+  revalidatePath("/recruteur/abonnement");
+  revalidatePath("/admin");
+  revalidatePath("/admin/abonnements");
+
+  return {
+    ok: true,
+    message: `Votre demande de plan ${planEntitlements[plan].label} est transmise à l'équipe JobMada.`
+  };
+}
+
+export async function chooseSubscriptionPlan(plan: string): Promise<void> {
+  const result = await requestSubscriptionPlan(plan);
+
+  if (result.ok) {
+    redirect(`/recruteur/abonnement?requested=${encodeURIComponent(result.message)}`);
+  }
+
+  redirect(`/recruteur/abonnement?error=${encodeURIComponent(result.message)}`);
+}
+
+export async function cancelSubscriptionPlanRequest(requestId: string): Promise<ActionResult> {
+  const normalizedRequestId = requestId.trim();
+
+  if (!normalizedRequestId) {
+    return {
+      ok: false,
+      message: "Demande introuvable."
+    };
+  }
+
+  await requireRole(["recruiter"]);
+  const supabase = await createSupabaseServerClient();
+  const { data, error } = await supabase
+    .from("plan_change_requests")
+    .update({ status: "canceled", updated_at: new Date().toISOString() })
+    .eq("id", normalizedRequestId)
+    .eq("status", "pending")
+    .select("id")
+    .maybeSingle<{ id: string }>();
+
+  if (error || !data) {
+    return {
+      ok: false,
+      message: "La demande n'a pas pu être annulée."
+    };
+  }
+
+  revalidatePath("/recruteur/abonnement");
+  revalidatePath("/admin/abonnements");
+
+  return {
+    ok: true,
+    message: "Demande annulée."
+  };
+}
+
+export async function reviewPlanChangeRequest(
+  requestId: string,
+  decision: "approve" | "reject",
+  formData?: FormData
+): Promise<ActionResult> {
+  const normalizedRequestId = requestId.trim();
+
+  if (!normalizedRequestId || (decision !== "approve" && decision !== "reject")) {
+    return {
+      ok: false,
+      message: "Décision d'abonnement invalide."
+    };
+  }
+
+  const note = formData ? formNote(formData) : null;
+
+  if (decision === "reject" && !note) {
+    return {
+      ok: false,
+      message: "Ajoutez une note pour rejeter la demande."
+    };
+  }
+
+  const { user } = await requireRole(["admin"]);
+  const supabase = await createSupabaseServerClient();
+  const { data: request, error: requestError } = await supabase
+    .from("plan_change_requests")
+    .select("id, company_id, requested_plan, status")
+    .eq("id", normalizedRequestId)
+    .maybeSingle<{
+      id: string;
+      company_id: string;
+      requested_plan: string;
+      status: string;
+    }>();
+
+  if (requestError || !request || request.status !== "pending" || !isSubscriptionPlan(request.requested_plan)) {
+    return {
+      ok: false,
+      message: "Demande introuvable ou déjà traitée."
+    };
+  }
+
+  if (decision === "approve") {
+    const entitlement = planEntitlements[request.requested_plan];
+    const { error: subscriptionError } = await supabase.from("subscriptions").upsert(
+      {
+        company_id: request.company_id,
+        plan: request.requested_plan,
+        status: "active",
+        job_quota: entitlement.jobQuota,
+        cv_access_enabled: entitlement.cvAccessEnabled,
+        updated_at: new Date().toISOString()
+      },
+      { onConflict: "company_id" }
+    );
+
+    if (subscriptionError) {
+      return {
+        ok: false,
+        message: "L'abonnement n'a pas pu être mis à jour."
+      };
+    }
+  }
+
+  const { error: updateError } = await supabase
+    .from("plan_change_requests")
+    .update({
+      status: decision === "approve" ? "approved" : "rejected",
+      reviewed_by: user.id,
+      review_note: note,
+      reviewed_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    })
+    .eq("id", request.id);
+
+  if (updateError) {
+    return {
+      ok: false,
+      message: "La demande n'a pas pu être clôturée."
+    };
+  }
+
+  revalidatePath("/admin");
+  revalidatePath("/admin/abonnements");
+  revalidatePath("/recruteur/abonnement");
+
+  return {
+    ok: true,
+    message: decision === "approve" ? "Plan approuvé." : "Demande rejetée."
+  };
+}
+
+export async function reviewPlanChangeRequestAndRefresh(
+  requestId: string,
+  decision: "approve" | "reject",
+  formData: FormData
+): Promise<void> {
+  const result = await reviewPlanChangeRequest(requestId, decision, formData);
+  const param = result.ok ? "updated" : "error";
+
+  redirect(`/admin/abonnements?${param}=${encodeURIComponent(result.message)}`);
+}

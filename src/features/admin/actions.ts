@@ -15,6 +15,20 @@ function getNote(note?: string | FormData) {
   return typeof formNote === "string" && formNote.trim() ? formNote.trim() : null;
 }
 
+function assertReviewRequest(targetId: string, decision: string, note?: string | FormData) {
+  if (!targetId || !isReviewDecision(decision)) {
+    throw new Error("Décision de modération invalide.");
+  }
+
+  const reviewNote = getNote(note);
+
+  if (decision === "reject" && !reviewNote) {
+    throw new Error("Ajoutez une note pour expliquer le rejet.");
+  }
+
+  return reviewNote;
+}
+
 function revalidateAdminRoutes() {
   revalidatePath("/admin");
   revalidatePath("/admin/offres");
@@ -39,9 +53,7 @@ export async function reviewJob(
   decision: string,
   note?: string | FormData
 ): Promise<void> {
-  if (!jobId || !isReviewDecision(decision)) {
-    return;
-  }
+  const reviewNote = assertReviewRequest(jobId, decision, note);
 
   await requireRole(["admin"]);
   const supabase = await createSupabaseServerClient();
@@ -50,12 +62,12 @@ export async function reviewJob(
     .rpc("review_job", {
       job_uuid: jobId,
       review_decision: decision,
-      review_note: getNote(note)
+      review_note: reviewNote
     })
     .single<{ slug: string }>();
 
   if (error) {
-    return;
+    throw new Error(error.message || "La décision sur l'offre n'a pas pu être enregistrée.");
   }
 
   revalidateAdminRoutes();
@@ -71,9 +83,7 @@ export async function reviewCompany(
   decision: string,
   note?: string | FormData
 ): Promise<void> {
-  if (!companyId || !isReviewDecision(decision)) {
-    return;
-  }
+  const reviewNote = assertReviewRequest(companyId, decision, note);
 
   await requireRole(["admin"]);
   const supabase = await createSupabaseServerClient();
@@ -81,11 +91,11 @@ export async function reviewCompany(
   const { error } = await supabase.rpc("review_company", {
     company_uuid: companyId,
     review_decision: decision,
-    review_note: getNote(note)
+    review_note: reviewNote
   });
 
   if (error) {
-    return;
+    throw new Error(error.message || "La décision sur l'entreprise n'a pas pu être enregistrée.");
   }
 
   revalidateAdminRoutes();

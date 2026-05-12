@@ -7,6 +7,10 @@ import type { ApplicationStatus } from "@/types/database";
 
 export const dynamic = "force-dynamic";
 
+type CandidateApplicationsPageProps = {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+};
+
 const statusLabels: Record<ApplicationStatus, string> = {
   submitted: "Envoyée",
   viewed: "Consultée",
@@ -16,6 +20,24 @@ const statusLabels: Record<ApplicationStatus, string> = {
   hired: "Recruté"
 };
 
+const statusFilterOptions: Array<{ value: "all" | ApplicationStatus; label: string }> = [
+  { value: "all", label: "Toutes" },
+  { value: "submitted", label: statusLabels.submitted },
+  { value: "viewed", label: statusLabels.viewed },
+  { value: "shortlisted", label: statusLabels.shortlisted },
+  { value: "interview", label: statusLabels.interview },
+  { value: "rejected", label: statusLabels.rejected },
+  { value: "hired", label: statusLabels.hired }
+];
+
+function firstQueryValue(value: string | string[] | undefined) {
+  return Array.isArray(value) ? value[0] : value;
+}
+
+function isApplicationStatus(value: string | undefined): value is ApplicationStatus {
+  return Boolean(value && value in statusLabels);
+}
+
 function formatApplicationDate(value: string) {
   return new Intl.DateTimeFormat("fr-FR", {
     day: "2-digit",
@@ -24,11 +46,16 @@ function formatApplicationDate(value: string) {
   }).format(new Date(value));
 }
 
-export default async function CandidateApplicationsPage() {
+export default async function CandidateApplicationsPage({ searchParams }: CandidateApplicationsPageProps) {
   const { user, isDemo } = await requireRole(["candidate"]);
   const applications = isDemo ? demoCandidateApplications : await getCandidateApplicationsOrEmpty(user.id);
-  const activeCount = applications.filter((application) => !["rejected", "hired"].includes(application.status)).length;
-  const viewedCount = applications.filter((application) =>
+  const query = await searchParams;
+  const selectedStatus = firstQueryValue(query.status);
+  const activeStatus = isApplicationStatus(selectedStatus) ? selectedStatus : "all";
+  const filteredApplications =
+    activeStatus === "all" ? applications : applications.filter((application) => application.status === activeStatus);
+  const activeCount = filteredApplications.filter((application) => !["rejected", "hired"].includes(application.status)).length;
+  const viewedCount = filteredApplications.filter((application) =>
     ["viewed", "shortlisted", "interview", "hired"].includes(application.status)
   ).length;
 
@@ -41,13 +68,25 @@ export default async function CandidateApplicationsPage() {
       </section>
 
       <section className="candidateCard" aria-labelledby="applications-empty-title">
-        {applications.length > 0 ? (
+        <div className="candidateTabs" aria-label="Filtrer les candidatures par statut">
+          {statusFilterOptions.map((option) => (
+            <Link
+              key={option.value}
+              href={option.value === "all" ? "/candidat/candidatures" : `/candidat/candidatures?status=${option.value}`}
+              aria-current={activeStatus === option.value ? "page" : undefined}
+            >
+              {option.label}
+            </Link>
+          ))}
+        </div>
+
+        {filteredApplications.length > 0 ? (
           <div className="candidateApplicationList">
             <div className="candidateSectionHeader">
               <div>
                 <p className="candidateEyebrow">Suivi</p>
                 <h2 id="applications-empty-title">
-                  {applications.length} candidature{applications.length > 1 ? "s" : ""}
+                  {filteredApplications.length} candidature{filteredApplications.length > 1 ? "s" : ""}
                 </h2>
               </div>
               <span>
@@ -56,7 +95,7 @@ export default async function CandidateApplicationsPage() {
               </span>
             </div>
 
-            {applications.map((application) => (
+            {filteredApplications.map((application) => (
               <article key={application.id}>
                 <div>
                   <strong>{application.job.title}</strong>
@@ -70,6 +109,14 @@ export default async function CandidateApplicationsPage() {
                 <Link href={`/emploi/${application.job.slug}`}>Voir l'offre</Link>
               </article>
             ))}
+          </div>
+        ) : applications.length > 0 ? (
+          <div className="candidateEmptyState isLarge">
+            <h2 id="applications-empty-title">Aucune candidature avec ce statut</h2>
+            <p>Changez de filtre pour retrouver le reste de votre suivi.</p>
+            <Link className="primaryAction" href="/candidat/candidatures">
+              Toutes les candidatures
+            </Link>
           </div>
         ) : (
           <div className="candidateEmptyState isLarge">

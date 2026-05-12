@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 
 import { requireRole } from "@/lib/auth/require-role";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
@@ -16,6 +17,32 @@ export type UpdateRecruiterApplicationStatusResult = {
   message: string;
 };
 
+export type RecruiterCandidateCvSignedUrlResult =
+  | {
+      ok: true;
+      message: string;
+      signedUrl: string;
+    }
+  | {
+      ok: false;
+      message: string;
+    };
+
+type RecruiterApplicationCvRow = {
+  id: string;
+  cv_path: string | null;
+  jobs?:
+    | {
+        id: string;
+        companies?: { owner_id: string } | Array<{ owner_id: string }> | null;
+      }
+    | Array<{
+        id: string;
+        companies?: { owner_id: string } | Array<{ owner_id: string }> | null;
+      }>
+    | null;
+};
+
 const recruiterAssignableStatuses = [
   "viewed",
   "shortlisted",
@@ -26,6 +53,94 @@ const recruiterAssignableStatuses = [
 
 function isRecruiterAssignableStatus(status: string): status is (typeof recruiterAssignableStatuses)[number] {
   return recruiterAssignableStatuses.includes(status as (typeof recruiterAssignableStatuses)[number]);
+}
+
+function firstRelation<T>(value: T | T[] | null | undefined): T | null {
+  if (Array.isArray(value)) {
+    return value[0] ?? null;
+  }
+
+  return value ?? null;
+}
+
+export async function createRecruiterCandidateCvSignedUrl(
+  applicationId: string
+): Promise<RecruiterCandidateCvSignedUrlResult> {
+  const normalizedApplicationId = applicationId.trim();
+
+  if (!normalizedApplicationId) {
+    return {
+      ok: false,
+      message: "Candidature introuvable."
+    };
+  }
+
+  const { user, isDemo } = await requireRole(["recruiter"]);
+
+  if (isDemo) {
+    return {
+      ok: false,
+      message: "Les CV démo ne peuvent pas être ouverts."
+    };
+  }
+
+  const supabase = await createSupabaseServerClient();
+  const { data: application, error: applicationError } = await supabase
+    .from("applications")
+    .select("id, cv_path, jobs!inner(id, companies!inner(owner_id))")
+    .eq("id", normalizedApplicationId)
+    .maybeSingle<RecruiterApplicationCvRow>();
+
+  if (applicationError) {
+    return {
+      ok: false,
+      message: "Impossible de vérifier cette candidature."
+    };
+  }
+
+  const cvPath = application?.cv_path?.trim() ?? "";
+
+  if (!application || !cvPath) {
+    return {
+      ok: false,
+      message: "Candidature introuvable ou CV indisponible."
+    };
+  }
+
+  const job = firstRelation(application.jobs);
+  const company = firstRelation(job?.companies);
+
+  if (company?.owner_id !== user.id) {
+    return {
+      ok: false,
+      message: "Vous n'êtes pas autorisé à consulter ce CV."
+    };
+  }
+
+  const { data, error } = await supabase.storage.from("cvs").createSignedUrl(cvPath, 300);
+
+  if (error || !data?.signedUrl) {
+    return {
+      ok: false,
+      message: "Le CV n'a pas pu être préparé."
+    };
+  }
+
+  return {
+    ok: true,
+    message: "CV prêt à consulter.",
+    signedUrl: data.signedUrl
+  };
+}
+
+export async function openRecruiterCandidateCvAndRedirect(applicationId: string): Promise<void> {
+  const result = await createRecruiterCandidateCvSignedUrl(applicationId);
+
+  if (result.ok) {
+    redirect(result.signedUrl);
+  }
+
+  redirect(`/recruteur/candidatures?error=${encodeURIComponent(result.message)}`);
 }
 
 export async function updateRecruiterApplicationStatus(

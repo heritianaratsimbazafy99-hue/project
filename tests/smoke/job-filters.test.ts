@@ -15,7 +15,35 @@ describe("buildJobFilters", () => {
       query: "designer",
       contract: "CDI",
       city: "Antananarivo",
-      sector: "Informatique & Digital"
+      sector: "Informatique & Digital",
+      company: "",
+      urgent: false,
+      page: 1,
+      pageSize: 12,
+      sort: "recent"
+    });
+  });
+
+  it("normalizes pagination, company, urgent and sort controls", () => {
+    const filters = buildJobFilters({
+      q: "  data ",
+      company: "Media Click",
+      urgent: "1",
+      page: "3",
+      pageSize: "24",
+      sort: "company"
+    });
+
+    expect(filters).toEqual({
+      query: "data",
+      contract: "",
+      city: "",
+      sector: "",
+      company: "Media Click",
+      urgent: true,
+      page: 3,
+      pageSize: 24,
+      sort: "company"
     });
   });
 });

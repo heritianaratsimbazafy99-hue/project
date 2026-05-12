@@ -1,4 +1,8 @@
-import { createCandidateJobAlertAndRedirect } from "@/features/candidate/actions";
+import {
+  createCandidateJobAlertAndRedirect,
+  deleteCandidateJobAlertAndRedirect,
+  updateCandidateJobAlertStatusAndRedirect
+} from "@/features/candidate/actions";
 import { demoCandidateAlerts } from "@/features/demo/workspace";
 import { requireRole } from "@/lib/auth/require-role";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
@@ -49,6 +53,9 @@ export default async function CandidateAlertsPage({ searchParams }: CandidateAle
 
   const query = await searchParams;
   const created = firstQueryValue(query.created);
+  const paused = firstQueryValue(query.paused);
+  const resumed = firstQueryValue(query.resumed);
+  const deleted = firstQueryValue(query.deleted);
   const error = firstQueryValue(query.error);
 
   return (
@@ -70,6 +77,21 @@ export default async function CandidateAlertsPage({ searchParams }: CandidateAle
         {created ? (
           <div className="candidateNotice" role="status">
             Alerte emploi créée.
+          </div>
+        ) : null}
+        {paused ? (
+          <div className="candidateNotice" role="status">
+            Alerte mise en pause.
+          </div>
+        ) : null}
+        {resumed ? (
+          <div className="candidateNotice" role="status">
+            Alerte réactivée.
+          </div>
+        ) : null}
+        {deleted ? (
+          <div className="candidateNotice" role="status">
+            Alerte supprimée.
           </div>
         ) : null}
         {error ? (
@@ -130,6 +152,15 @@ export default async function CandidateAlertsPage({ searchParams }: CandidateAle
                 </div>
                 <span>{formatFrequency(alert.frequency)}</span>
                 <small>{alert.is_active ? "Active" : "En pause"}</small>
+                <form action={updateCandidateJobAlertStatusAndRedirect}>
+                  <input type="hidden" name="alert_id" value={alert.id} />
+                  <input type="hidden" name="is_active" value={alert.is_active ? "false" : "true"} />
+                  <button type="submit">{alert.is_active ? "Mettre en pause" : "Réactiver"}</button>
+                </form>
+                <form action={deleteCandidateJobAlertAndRedirect}>
+                  <input type="hidden" name="alert_id" value={alert.id} />
+                  <button type="submit">Supprimer</button>
+                </form>
               </article>
             ))}
           </div>

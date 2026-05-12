@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import Link from "next/link";
 import {
   BriefcaseBusiness,
   CheckCircle2,
@@ -10,7 +11,7 @@ import {
   type LucideIcon
 } from "lucide-react";
 
-import { updateRecruiterApplicationStatus } from "@/features/applications/actions";
+import { openRecruiterCandidateCvAndRedirect, updateRecruiterApplicationStatus } from "@/features/applications/actions";
 import {
   getRecruiterApplicationsOrEmpty,
   type RecruiterApplication
@@ -93,13 +94,35 @@ export default async function RecruiterApplicationsPage({ searchParams }: Recrui
   }
 
   const total = applications.length;
-  const submittedCount = applications.filter((application) => application.status === "submitted").length;
-  const viewedCount = applications.filter((application) =>
-    ["viewed", "shortlisted", "interview", "hired"].includes(application.status)
-  ).length;
   const query = await searchParams;
+  const statusFilter = firstQueryValue(query.status) as ApplicationStatus | undefined;
+  const jobFilter = firstQueryValue(query.job);
+  const search = (firstQueryValue(query.q) ?? "").toLowerCase();
   const updatedMessage = firstQueryValue(query.updated);
   const errorMessage = firstQueryValue(query.error);
+  const allApplications = applications;
+  const jobOptions = Array.from(
+    new Map(allApplications.map((application) => [application.job.id, application.job.title])).entries()
+  );
+
+  if (statusFilter && statusFilter in statusLabels) {
+    applications = applications.filter((application) => application.status === statusFilter);
+  }
+  if (jobFilter) {
+    applications = applications.filter((application) => application.job.id === jobFilter);
+  }
+  if (search) {
+    applications = applications.filter((application) =>
+      `${application.candidate.displayName} ${application.candidate.city} ${application.candidate.desiredRole} ${application.job.title}`
+        .toLowerCase()
+        .includes(search)
+    );
+  }
+
+  const submittedCount = allApplications.filter((application) => application.status === "submitted").length;
+  const viewedCount = allApplications.filter((application) =>
+    ["viewed", "shortlisted", "interview", "hired"].includes(application.status)
+  ).length;
 
   return (
     <>
@@ -139,28 +162,47 @@ export default async function RecruiterApplicationsPage({ searchParams }: Recrui
       </section>
 
       <section className="panel offers-panel">
-        <div className="toolbar">
-          <input className="input" placeholder="Rechercher un candidat ou une offre..." />
-          <select className="select" defaultValue="all">
-            <option value="all">Toutes les offres</option>
+        <form className="toolbar" action="/recruteur/candidatures">
+          <input className="input" name="q" defaultValue={firstQueryValue(query.q)} placeholder="Rechercher un candidat ou une offre..." />
+          <select className="select" name="job" defaultValue={jobFilter ?? ""}>
+            <option value="">Toutes les offres</option>
+            {jobOptions.map(([jobId, title]) => (
+              <option value={jobId} key={jobId}>
+                {title}
+              </option>
+            ))}
           </select>
-          <select className="select" defaultValue="recent">
-            <option value="recent">Plus récentes</option>
-            <option value="match">Meilleur score</option>
-            <option value="name">Nom A-Z</option>
+          <select className="select" name="status" defaultValue={statusFilter ?? ""}>
+            <option value="">Tous les statuts</option>
+            {Object.entries(statusLabels).map(([value, label]) => (
+              <option value={value} key={value}>
+                {label}
+              </option>
+            ))}
           </select>
-        </div>
+          <button className="btn btn-soft" type="submit">Filtrer</button>
+        </form>
         <div className="status-tabs">
           {[
-            ["Toutes", total],
+            ["Toutes", total, "/recruteur/candidatures"],
             ["À traiter", submittedCount],
             ["Consultées", viewedCount],
-            ["Shortlistées", applications.filter((application) => application.status === "shortlisted").length],
-            ["Rejetées", applications.filter((application) => application.status === "rejected").length]
+            ["Shortlistées", allApplications.filter((application) => application.status === "shortlisted").length],
+            ["Rejetées", allApplications.filter((application) => application.status === "rejected").length]
           ].map(([label, count], index) => (
-            <button className={index === 0 ? "active" : undefined} type="button" key={label}>
+            <Link
+              className={index === 0 && !statusFilter ? "active" : undefined}
+              href={
+                index === 0
+                  ? "/recruteur/candidatures"
+                  : `/recruteur/candidatures?status=${encodeURIComponent(
+                      index === 1 ? "submitted" : index === 2 ? "viewed" : index === 3 ? "shortlisted" : "rejected"
+                    )}`
+              }
+              key={String(label)}
+            >
               {label} <span>{count}</span>
-            </button>
+            </Link>
           ))}
         </div>
         {applications.length > 0 ? (
@@ -182,6 +224,14 @@ export default async function RecruiterApplicationsPage({ searchParams }: Recrui
                 </div>
                 <span className="pill rose">{statusLabels[application.status]}</span>
                 <div className="recruiter-application-actions" aria-label={`Actions pour ${application.candidate.displayName}`}>
+                  {application.cv_path ? (
+                    <form action={openRecruiterCandidateCvAndRedirect.bind(null, application.id)}>
+                      <button className="recruiter-action-button" type="submit" disabled={isDemo}>
+                        <Eye aria-hidden="true" size={15} />
+                        Voir le CV
+                      </button>
+                    </form>
+                  ) : null}
                   {statusActions.map(({ status, label, Icon, tone }) => (
                     <form action={updateApplicationStatus.bind(null, application.id, status)} key={status}>
                       <button

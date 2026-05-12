@@ -13,7 +13,9 @@ type AdminLayoutProps = {
 const navItems = [
   { label: "Vue d'ensemble", href: "/admin" },
   { label: "Offres", href: "/admin/offres" },
-  { label: "Entreprises", href: "/admin/entreprises" }
+  { label: "Entreprises", href: "/admin/entreprises" },
+  { label: "Abonnements", href: "/admin/abonnements" },
+  { label: "Utilisateurs", href: "/admin/utilisateurs" }
 ];
 
 export default async function AdminLayout({ children }: AdminLayoutProps) {
@@ -43,7 +45,6 @@ export default async function AdminLayout({ children }: AdminLayoutProps) {
                 {item.label}
               </Link>
             ))}
-            <span aria-disabled="true">Utilisateurs</span>
           </nav>
         </aside>
         <div className="adminContent">{children}</div>

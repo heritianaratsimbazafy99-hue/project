@@ -15,8 +15,10 @@ import {
   Zap
 } from "lucide-react";
 
-import { createJobAndRedirect } from "@/features/jobs/actions";
+import { createJobAndRedirect, saveDraftJobAndRedirect } from "@/features/jobs/actions";
+import { demoRecruiterCompany, demoRecruiterSubscription } from "@/features/demo/workspace";
 import { requireRole } from "@/lib/auth/require-role";
+import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
 
@@ -40,20 +42,20 @@ function EditorField({
   return (
     <div className="form-field full editor-field">
       <label>{label}</label>
-      <div className="editor-shell">
-        <div className="editor-toolbar" aria-hidden="true">
-          <button type="button">
+        <div className="editor-shell">
+          <div className="editor-toolbar" aria-hidden="true">
+          <span>
             <Bold size={15} />
-          </button>
-          <button type="button">
+          </span>
+          <span>
             <Italic size={15} />
-          </button>
-          <button type="button">
+          </span>
+          <span>
             <List size={15} />
-          </button>
-          <button type="button">
+          </span>
+          <span>
             <ListOrdered size={15} />
-          </button>
+          </span>
         </div>
         <textarea className="textarea" name={name} placeholder={placeholder} rows={5} />
         <small>0 / 100 min. recommandé</small>
@@ -63,8 +65,41 @@ function EditorField({
 }
 
 export default async function NewRecruiterOfferPage({ searchParams }: NewRecruiterOfferPageProps) {
-  await requireRole(["recruiter"]);
+  const { user, isDemo } = await requireRole(["recruiter"]);
   const errorMessage = firstValue((await searchParams).error);
+  let quota = demoRecruiterSubscription.job_quota;
+  let usedJobs = isDemo ? 1 : 0;
+
+  if (!isDemo) {
+    const supabase = await createSupabaseServerClient();
+    const { data: company } = await supabase
+      .from("companies")
+      .select("id")
+      .eq("owner_id", user.id)
+      .order("created_at", { ascending: true })
+      .limit(1)
+      .maybeSingle<typeof demoRecruiterCompany>();
+
+    if (company) {
+      const [{ data: subscription }, { count }] = await Promise.all([
+        supabase
+          .from("subscriptions")
+          .select("job_quota")
+          .eq("company_id", company.id)
+          .maybeSingle<{ job_quota: number | null }>(),
+        supabase
+          .from("jobs")
+          .select("id", { count: "exact", head: true })
+          .eq("company_id", company.id)
+          .neq("status", "archived")
+      ]);
+
+      quota = subscription?.job_quota ?? quota;
+      usedJobs = count ?? 0;
+    }
+  }
+
+  const remainingJobs = quota >= 999 ? "illimitées" : String(Math.max(quota - usedJobs, 0));
 
   return (
     <div className="new-offer-page">
@@ -88,7 +123,7 @@ export default async function NewRecruiterOfferPage({ searchParams }: NewRecruit
       <div className="quota-notice">
         <Zap aria-hidden="true" size={19} />
         <span>
-          Il vous reste <strong>2 offres</strong> sur votre plan Gratuit
+          Il vous reste <strong>{remainingJobs} offres</strong> sur votre plan
         </span>
       </div>
 
@@ -242,19 +277,15 @@ export default async function NewRecruiterOfferPage({ searchParams }: NewRecruit
               name="profile"
               placeholder="Compétences techniques et humaines attendues"
             />
-            <label className="check-row full">
-              <input type="checkbox" />
-              Ajouter des informations supplémentaires
-            </label>
             <div className="ai-row full">
               <div>
                 <strong>Améliorer avec l'IA</strong>
-                <p>L'IA restructure et professionnalise votre contenu</p>
+                <p>Fonctionnalité disponible après validation d'un plan avancé.</p>
               </div>
-              <button className="btn btn-soft" type="button" disabled>
+              <Link className="btn btn-soft" href="/recruteur/abonnement">
                 <Sparkles aria-hidden="true" size={17} />
-                Améliorer avec l'IA
-              </button>
+                Voir les plans
+              </Link>
             </div>
           </div>
         </section>
@@ -278,7 +309,7 @@ export default async function NewRecruiterOfferPage({ searchParams }: NewRecruit
                 <strong>
                   <Star aria-hidden="true" size={18} /> Vedette
                 </strong>
-                <button type="button">Débloquer</button>
+                <Link href="/recruteur/abonnement">Débloquer</Link>
               </div>
               <p>Mise en avant en haut des résultats avec un badge doré.</p>
               <small>Durée : 7 jours · Plan Booster+</small>
@@ -288,7 +319,7 @@ export default async function NewRecruiterOfferPage({ searchParams }: NewRecruit
                 <strong>
                   <Zap aria-hidden="true" size={18} /> Urgent
                 </strong>
-                <button type="button">Débloquer</button>
+                <Link href="/recruteur/abonnement">Débloquer</Link>
               </div>
               <p>Badge rouge « Urgent » sur l'offre. Pour les recrutements à pourvoir vite.</p>
               <small>Durée : 7 jours · Plan Starter+</small>
@@ -306,10 +337,10 @@ export default async function NewRecruiterOfferPage({ searchParams }: NewRecruit
               pour plus de visibilité
             </span>
           </div>
-          <Link className="btn btn-soft" href="/recruteur/offres">
+          <button className="btn btn-soft" type="submit" formAction={saveDraftJobAndRedirect}>
             <Save aria-hidden="true" size={17} />
             Enregistrer en brouillon
-          </Link>
+          </button>
           <button className="btn btn-primary" type="submit">
             <Send aria-hidden="true" size={17} />
             Publier l'offre

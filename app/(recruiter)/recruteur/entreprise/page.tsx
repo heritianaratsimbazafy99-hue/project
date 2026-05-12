@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { BriefcaseBusiness, Eye, FileText, Globe, Save } from "lucide-react";
+import { BriefcaseBusiness, Eye, FileText, Globe, Image, RotateCcw, Save } from "lucide-react";
 
 import { demoRecruiterCompany } from "@/features/demo/workspace";
 import { saveRecruiterCompanyAndRedirect, submitCompanyForReview } from "@/features/recruiter/company-actions";
@@ -22,6 +22,13 @@ type CompanyRow = {
   website: string | null;
   description: string | null;
   logo_path: string | null;
+  cover_path: string | null;
+};
+
+type AdminReviewRow = {
+  decision: "approve" | "reject";
+  note: string | null;
+  created_at: string;
 };
 
 const companyStatusLabels: Record<CompanyStatus, string> = {
@@ -51,21 +58,34 @@ export default async function RecruiterCompanyPage({ searchParams }: RecruiterCo
         ...demoRecruiterCompany,
         website: "https://mediaclick.mg",
         description: "Studio digital spécialisé dans la conception produit, les campagnes et les talents créatifs.",
-        logo_path: null
+        logo_path: null,
+        cover_path: null
       }
     : null;
+  let companyReviews: AdminReviewRow[] = [];
 
   if (!isDemo) {
     const supabase = await createSupabaseServerClient();
     const { data } = await supabase
       .from("companies")
-      .select("id, name, status, sector, city, website, description, logo_path")
+      .select("id, name, status, sector, city, website, description, logo_path, cover_path")
       .eq("owner_id", user.id)
       .order("created_at", { ascending: true })
       .limit(1)
       .maybeSingle<CompanyRow>();
 
     company = data;
+
+    if (company) {
+      const { data: reviews } = await supabase
+        .from("admin_reviews")
+        .select("decision, note, created_at")
+        .eq("target_table", "companies")
+        .eq("target_id", company.id)
+        .order("created_at", { ascending: false });
+
+      companyReviews = (reviews ?? []) as AdminReviewRow[];
+    }
   }
 
   const query = await searchParams;
@@ -86,7 +106,7 @@ export default async function RecruiterCompanyPage({ searchParams }: RecruiterCo
             <p>Complétez votre profil pour attirer plus de candidats.</p>
           </div>
         </div>
-        <Link className="btn btn-outline" href="/emploi">
+        <Link className="btn btn-outline" href={company?.name ? `/emploi?company=${encodeURIComponent(company.name)}` : "/emploi"}>
           <Eye aria-hidden="true" size={18} />
           Voir ma page
         </Link>
@@ -100,6 +120,11 @@ export default async function RecruiterCompanyPage({ searchParams }: RecruiterCo
       {error ? (
         <div className="recruiterNotice isError" role="alert">
           {error}
+        </div>
+      ) : null}
+      {companyReviews.some((review) => review.decision === "reject" && review.note) ? (
+        <div className="recruiterNotice isError" role="status">
+          Dernier rejet JobMada : {companyReviews.find((review) => review.decision === "reject" && review.note)?.note}
         </div>
       ) : null}
 
@@ -122,9 +147,22 @@ export default async function RecruiterCompanyPage({ searchParams }: RecruiterCo
                 <div>
                   <strong>Format JPG ou PNG, max 2 Mo</strong>
                   <br />
-                  <button className="btn btn-primary" type="button">
-                    Télécharger un logo
-                  </button>
+                  <input className="input" name="logo" type="file" accept="image/png,image/jpeg" />
+                  {company?.logo_path ? <small>Logo actuel enregistré : {company.logo_path}</small> : null}
+                </div>
+              </div>
+            </div>
+            <div className="form-field full">
+              <label>Image de couverture</label>
+              <div className="upload-box">
+                <span className="icon-tile">
+                  <Image aria-hidden="true" size={18} />
+                </span>
+                <div>
+                  <strong>Format JPG ou PNG, max 2 Mo</strong>
+                  <br />
+                  <input className="input" name="cover" type="file" accept="image/png,image/jpeg" />
+                  {company?.cover_path ? <small>Couverture actuelle enregistrée : {company.cover_path}</small> : null}
                 </div>
               </div>
             </div>
@@ -208,7 +246,8 @@ export default async function RecruiterCompanyPage({ searchParams }: RecruiterCo
         </section>
 
         <div className="sticky-actions">
-          <button className="btn btn-soft" type="button">
+          <button className="btn btn-soft" type="reset">
+            <RotateCcw aria-hidden="true" size={18} />
             Annuler
           </button>
           <button className="btn btn-primary" type="submit">

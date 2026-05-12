@@ -4,7 +4,8 @@ const mocks = vi.hoisted(() => ({
   requireRole: vi.fn(),
   revalidatePath: vi.fn(),
   from: vi.fn(),
-  storageFrom: vi.fn()
+  storageFrom: vi.fn(),
+  authUpdateUser: vi.fn()
 }));
 
 vi.mock("next/cache", () => ({
@@ -18,6 +19,9 @@ vi.mock("@/lib/auth/require-role", () => ({
 vi.mock("@/lib/supabase/server", () => ({
   createSupabaseServerClient: vi.fn(async () => ({
     from: mocks.from,
+    auth: {
+      updateUser: mocks.authUpdateUser
+    },
     storage: {
       from: mocks.storageFrom
     }
@@ -41,6 +45,7 @@ describe("candidate profile actions", () => {
     mocks.revalidatePath.mockReset();
     mocks.from.mockReset();
     mocks.storageFrom.mockReset();
+    mocks.authUpdateUser.mockReset();
     mocks.requireRole.mockResolvedValue({
       user: { id: "candidate-1", email: "hery@example.com" },
       profile: { role: "candidate", email: "hery@example.com" },
@@ -231,5 +236,210 @@ describe("candidate profile actions", () => {
       message: "Ajoutez un CV au format PDF, DOC ou DOCX."
     });
     expect(mocks.storageFrom).not.toHaveBeenCalled();
+  });
+
+  it("adds an experience to the authenticated candidate profile", async () => {
+    const profileMaybeSingle = vi.fn(async () => ({ data: { id: "profile-1" }, error: null }));
+    const profileEq = vi.fn(() => ({ maybeSingle: profileMaybeSingle }));
+    const profileSelect = vi.fn(() => ({ eq: profileEq }));
+    const insertExperience = vi.fn(async () => ({ error: null }));
+
+    mocks.from.mockImplementation((table: string) => {
+      if (table === "candidate_profiles") {
+        return { select: profileSelect };
+      }
+
+      if (table === "candidate_experiences") {
+        return { insert: insertExperience };
+      }
+
+      throw new Error(`Unexpected table ${table}`);
+    });
+
+    const { addCandidateExperience } = await import("@/features/candidate/actions");
+    const result = await addCandidateExperience(
+      candidateForm({
+        title: "Designer UI/UX",
+        company: "Media Click",
+        city: "Antananarivo",
+        start_date: "2024-01-01",
+        end_date: "2025-02-01",
+        description: "Design produit et recherche utilisateur."
+      })
+    );
+
+    expect(result).toEqual({ ok: true, message: "Expérience ajoutée." });
+    expect(profileEq).toHaveBeenCalledWith("user_id", "candidate-1");
+    expect(insertExperience).toHaveBeenCalledWith({
+      candidate_profile_id: "profile-1",
+      title: "Designer UI/UX",
+      company: "Media Click",
+      city: "Antananarivo",
+      start_date: "2024-01-01",
+      end_date: "2025-02-01",
+      is_current: false,
+      description: "Design produit et recherche utilisateur."
+    });
+    expect(mocks.revalidatePath).toHaveBeenCalledWith("/candidat/profil");
+  });
+
+  it("replaces candidate skills from multiline skill and language fields", async () => {
+    const profileMaybeSingle = vi.fn(async () => ({ data: { id: "profile-1" }, error: null }));
+    const profileEq = vi.fn(() => ({ maybeSingle: profileMaybeSingle }));
+    const profileSelect = vi.fn(() => ({ eq: profileEq }));
+    const deleteInKind = vi.fn(async () => ({ error: null }));
+    const deleteEqProfile = vi.fn(() => ({ in: deleteInKind }));
+    const deleteSkills = vi.fn(() => ({ eq: deleteEqProfile }));
+    const upsertSkills = vi.fn(async () => ({ error: null }));
+
+    mocks.from.mockImplementation((table: string) => {
+      if (table === "candidate_profiles") {
+        return { select: profileSelect };
+      }
+
+      if (table === "candidate_skills") {
+        return { delete: deleteSkills, upsert: upsertSkills };
+      }
+
+      throw new Error(`Unexpected table ${table}`);
+    });
+
+    const { saveCandidateSkills } = await import("@/features/candidate/actions");
+    const result = await saveCandidateSkills(
+      candidateForm({
+        hard_skills: "React\nSQL, Excel",
+        soft_skills: "Rigueur\nRelation client",
+        languages: "Français\nAnglais"
+      })
+    );
+
+    expect(result).toEqual({ ok: true, message: "Compétences enregistrées." });
+    expect(deleteEqProfile).toHaveBeenCalledWith("candidate_profile_id", "profile-1");
+    expect(deleteInKind).toHaveBeenCalledWith("kind", ["hard", "soft", "language"]);
+    expect(upsertSkills).toHaveBeenCalledWith(
+      [
+        { candidate_profile_id: "profile-1", kind: "hard", label: "React", level: null },
+        { candidate_profile_id: "profile-1", kind: "hard", label: "SQL", level: null },
+        { candidate_profile_id: "profile-1", kind: "hard", label: "Excel", level: null },
+        { candidate_profile_id: "profile-1", kind: "soft", label: "Rigueur", level: null },
+        { candidate_profile_id: "profile-1", kind: "soft", label: "Relation client", level: null },
+        { candidate_profile_id: "profile-1", kind: "language", label: "Français", level: null },
+        { candidate_profile_id: "profile-1", kind: "language", label: "Anglais", level: null }
+      ],
+      { onConflict: "candidate_profile_id,kind,label" }
+    );
+  });
+
+  it("removes the current candidate CV and recalculates completion", async () => {
+    const remove = vi.fn(async () => ({ error: null }));
+    mocks.storageFrom.mockReturnValue({ remove });
+
+    const candidateSelect = {
+      select: vi.fn().mockReturnThis(),
+      eq: vi.fn().mockReturnThis(),
+      maybeSingle: vi.fn(async () => ({
+        data: { cv_path: "candidate-1/cv.pdf", desired_role: "Designer UI/UX" },
+        error: null
+      }))
+    };
+    const alertsCount = {
+      select: vi.fn().mockReturnThis(),
+      eq: vi.fn(async () => ({ count: 1, error: null }))
+    };
+    const candidateUpdateEq = vi.fn(async () => ({ error: null }));
+    const candidateUpdate = vi.fn(() => ({ eq: candidateUpdateEq }));
+    const profileUpdateEq = vi.fn(async () => ({ error: null }));
+    const profileUpdate = vi.fn(() => ({ eq: profileUpdateEq }));
+
+    mocks.from.mockImplementation((table: string) => {
+      if (table === "candidate_profiles") {
+        return {
+          ...candidateSelect,
+          update: candidateUpdate
+        };
+      }
+
+      if (table === "profiles") {
+        return { update: profileUpdate };
+      }
+
+      if (table === "job_alerts") {
+        return alertsCount;
+      }
+
+      throw new Error(`Unexpected table ${table}`);
+    });
+
+    const { deleteCandidateCv } = await import("@/features/candidate/actions");
+    const result = await deleteCandidateCv();
+
+    expect(result).toEqual({ ok: true, message: "CV supprimé." });
+    expect(remove).toHaveBeenCalledWith(["candidate-1/cv.pdf"]);
+    expect(candidateUpdate).toHaveBeenCalledWith({ cv_path: null, profile_completion: 75 });
+    expect(candidateUpdateEq).toHaveBeenCalledWith("user_id", "candidate-1");
+    expect(profileUpdate).toHaveBeenCalledWith({ onboarding_completion: 75 });
+  });
+
+  it("updates a job alert only when it belongs to the authenticated candidate", async () => {
+    const updateEqCandidate = vi.fn(async () => ({ error: null }));
+    const updateEqId = vi.fn(() => ({ eq: updateEqCandidate }));
+    const updateAlert = vi.fn(() => ({ eq: updateEqId }));
+
+    mocks.from.mockImplementation((table: string) => {
+      if (table === "job_alerts") {
+        return { update: updateAlert };
+      }
+
+      throw new Error(`Unexpected table ${table}`);
+    });
+
+    const { updateCandidateJobAlertStatus } = await import("@/features/candidate/actions");
+    const result = await updateCandidateJobAlertStatus(
+      candidateForm({
+        alert_id: "alert-1",
+        is_active: "false"
+      })
+    );
+
+    expect(result).toEqual({ ok: true, message: "Alerte mise en pause." });
+    expect(updateAlert).toHaveBeenCalledWith({ is_active: false });
+    expect(updateEqId).toHaveBeenCalledWith("id", "alert-1");
+    expect(updateEqCandidate).toHaveBeenCalledWith("candidate_id", "candidate-1");
+  });
+
+  it("deletes a job alert only when it belongs to the authenticated candidate", async () => {
+    const deleteEqCandidate = vi.fn(async () => ({ error: null }));
+    const deleteEqId = vi.fn(() => ({ eq: deleteEqCandidate }));
+    const deleteAlert = vi.fn(() => ({ eq: deleteEqId }));
+
+    mocks.from.mockImplementation((table: string) => {
+      if (table === "job_alerts") {
+        return { delete: deleteAlert };
+      }
+
+      throw new Error(`Unexpected table ${table}`);
+    });
+
+    const { deleteCandidateJobAlert } = await import("@/features/candidate/actions");
+    const result = await deleteCandidateJobAlert(candidateForm({ alert_id: "alert-1" }));
+
+    expect(result).toEqual({ ok: true, message: "Alerte supprimée." });
+    expect(deleteEqId).toHaveBeenCalledWith("id", "alert-1");
+    expect(deleteEqCandidate).toHaveBeenCalledWith("candidate_id", "candidate-1");
+  });
+
+  it("updates the authenticated candidate password through Supabase Auth", async () => {
+    mocks.authUpdateUser.mockResolvedValue({ error: null });
+
+    const { updateCandidatePassword } = await import("@/features/candidate/actions");
+    const result = await updateCandidatePassword(
+      candidateForm({
+        password: "nouveau-secret-2026",
+        password_confirm: "nouveau-secret-2026"
+      })
+    );
+
+    expect(result).toEqual({ ok: true, message: "Mot de passe mis à jour." });
+    expect(mocks.authUpdateUser).toHaveBeenCalledWith({ password: "nouveau-secret-2026" });
   });
 });

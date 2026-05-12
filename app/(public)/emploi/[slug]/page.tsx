@@ -7,7 +7,7 @@ import {
   getCandidateApplyState,
   type CandidateApplyState
 } from "@/features/applications/apply-state";
-import { getPublishedJobBySlugOrNull } from "@/features/jobs/queries";
+import { getPublishedJobBySlugOrNull, type JobDetail } from "@/features/jobs/queries";
 import {
   CompanyLogo,
   PublicFooter,
@@ -126,9 +126,56 @@ function roleLabel(role: UserRole | null) {
   return "connectez-vous avec un compte candidat.";
 }
 
+function contentItems(content: string, fallback: string) {
+  const normalized = content.trim() || fallback;
+  return normalized
+    .split(/\n+|•|-/)
+    .map((item) => item.trim())
+    .filter(Boolean)
+    .slice(0, 8);
+}
+
+function formatDate(value: string | null) {
+  if (!value) {
+    return "À préciser";
+  }
+
+  return new Intl.DateTimeFormat("fr-FR", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric"
+  }).format(new Date(value));
+}
+
+function fallbackJobDetail(slug: string): JobDetail | null {
+  const job = findPublicJob(slug);
+
+  if (!job) {
+    return null;
+  }
+
+  return {
+    ...job,
+    description: job.summary,
+    missions: job.summary,
+    profile: "Profil à préciser par le recruteur.",
+    salary_range: null,
+    location_detail: null,
+    expires_at: null,
+    company: {
+      ...job.company,
+      city: "",
+      sector: "",
+      description: ""
+    }
+  };
+}
+
 export default async function JobDetailPage({ params, searchParams }: JobDetailPageProps) {
   const { slug } = await params;
-  const job = (await getPublishedJobBySlugOrNull(slug)) ?? findPublicJob(slug);
+  const liveJob = await getPublishedJobBySlugOrNull(slug);
+  const job = liveJob ?? fallbackJobDetail(slug);
+  const usingFallbackJob = !liveJob;
   const { BriefcaseBusiness, Clock, FileText, Layers, MapPin, Target, Users } = PublicIcons;
 
   if (!job) {
@@ -142,6 +189,8 @@ export default async function JobDetailPage({ params, searchParams }: JobDetailP
   const query = await searchParams;
   const appliedMessage = firstQueryValue(query.applied);
   const applyErrorMessage = firstQueryValue(query.applyError);
+  const missionItems = contentItems(job.missions, job.description || job.summary || "Missions à préciser.");
+  const profileItems = contentItems(job.profile, "Profil à préciser par le recruteur.");
 
   return (
     <>
@@ -178,15 +227,28 @@ export default async function JobDetailPage({ params, searchParams }: JobDetailP
         <section className="section">
           <div className="container detail-layout">
             <div>
+              {usingFallbackJob ? (
+                <div className="notice-line" role="status">
+                  Cette fiche est un exemple local: aucune offre publiée correspondante n'a été trouvée dans Supabase.
+                </div>
+              ) : null}
               <div className="job-intro">{job.summary || "Une entreprise vérifiée recrute sur JobMada."}</div>
+              {job.description ? (
+                <section className="content-section">
+                  <h2>
+                    <FileText size={18} aria-hidden="true" /> Description du poste
+                  </h2>
+                  <p>{job.description}</p>
+                </section>
+              ) : null}
               <section className="content-section">
                 <h2>
                   <Target size={18} aria-hidden="true" /> Missions principales
                 </h2>
                 <ul>
-                  <li>Prendre en charge les missions quotidiennes avec rigueur et autonomie.</li>
-                  <li>Collaborer avec les équipes opérationnelles et assurer un reporting clair.</li>
-                  <li>Suivre les indicateurs, remonter les alertes et améliorer les processus.</li>
+                  {missionItems.map((item) => (
+                    <li key={item}>{item}</li>
+                  ))}
                 </ul>
               </section>
               <section className="content-section">
@@ -194,9 +256,9 @@ export default async function JobDetailPage({ params, searchParams }: JobDetailP
                   <Users size={18} aria-hidden="true" /> Profil recherché
                 </h2>
                 <ul>
-                  <li>Bonne capacité d'analyse et communication professionnelle.</li>
-                  <li>Expérience appréciée dans un environnement exigeant.</li>
-                  <li>Autonomie, ponctualité et sens du service.</li>
+                  {profileItems.map((item) => (
+                    <li key={item}>{item}</li>
+                  ))}
                 </ul>
               </section>
               <section className="apply-inline">
@@ -234,10 +296,24 @@ export default async function JobDetailPage({ params, searchParams }: JobDetailP
                 </p>
                 <p>
                   <span>
+                    <MapPin size={18} aria-hidden="true" />
+                  </span>
+                  <strong>Lieu</strong>
+                  {job.location_detail || job.city || "Madagascar"}
+                </p>
+                <p>
+                  <span>
+                    <FileText size={18} aria-hidden="true" />
+                  </span>
+                  <strong>Salaire</strong>
+                  {job.salary_range || "Non communiqué"}
+                </p>
+                <p>
+                  <span>
                     <Clock size={18} aria-hidden="true" />
                   </span>
-                  <strong>Prise de poste</strong>
-                  Dès que possible
+                  <strong>Date limite</strong>
+                  {formatDate(job.expires_at)}
                 </p>
                 <ApplyCallToAction applyState={applyState} jobId={job.id} slug={job.slug} full />
                 <small>Candidature gratuite et rapide via JobMada</small>
