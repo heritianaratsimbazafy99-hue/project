@@ -9,6 +9,10 @@ describe("public Next UI routes", () => {
   it("keeps the original prototype visual system mounted in Next", () => {
     expect(read("app/layout.tsx")).toContain('import "../styles.css"');
     expect(read("app/page.tsx")).toContain("hero-band");
+    expect(read("app/page.tsx")).toContain("how-it-works-title");
+    expect(read("app/page.tsx")).toContain("Uploadez votre CV");
+    expect(read("app/page.tsx")).toContain("On matche, vous postulez");
+    expect(read("app/page.tsx")).toContain("Suivez vos candidatures");
     expect(read("src/features/public/components.tsx")).toContain("deadline-card");
     expect(read("src/features/public/components.tsx")).toContain("data-sticky-pro");
     expect(read("app/(public)/emploi/page.tsx")).toContain("jobs-listing-layout");

@@ -34,6 +34,8 @@ describe("public regression guards", () => {
     expect(styles).toContain("font-size: clamp(36px, 4vw, 52px)");
     expect(styles).toContain("padding: 48px 0");
     expect(styles).toContain("min-height: 70px");
+    expect(styles).toContain(".how-it-works");
+    expect(styles).toContain(".timeline::before");
     expect(styles).not.toContain("font-size: clamp(42px, 5vw, 68px)");
   });
 

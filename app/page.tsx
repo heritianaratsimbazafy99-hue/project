@@ -21,7 +21,7 @@ export default async function HomePage() {
   const featuredJobs = jobs.filter((job) => job.is_featured).slice(0, 3);
   const latestJobs = jobs.slice(0, 6);
   const companies = getPublicCompanies(liveJobs);
-  const { BriefcaseBusiness, Layers, Search, Star, UserRound, Users, Zap } = PublicIcons;
+  const { Bell, BriefcaseBusiness, FileText, Layers, Search, Send, Star, UserRound, Users, Zap } = PublicIcons;
 
   return (
     <>
@@ -109,6 +109,43 @@ export default async function HomePage() {
               <Link className="btn btn-primary" href="/tarifs">
                 Découvrir →
               </Link>
+            </div>
+          </div>
+        </section>
+
+        <section className="section how-it-works" aria-labelledby="how-it-works-title">
+          <div className="container">
+            <h2 id="how-it-works-title" className="section-title" style={{ justifyContent: "center" }}>
+              <span className="icon-tile">
+                <Zap size={18} aria-hidden="true" />
+              </span>
+              Comment <strong>ça marche ?</strong>
+            </h2>
+            <div className="timeline" style={{ marginTop: 34 }}>
+              <div className="how-step">
+                <span className="step-number">01</span>
+                <span className="icon-tile how-icon">
+                  <FileText size={22} aria-hidden="true" />
+                </span>
+                <h3>Uploadez votre CV</h3>
+                <p>Inscription gratuite, CV prêt dans votre profil et candidature plus rapide.</p>
+              </div>
+              <div className="how-step">
+                <span className="step-number">02</span>
+                <span className="icon-tile how-icon mauve">
+                  <Send size={22} aria-hidden="true" />
+                </span>
+                <h3>On matche, vous postulez</h3>
+                <p>JobMada met en avant les offres qui correspondent. Postulez en quelques clics.</p>
+              </div>
+              <div className="how-step">
+                <span className="step-number">03</span>
+                <span className="icon-tile how-icon cyan">
+                  <Bell size={22} aria-hidden="true" />
+                </span>
+                <h3>Suivez vos candidatures</h3>
+                <p>Gardez un suivi clair de chaque candidature depuis votre espace candidat.</p>
+              </div>
             </div>
           </div>
         </section>

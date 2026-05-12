@@ -847,16 +847,77 @@ p {
 }
 
 .timeline {
+  position: relative;
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 28px;
   text-align: center;
 }
 
+.timeline::before {
+  content: "";
+  position: absolute;
+  top: 78px;
+  right: 15%;
+  left: 15%;
+  border-top: 2px dashed var(--line-strong);
+}
+
 .step-number {
-  color: rgba(142, 227, 33, 0.24);
+  position: relative;
+  z-index: 1;
+  color: rgba(11, 47, 107, 0.1);
   font-size: 48px;
   font-weight: 950;
+  line-height: 1;
+}
+
+.how-it-works {
+  background: #f8fbff;
+}
+
+.how-step {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  justify-items: center;
+  gap: 14px;
+  min-width: 0;
+  padding: 4px 18px;
+}
+
+.how-icon {
+  width: 58px;
+  height: 58px;
+  border-radius: 50%;
+  background: var(--rose-soft);
+  color: var(--rose);
+  box-shadow: 0 14px 30px rgba(4, 22, 54, 0.06);
+}
+
+.how-icon.mauve {
+  background: var(--mauve-soft);
+  color: var(--mauve);
+}
+
+.how-icon.cyan {
+  background: var(--cyan-soft);
+  color: var(--cyan);
+}
+
+.how-step h3 {
+  margin: 6px 0 0;
+  color: var(--navy);
+  font-size: 18px;
+  line-height: 1.25;
+}
+
+.how-step p {
+  max-width: 300px;
+  margin: 0;
+  color: var(--muted);
+  font-size: 15px;
+  line-height: 1.55;
 }
 
 .cta-grid {
@@ -3393,6 +3454,14 @@ body.modal-open {
   .cv-grid,
   .footer-grid {
     grid-template-columns: 1fr;
+  }
+
+  .timeline::before {
+    display: none;
+  }
+
+  .how-step {
+    padding-inline: 0;
   }
 
   .section {
