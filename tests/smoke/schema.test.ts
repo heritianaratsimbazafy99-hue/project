@@ -49,8 +49,12 @@ describe("initial Supabase schema", () => {
 
   it("allows recruiters to read CV storage objects only for received applications", () => {
     expect(migrationSql).toContain("create policy cvs_select_applicant_owner_recruiter_or_admin");
-    expect(migrationSql).toContain("public.applications.cv_path = storage.objects.name");
-    expect(migrationSql).toContain("select public.owns_job(public.applications.job_id)");
+    expect(migrationSql).toContain("create or replace function public.can_read_cv_object");
+    expect(migrationSql).toContain("security definer");
+    expect(migrationSql).toContain("set search_path = ''");
+    expect(migrationSql).toContain("public.applications.cv_path = object_name");
+    expect(migrationSql).toContain("public.companies.owner_id = (select auth.uid())");
+    expect(migrationSql).toContain("select public.can_read_cv_object(storage.objects.name)");
   });
 
   it("routes plan upgrades through auditable admin requests", () => {
@@ -90,5 +94,26 @@ describe("initial Supabase schema", () => {
     expect(migrationSql).toContain("plan_change_requests_reviewed_by_idx");
     expect(migrationSql).toContain("allowed_mime_types");
     expect(migrationSql).toContain("application/pdf");
+  });
+
+  it("keeps the final service-role helper safe for security definer triggers", () => {
+    const serviceRoleDefinitions = migrationSql.match(
+      /create or replace function public\.is_service_role\(\)[\s\S]*?\$\$;/g
+    );
+    const finalDefinition = serviceRoleDefinitions?.at(-1) ?? "";
+
+    expect(finalDefinition).toContain("auth.role()) = 'service_role'");
+    expect(finalDefinition).toContain("session_user in ('postgres', 'supabase_admin')");
+    expect(finalDefinition).not.toContain("current_user");
+  });
+
+  it("enforces recruiter job quotas and indexes sensitive lookups in the database", () => {
+    expect(migrationSql).toContain("create or replace function public.enforce_company_job_quota");
+    expect(migrationSql).toContain("company job quota exceeded");
+    expect(migrationSql).toContain("drop trigger if exists enforce_company_job_quota on public.jobs");
+    expect(migrationSql).toContain("applications_cv_path_idx");
+    expect(migrationSql).toContain("jobs_company_status_created_at_idx");
+    expect(migrationSql).toContain("applications_job_status_created_at_idx");
+    expect(migrationSql).toContain("admin_reviews_target_created_at_idx");
   });
 });

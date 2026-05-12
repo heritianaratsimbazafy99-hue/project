@@ -92,7 +92,7 @@ export default async function HomePage() {
                   href={`/emploi?company=${encodeURIComponent(company.name)}`}
                   aria-label={company.name}
                 >
-                  <CompanyLogo name={company.name} />
+                  <CompanyLogo name={company.name} logoPath={company.logo_path} />
                 </Link>
               ))}
             </div>

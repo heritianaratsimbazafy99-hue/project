@@ -2,6 +2,7 @@ import Link from "next/link";
 
 import { getCandidateApplicationsOrEmpty } from "@/features/applications/queries";
 import { demoCandidateApplications } from "@/features/demo/workspace";
+import { resolveCompanyLogoPath } from "@/features/public/company-logo";
 import { requireRole } from "@/lib/auth/require-role";
 import type { ApplicationStatus } from "@/types/database";
 
@@ -63,6 +64,16 @@ function initials(value: string) {
     .slice(0, 2)
     .map((part) => part.charAt(0).toUpperCase())
     .join("");
+}
+
+function applicationCompanyMark(name: string, fallbackText: string, logoPath: string | null) {
+  const resolvedLogoPath = resolveCompanyLogoPath(logoPath);
+
+  return resolvedLogoPath ? (
+    <img src={resolvedLogoPath} alt="" width="38" height="38" />
+  ) : (
+    initials(name || fallbackText)
+  );
 }
 
 function matchScore(status: ApplicationStatus) {
@@ -137,10 +148,10 @@ export default async function CandidateApplicationsPage({ searchParams }: Candid
               <article key={application.id}>
                 <Link className="candidateApplicationTitle" href={`/emploi/${application.job.slug}`}>
                   <span className="candidateCompanyMark" aria-hidden="true">
-                    {application.job.company.logo_path ? (
-                      <img src={application.job.company.logo_path} alt="" width="38" height="38" />
-                    ) : (
-                      initials(application.job.company.name || application.job.title)
+                    {applicationCompanyMark(
+                      application.job.company.name,
+                      application.job.title,
+                      application.job.company.logo_path
                     )}
                   </span>
                   <span>

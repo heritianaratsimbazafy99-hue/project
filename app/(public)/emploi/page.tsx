@@ -111,7 +111,7 @@ export default async function EmploymentPage({ searchParams }: EmploymentPagePro
                         type="checkbox"
                         name="contract"
                         value={contract}
-                        defaultChecked={filters.contract === contract}
+                        defaultChecked={filters.contract.includes(contract)}
                       />{" "}
                       <span>{contract}</span>
                       <em>{fallbackPublishedJobs.filter((job) => job.contract === contract).length}</em>
@@ -124,7 +124,7 @@ export default async function EmploymentPage({ searchParams }: EmploymentPagePro
                 <div className="check-list">
                   {["Antananarivo", "Fianarantsoa", "Toamasina", "Télétravail"].map((city) => (
                     <label key={city} className="check-row">
-                      <input type="checkbox" name="city" value={city} defaultChecked={filters.city === city} />{" "}
+                      <input type="checkbox" name="city" value={city} defaultChecked={filters.city.includes(city)} />{" "}
                       <span>{city}</span>
                       <em>{fallbackPublishedJobs.filter((job) => job.city === city).length}</em>
                     </label>
@@ -187,10 +187,10 @@ function filterFallbackJobs(
     if (filters.query && !text.includes(filters.query.toLowerCase())) {
       return false;
     }
-    if (filters.contract && job.contract !== filters.contract) {
+    if (filters.contract.length > 0 && !filters.contract.includes(job.contract)) {
       return false;
     }
-    if (filters.city && job.city !== filters.city) {
+    if (filters.city.length > 0 && !filters.city.includes(job.city)) {
       return false;
     }
     if (filters.sector && job.sector !== filters.sector) {

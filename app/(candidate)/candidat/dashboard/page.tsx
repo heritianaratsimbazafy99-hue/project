@@ -5,6 +5,7 @@ import type { LucideIcon } from "lucide-react";
 import { calculateCandidateCompletion } from "@/features/candidate/completion";
 import { demoCandidateApplications } from "@/features/demo/workspace";
 import { getCandidateApplicationsOrEmpty } from "@/features/applications/queries";
+import { resolveCompanyLogoPath } from "@/features/public/company-logo";
 import { fallbackPublishedJobs } from "@/features/public/demo-data";
 import { getPublishedJobsOrEmpty } from "@/features/jobs/queries";
 import { requireRole } from "@/lib/auth/require-role";
@@ -70,6 +71,16 @@ function initials(value: string) {
     .join("");
 }
 
+function candidateCompanyMark(name: string, fallbackText: string, logoPath: string | null) {
+  const resolvedLogoPath = resolveCompanyLogoPath(logoPath);
+
+  return resolvedLogoPath ? (
+    <img src={resolvedLogoPath} alt="" width="44" height="44" />
+  ) : (
+    initials(name || fallbackText)
+  );
+}
+
 function matchLabel(index: number) {
   return index < 2 ? "Forte correspondance" : "Bon potentiel";
 }
@@ -113,7 +124,7 @@ export default async function CandidateDashboardPage() {
 
   const jobs = isDemo
     ? fallbackPublishedJobs.slice(0, 4)
-    : (await getPublishedJobsOrEmpty({ query: "", contract: "", city: "", sector: "" })).slice(0, 8);
+    : (await getPublishedJobsOrEmpty({ query: "", contract: [], city: [], sector: "" })).slice(0, 8);
   const recentJobs = recommendedJobs(jobs, candidateProfile);
   const applications = isDemo ? demoCandidateApplications.slice(0, 3) : (await getCandidateApplicationsOrEmpty(user.id)).slice(0, 3);
   const onboardingSteps: OnboardingStep[] = [
@@ -190,7 +201,7 @@ export default async function CandidateDashboardPage() {
             {recentJobs.map((job, index) => (
               <Link key={job.id} className="candidateOpportunityCard" href={`/emploi/${job.slug}`}>
                 <span className="candidateCompanyMark" aria-hidden="true">
-                  {job.company.logo_path ? <img src={job.company.logo_path} alt="" width="44" height="44" /> : initials(job.company.name || job.title)}
+                  {candidateCompanyMark(job.company.name, job.title, job.company.logo_path)}
                 </span>
                 <div>
                   <h3>{job.title}</h3>

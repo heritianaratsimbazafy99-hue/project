@@ -1393,9 +1393,15 @@ a {
 }
 
 .candidateTabs a:hover,
-.candidateTabs a:first-child {
+.candidateTabs a[aria-current="page"],
+.candidateTabs a:focus-visible {
   border-bottom-color: var(--candidate-rose);
   color: var(--candidate-ink);
+}
+
+.candidateTabs a:focus-visible {
+  outline: 3px solid rgba(232, 95, 132, 0.24);
+  outline-offset: 3px;
 }
 
 .cvUploadCard {

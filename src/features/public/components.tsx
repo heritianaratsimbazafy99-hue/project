@@ -24,6 +24,7 @@ import type { CSSProperties } from "react";
 import { brand } from "@/config/brand";
 import { DEMO_SESSION_COOKIE, dashboardPathForRole, parseDemoSession } from "@/lib/auth/demo-session";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { resolveCompanyLogoPath } from "@/features/public/company-logo";
 import { MobileMenuToggle } from "@/features/public/mobile-menu-toggle";
 import type { UserRole } from "@/types/database";
 import type { JobListItem } from "@/types/database";
@@ -153,7 +154,7 @@ export async function PublicHeader({ active = "/", variant = "default" }: { acti
         </Link>
         <MobileMenuToggle />
       </div>
-      <nav className="mobile-drawer" aria-label="Navigation mobile">
+      <nav id="public-mobile-drawer" className="mobile-drawer" aria-label="Navigation mobile" hidden>
         {nav.map(([label, href]) => (
           <Link key={label} className="side-link" href={href}>
             {label}
@@ -211,8 +212,26 @@ export function BrandMark() {
   );
 }
 
-export function CompanyLogo({ name, large = false }: { name: string; large?: boolean }) {
+export function CompanyLogo({ name, logoPath = null, large = false }: { name: string; logoPath?: string | null; large?: boolean }) {
   const [x, y] = logoPositions[logoIndex(name)];
+  const resolvedLogoPath = resolveCompanyLogoPath(logoPath);
+
+  if (resolvedLogoPath) {
+    return (
+      <span
+        className="logo-mark real-logo"
+        style={{
+          width: large ? "112px" : undefined,
+          height: large ? "112px" : undefined
+        }}
+        role="img"
+        aria-label={`Logo ${name}`}
+      >
+        <img src={resolvedLogoPath} alt="" width={large ? 112 : 54} height={large ? 112 : 54} />
+      </span>
+    );
+  }
+
   return (
     <span
       className="logo-mark mock-logo"
@@ -240,7 +259,7 @@ export function PublicJobCard({ job }: { job: JobListItem }) {
       data-city={job.city}
       data-sector={job.sector}
     >
-      <CompanyLogo name={job.company.name} />
+      <CompanyLogo name={job.company.name} logoPath={job.company.logo_path} />
       <div className="job-main">
         <strong>{job.title}</strong>
         <span>{job.company.name}</span>
@@ -263,7 +282,7 @@ export function PublicJobCard({ job }: { job: JobListItem }) {
 export function MiniJob({ job }: { job: JobListItem }) {
   return (
     <Link className="mini-job" href={`/emploi/${job.slug}`}>
-      <CompanyLogo name={job.company.name} />
+      <CompanyLogo name={job.company.name} logoPath={job.company.logo_path} />
       <div>
         <strong>{job.title}</strong>
         <span>{job.company.name}</span>
@@ -284,7 +303,7 @@ export function StickyJobsRail({ jobs }: { jobs: JobListItem[] }) {
         </h3>
         {urgentJobs.map((job) => (
           <Link key={job.id} className="urgent-card" href={`/emploi/${job.slug}`}>
-            <CompanyLogo name={job.company.name} />
+            <CompanyLogo name={job.company.name} logoPath={job.company.logo_path} />
             <div>
               <strong>{job.title}</strong>
               <span>{job.company.name}</span>

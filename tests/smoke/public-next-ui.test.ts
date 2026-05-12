@@ -39,9 +39,33 @@ describe("public Next UI routes", () => {
     const toggle = read("src/features/public/mobile-menu-toggle.tsx");
 
     expect(publicComponents).toContain("MobileMenuToggle");
+    expect(publicComponents).toContain('id="public-mobile-drawer"');
     expect(toggle).toContain('"use client"');
+    expect(toggle).toContain('aria-controls="public-mobile-drawer"');
     expect(toggle).toContain('document.body.classList.toggle("menu-open"');
     expect(toggle).toContain("aria-expanded");
+    expect(toggle).toContain("drawer.hidden");
+    expect(toggle).toContain("drawer.inert");
+  });
+
+  it("uses real company logos when public job cards have a logo path", () => {
+    const publicComponents = read("src/features/public/components.tsx");
+    const logoHelper = read("src/features/public/company-logo.ts");
+
+    expect(publicComponents).toContain("resolveCompanyLogoPath");
+    expect(publicComponents).toContain("logoPath={job.company.logo_path}");
+    expect(publicComponents).toContain('src={resolvedLogoPath}');
+    expect(logoHelper).toContain("company-logos");
+  });
+
+  it("resolves Supabase company logo paths on candidate surfaces too", () => {
+    const dashboard = read("app/(candidate)/candidat/dashboard/page.tsx");
+    const candidatures = read("app/(candidate)/candidat/candidatures/page.tsx");
+
+    expect(dashboard).toContain("resolveCompanyLogoPath");
+    expect(dashboard).toContain("candidateCompanyMark(job.company.name, job.title, job.company.logo_path)");
+    expect(candidatures).toContain("resolveCompanyLogoPath");
+    expect(candidatures).toContain("applicationCompanyMark(");
   });
 
   it("keeps the connexion page close to the observed Asako login structure", () => {

@@ -45,8 +45,20 @@ function credentials(email: string, password: string) {
   return formData;
 }
 
+async function signedDemoSession(role: "candidate" | "recruiter") {
+  const { demoAccounts, serializeDemoSession } = await import("@/lib/auth/demo-session");
+  const account = demoAccounts.find((demoAccount) => demoAccount.role === role);
+
+  if (!account) {
+    throw new Error(`Missing ${role} demo account`);
+  }
+
+  return serializeDemoSession(account);
+}
+
 describe("demo authentication", () => {
   beforeEach(() => {
+    vi.unstubAllEnvs();
     mocks.cookieGet.mockReset();
     mocks.cookieSet.mockReset();
     mocks.redirect.mockClear();
@@ -121,15 +133,40 @@ describe("demo authentication", () => {
     expect(mocks.signInWithPassword).toHaveBeenCalled();
   });
 
-  it("allows demo sessions through role guards without a Supabase Auth user", async () => {
+  it("does not enable demo auth in production even when requested", async () => {
+    vi.stubEnv("NODE_ENV", "production");
+    vi.stubEnv("ENABLE_DEMO_AUTH", "true");
+    mocks.signInWithPassword.mockResolvedValue({
+      data: { user: null },
+      error: { message: "Invalid login credentials" }
+    });
+
+    const { signInWithPassword } = await import("@/features/auth/actions");
+
+    await expect(
+      signInWithPassword(credentials("candidat.demo@jobmada.mg", "jobmada-demo-password"))
+    ).rejects.toThrow("NEXT_REDIRECT:/connexion?error=invalid");
+    expect(mocks.cookieSet).not.toHaveBeenCalled();
+    expect(mocks.signInWithPassword).toHaveBeenCalled();
+  });
+
+  it("rejects unsigned forged demo admin cookies", async () => {
     const value = encodeURIComponent(
       JSON.stringify({
-        id: "00000000-0000-0000-0000-000000000001",
-        role: "recruiter",
-        email: "recruteur.demo@jobmada.mg",
-        displayName: "Recruteur demo JobMada"
+        id: "00000000-0000-0000-0000-000000000003",
+        role: "admin",
+        email: "admin.demo@jobmada.mg",
+        displayName: "Admin demo JobMada"
       })
     );
+
+    const { parseDemoSession } = await import("@/lib/auth/demo-session");
+
+    expect(parseDemoSession(value)).toBeNull();
+  });
+
+  it("allows demo sessions through role guards without a Supabase Auth user", async () => {
+    const value = await signedDemoSession("recruiter");
 
     mocks.cookieGet.mockImplementation((name: string) =>
       name === "jobmada_demo_session" ? { value } : undefined
@@ -148,14 +185,7 @@ describe("demo authentication", () => {
   });
 
   it("does not call Supabase Auth when a valid demo session cookie is present", async () => {
-    const value = encodeURIComponent(
-      JSON.stringify({
-        id: "00000000-0000-0000-0000-000000000001",
-        role: "recruiter",
-        email: "recruteur.demo@jobmada.mg",
-        displayName: "Recruteur demo JobMada"
-      })
-    );
+    const value = await signedDemoSession("recruiter");
 
     mocks.cookieGet.mockImplementation((name: string) =>
       name === "jobmada_demo_session" ? { value } : undefined
@@ -170,14 +200,7 @@ describe("demo authentication", () => {
   });
 
   it("redirects a demo user to their own dashboard when they request another role workspace", async () => {
-    const value = encodeURIComponent(
-      JSON.stringify({
-        id: "00000000-0000-0000-0000-000000000002",
-        role: "candidate",
-        email: "candidat.demo@jobmada.mg",
-        displayName: "Candidat demo JobMada"
-      })
-    );
+    const value = await signedDemoSession("candidate");
 
     mocks.cookieGet.mockImplementation((name: string) =>
       name === "jobmada_demo_session" ? { value } : undefined
@@ -190,14 +213,7 @@ describe("demo authentication", () => {
 
   it("ignores existing demo cookies when demo auth is disabled", async () => {
     process.env.ENABLE_DEMO_AUTH = "false";
-    const value = encodeURIComponent(
-      JSON.stringify({
-        id: "00000000-0000-0000-0000-000000000001",
-        role: "recruiter",
-        email: "recruteur.demo@jobmada.mg",
-        displayName: "Recruteur demo JobMada"
-      })
-    );
+    const value = await signedDemoSession("recruiter");
 
     mocks.cookieGet.mockImplementation((name: string) =>
       name === "jobmada_demo_session" ? { value } : undefined

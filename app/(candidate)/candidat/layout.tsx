@@ -68,7 +68,7 @@ export default async function CandidateLayout({ children }: CandidateLayoutProps
           <Link href="/emploi?contract=CDD">Emploi CDD</Link>
           <Link href="/emploi?contract=Freelance">Freelance</Link>
           <Link href="/emploi?contract=Stage">Offre de stage</Link>
-          <Link href="/emploi?urgent=true">Offres urgentes</Link>
+          <Link href="/emploi?urgent=1">Offres urgentes</Link>
         </nav>
         <Link className="candidateAccountButton" href="/candidat/profil">
           <span aria-hidden="true">{accountInitial}</span>

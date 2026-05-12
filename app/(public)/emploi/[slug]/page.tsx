@@ -202,7 +202,7 @@ export default async function JobDetailPage({ params, searchParams }: JobDetailP
               <Link href="/">Accueil</Link> / <Link href="/emploi">Emploi</Link> / {job.sector} / {job.title}
             </p>
             <div className="detail-title-row">
-              <CompanyLogo name={job.company.name} large />
+              <CompanyLogo name={job.company.name} logoPath={job.company.logo_path} large />
               <div>
                 <h1>{job.title}</h1>
                 <div className="job-meta">
@@ -321,7 +321,7 @@ export default async function JobDetailPage({ params, searchParams }: JobDetailP
               <div className="side-card">
                 <h3>L'entreprise</h3>
                 <div className="company-card-head">
-                  <CompanyLogo name={job.company.name} />
+                  <CompanyLogo name={job.company.name} logoPath={job.company.logo_path} />
                   <div>
                     <strong>{job.company.name}</strong>
                     <br />

@@ -169,6 +169,26 @@ img {
   padding: 8px;
 }
 
+.hamburger:focus-visible,
+.mobile-drawer a:focus-visible,
+.top-nav a:focus-visible,
+.account-pill:focus-visible,
+.brand:focus-visible,
+.btn:focus-visible,
+.side-link:focus-visible,
+.job-card:focus-visible,
+.mini-job:focus-visible,
+.urgent-card:focus-visible,
+.filter-panel input:focus-visible,
+.filter-panel select:focus-visible,
+.search-shell input:focus-visible,
+.input:focus-visible,
+.select:focus-visible,
+.textarea:focus-visible {
+  outline: 3px solid rgba(232, 95, 132, 0.32);
+  outline-offset: 3px;
+}
+
 .hamburger span {
   display: block;
   width: 22px;
@@ -467,6 +487,13 @@ p {
   width: 54px;
   height: 54px;
   font-size: 13px;
+}
+
+.real-logo img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
 }
 
 .mock-logo {
@@ -3422,15 +3449,35 @@ body.modal-open {
   .search-shell,
   .toolbar,
   .company-searchbar {
+    width: 100%;
+    max-width: 100%;
     grid-template-columns: 1fr;
     border-radius: 18px;
     flex-direction: column;
     align-items: stretch;
   }
 
+  .search-shell {
+    gap: 10px;
+    max-width: calc(100vw - 28px);
+    padding: 12px;
+  }
+
+  .search-shell > span {
+    display: none;
+  }
+
+  .search-shell input {
+    width: 100%;
+    min-height: 42px;
+    padding: 0 6px;
+  }
+
   .search-shell .btn {
-    width: calc(100% - 16px);
-    align-self: center;
+    width: min(100%, 260px);
+    max-width: 100%;
+    align-self: flex-start;
+    margin-inline: 0;
   }
 
   .company-searchbar select {

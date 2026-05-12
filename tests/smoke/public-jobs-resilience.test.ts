@@ -27,7 +27,7 @@ describe("public job query resilience", () => {
     });
 
     await expect(
-      getPublishedJobsOrEmpty({ query: "", contract: "", city: "", sector: "" })
+      getPublishedJobsOrEmpty({ query: "", contract: [], city: [], sector: "" })
     ).resolves.toEqual([]);
   });
 

@@ -54,4 +54,23 @@ describe("public regression guards", () => {
     expect(styles).toContain(".signup-asako-shell");
     expect(styles).toContain(".signup-form-card");
   });
+
+  it("highlights candidate candidature tabs from aria-current instead of source order", () => {
+    const candidaturesPage = read("app/(candidate)/candidat/candidatures/page.tsx");
+    const candidateStyles = read("app/globals.css");
+
+    expect(candidaturesPage).toContain('aria-current={activeStatus === option.value ? "page" : undefined}');
+    expect(candidateStyles).toContain('.candidateTabs a[aria-current="page"]');
+    expect(candidateStyles).not.toContain(".candidateTabs a:first-child");
+  });
+
+  it("keeps focus-visible states for public and candidate controls touched by filtering flows", () => {
+    const publicStyles = read("styles.css");
+    const candidateStyles = read("app/globals.css");
+
+    expect(publicStyles).toContain(".hamburger:focus-visible");
+    expect(publicStyles).toContain(".filter-panel input:focus-visible");
+    expect(publicStyles).toContain(".job-card:focus-visible");
+    expect(candidateStyles).toContain(".candidateTabs a:focus-visible");
+  });
 });

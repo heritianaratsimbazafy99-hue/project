@@ -3,8 +3,8 @@ import type { JobListItem } from "@/types/database";
 
 export type JobFilters = {
   query: string;
-  contract: string;
-  city: string;
+  contract: string[];
+  city: string[];
   sector: string;
   company?: string;
   urgent?: boolean;
@@ -68,6 +68,11 @@ type JobRow = {
 const firstValue = (value: string | string[] | undefined) =>
   (Array.isArray(value) ? value[0] : value)?.trim() ?? "";
 
+const values = (value: string | string[] | undefined) => {
+  const rawValues = Array.isArray(value) ? value : value ? [value] : [];
+  return [...new Set(rawValues.map((item) => item.trim()).filter(Boolean))];
+};
+
 function positiveInteger(value: string, fallback: number, max?: number) {
   const parsed = Number.parseInt(value, 10);
   const normalized = Number.isFinite(parsed) && parsed > 0 ? parsed : fallback;
@@ -81,6 +86,10 @@ function normalizeSort(value: string): JobSort {
   }
 
   return "recent";
+}
+
+function isUrgentValue(value: string | string[] | undefined) {
+  return values(value).some((item) => ["1", "true"].includes(item.toLowerCase()));
 }
 
 const emptyCompany = {
@@ -97,11 +106,11 @@ export function buildJobFilters(
 ): JobFilters {
   return {
     query: firstValue(input.q),
-    contract: firstValue(input.contract),
-    city: firstValue(input.city),
+    contract: values(input.contract),
+    city: values(input.city),
     sector: firstValue(input.sector),
     company: firstValue(input.company),
-    urgent: firstValue(input.urgent) === "1",
+    urgent: isUrgentValue(input.urgent),
     page: positiveInteger(firstValue(input.page), 1),
     pageSize: positiveInteger(firstValue(input.pageSize), 12, 48),
     sort: normalizeSort(firstValue(input.sort))
@@ -112,8 +121,8 @@ export function buildJobPageHref(filters: JobFilters, page: number) {
   const params = new URLSearchParams();
 
   if (filters.query) params.set("q", filters.query);
-  if (filters.contract) params.set("contract", filters.contract);
-  if (filters.city) params.set("city", filters.city);
+  filters.contract.forEach((contract) => params.append("contract", contract));
+  filters.city.forEach((city) => params.append("city", city));
   if (filters.sector) params.set("sector", filters.sector);
   if (filters.company) params.set("company", filters.company);
   if (filters.urgent) params.set("urgent", "1");
@@ -206,12 +215,12 @@ export async function getPublishedJobsPage(filters: JobFilters): Promise<Publish
     request = request.or(`title.ilike.${query},summary.ilike.${query}`);
   }
 
-  if (filters.contract) {
-    request = request.eq("contract", filters.contract);
+  if (filters.contract.length > 0) {
+    request = request.in("contract", filters.contract);
   }
 
-  if (filters.city) {
-    request = request.eq("city", filters.city);
+  if (filters.city.length > 0) {
+    request = request.in("city", filters.city);
   }
 
   if (filters.sector) {

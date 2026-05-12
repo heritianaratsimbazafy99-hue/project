@@ -1,14 +1,26 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
-import { DEMO_SESSION_COOKIE, isDemoAuthEnabled } from "@/lib/auth/demo-session";
+const DEMO_SESSION_COOKIE = "jobmada_demo_session";
+
+function isDemoAuthEnabledInMiddleware() {
+  if (process.env.NODE_ENV === "production") {
+    return false;
+  }
+
+  if (process.env.ENABLE_DEMO_AUTH === "false") {
+    return false;
+  }
+
+  return true;
+}
 
 export async function middleware(request: NextRequest) {
   let response = NextResponse.next({ request });
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
   const cookieNames = request.cookies.getAll().map((cookie) => cookie.name);
-  const hasDemoSession = isDemoAuthEnabled() && cookieNames.includes(DEMO_SESSION_COOKIE);
+  const hasDemoSession = isDemoAuthEnabledInMiddleware() && cookieNames.includes(DEMO_SESSION_COOKIE);
   const hasSupabaseSession = cookieNames.some((name) => name.startsWith("sb-") && name.includes("auth-token"));
 
   if (!supabaseUrl || !supabaseAnonKey || hasDemoSession || !hasSupabaseSession) {
