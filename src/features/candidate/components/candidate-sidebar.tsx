@@ -52,7 +52,7 @@ export function CandidateSidebar({ email, displayName, completion }: CandidateSi
 
       <section className="completionCard" aria-labelledby="completion-title">
         <div className="completionHeader">
-          <h2 id="completion-title">Profil complété</h2>
+          <h2 id="completion-title">{completion.percent === 100 ? "Profil prêt" : "Complétez votre profil"}</h2>
           <strong>{completion.percent}%</strong>
         </div>
         <div className="completionTrack" aria-hidden="true">
@@ -61,7 +61,9 @@ export function CandidateSidebar({ email, displayName, completion }: CandidateSi
         <p>
           {completion.completedSteps} étapes sur {completion.totalSteps} complétées
         </p>
-        <Link href="/candidat/profil">Compléter mon profil</Link>
+        <Link href={completion.percent === 100 ? "/emploi" : "/candidat/profil"}>
+          {completion.percent === 100 ? "Voir les offres" : "Compléter mon profil"}
+        </Link>
       </section>
     </aside>
   );

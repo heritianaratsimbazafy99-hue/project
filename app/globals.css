@@ -808,6 +808,34 @@ a {
   cursor: pointer;
 }
 
+.candidateMetricGrid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+.candidateMetricGrid article {
+  display: grid;
+  gap: 0.25rem;
+  padding: 1rem;
+  border: 1px solid rgba(11, 47, 107, 0.12);
+  border-radius: 0.5rem;
+  background: rgba(255, 255, 255, 0.9);
+  box-shadow: 0 0.75rem 2rem rgba(11, 47, 107, 0.06);
+}
+
+.candidateMetricGrid span,
+.candidateMetricGrid small {
+  color: var(--color-muted);
+  font-weight: 800;
+}
+
+.candidateMetricGrid strong {
+  color: var(--color-navy);
+  font-size: 1.85rem;
+  line-height: 1;
+}
+
 .candidateNotice {
   padding: 0.95rem 1.05rem;
   border: 1px solid rgba(142, 227, 33, 0.45);
@@ -844,6 +872,17 @@ a {
   font-weight: 800;
 }
 
+.onboardingList strong {
+  color: var(--color-navy);
+  line-height: 1.25;
+}
+
+.onboardingList small {
+  color: var(--color-muted);
+  font-weight: 750;
+  line-height: 1.45;
+}
+
 .onboardingList span {
   display: grid;
   width: 2rem;
@@ -857,6 +896,23 @@ a {
 }
 
 .onboardingList .isDone span {
+  background: var(--color-green);
+}
+
+.onboardingProgress {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.35rem;
+  margin-top: 1rem;
+}
+
+.onboardingProgress span {
+  height: 0.35rem;
+  border-radius: 999px;
+  background: rgba(11, 47, 107, 0.12);
+}
+
+.onboardingProgress span.isDone {
   background: var(--color-green);
 }
 
@@ -915,6 +971,11 @@ a {
   color: #315b09;
   font-size: 0.86rem;
   font-weight: 850;
+}
+
+.cvCurrent.isMissing {
+  background: rgba(11, 47, 107, 0.08);
+  color: var(--color-muted);
 }
 
 .cvUploadForm {
@@ -1989,6 +2050,7 @@ a {
   .jobBoardLayout,
   .homeJobGrid,
   .dashboardShell,
+  .candidateMetricGrid,
   .adminShell,
   .adminMetricGrid,
   .cvUploadCard,
@@ -2014,6 +2076,7 @@ a {
   }
 
   .onboardingList,
+  .onboardingProgress,
   .recruiterStepList {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
@@ -2066,6 +2129,8 @@ a {
   }
 
   .onboardingList,
+  .onboardingProgress,
+  .candidateMetricGrid,
   .recruiterStepList {
     grid-template-columns: 1fr;
   }

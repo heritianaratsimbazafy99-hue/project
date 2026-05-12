@@ -24,6 +24,49 @@ type JobAlertRow = {
   created_at: string;
 };
 
+const alertSectors = [
+  "Informatique & Digital",
+  "Centres d'appels & BPO",
+  "Commerce & Vente",
+  "Marketing, Communication & Médias",
+  "Banque, Finance & Comptabilité",
+  "Gestion, Administration & Secrétariat",
+  "Ressources humaines",
+  "Hôtellerie, Restauration & Tourisme",
+  "BTP, Construction & Immobilier",
+  "Industrie & Production",
+  "Logistique, Transport & Supply Chain",
+  "Santé & Médical",
+  "Enseignement & Formation",
+  "Juridique",
+  "Agriculture & Agroalimentaire",
+  "Textile, Mode & Confection",
+  "Énergie, Mines & Environnement",
+  "Associatif, ONG & Humanitaire",
+  "Artisanat & Métiers techniques",
+  "Sécurité & Gardiennage",
+  "Services à la personne"
+];
+
+const alertCities = [
+  "Ambanja",
+  "Antananarivo",
+  "Antsirabe",
+  "Antsiranana",
+  "Fianarantsoa",
+  "Mahajanga",
+  "Moramanga",
+  "Morondava",
+  "Nosy Be",
+  "Sainte-Marie",
+  "Taolagnaro",
+  "Toamasina",
+  "Toliara",
+  "Télétravail"
+];
+
+const alertContracts = ["CDI", "CDD", "Stage", "Freelance"];
+
 function firstQueryValue(value: string | string[] | undefined) {
   return Array.isArray(value) ? value[0] : value;
 }
@@ -57,13 +100,14 @@ export default async function CandidateAlertsPage({ searchParams }: CandidateAle
   const resumed = firstQueryValue(query.resumed);
   const deleted = firstQueryValue(query.deleted);
   const error = firstQueryValue(query.error);
+  const activeAlerts = alerts.filter((alert) => alert.is_active).length;
 
   return (
     <div className="candidateStack">
       <section className="candidateHero" aria-labelledby="alerts-title">
         <p className="candidateEyebrow">Mes alertes</p>
         <h1 id="alerts-title">Alertes emploi</h1>
-        <p>Créez des alertes pour recevoir les offres qui correspondent à votre recherche.</p>
+        <p>Créez des alertes ciblées par secteur, ville et contrat pour ne manquer aucune opportunité.</p>
       </section>
 
       <section className="candidateCard" aria-labelledby="alert-form-title">
@@ -107,15 +151,30 @@ export default async function CandidateAlertsPage({ searchParams }: CandidateAle
           </label>
           <label>
             Secteur
-            <input name="sector" placeholder="Informatique & Digital" />
+            <select name="sector" defaultValue="">
+              <option value="">Tous les secteurs</option>
+              {alertSectors.map((sector) => (
+                <option key={sector}>{sector}</option>
+              ))}
+            </select>
           </label>
           <label>
             Ville
-            <input name="city" placeholder="Antananarivo" />
+            <select name="city" defaultValue="">
+              <option value="">Toutes les villes</option>
+              {alertCities.map((city) => (
+                <option key={city}>{city}</option>
+              ))}
+            </select>
           </label>
           <label>
             Contrat
-            <input name="contract" placeholder="CDI, CDD, Stage" />
+            <select name="contract" defaultValue="">
+              <option value="">Tous</option>
+              {alertContracts.map((contract) => (
+                <option key={contract}>{contract}</option>
+              ))}
+            </select>
           </label>
           <label>
             Fréquence
@@ -137,8 +196,7 @@ export default async function CandidateAlertsPage({ searchParams }: CandidateAle
               <div>
                 <p className="candidateEyebrow">Alertes sauvegardées</p>
                 <h2 id="alerts-empty-title">
-                  {alerts.length} alerte{alerts.length > 1 ? "s" : ""} active
-                  {alerts.length > 1 ? "s" : ""}
+                  {activeAlerts} active{activeAlerts > 1 ? "s" : ""} sur {alerts.length}
                 </h2>
               </div>
             </div>

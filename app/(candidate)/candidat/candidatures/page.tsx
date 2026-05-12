@@ -58,6 +58,13 @@ export default async function CandidateApplicationsPage({ searchParams }: Candid
   const viewedCount = filteredApplications.filter((application) =>
     ["viewed", "shortlisted", "interview", "hired"].includes(application.status)
   ).length;
+  const totalActiveCount = applications.filter((application) => !["rejected", "hired"].includes(application.status)).length;
+  const totalViewedCount = applications.filter((application) =>
+    ["viewed", "shortlisted", "interview", "hired"].includes(application.status)
+  ).length;
+  const shortlistedCount = applications.filter((application) =>
+    ["shortlisted", "interview", "hired"].includes(application.status)
+  ).length;
 
   return (
     <div className="candidateStack">
@@ -65,6 +72,29 @@ export default async function CandidateApplicationsPage({ searchParams }: Candid
         <p className="candidateEyebrow">Mes candidatures</p>
         <h1 id="applications-title">Suivi des candidatures</h1>
         <p>Retrouvez ici les offres auxquelles vous avez postulé et leur avancement.</p>
+      </section>
+
+      <section className="candidateMetricGrid" aria-label="Résumé des candidatures">
+        <article>
+          <span>Total</span>
+          <strong>{applications.length}</strong>
+          <small>candidature{applications.length > 1 ? "s" : ""}</small>
+        </article>
+        <article>
+          <span>Actives</span>
+          <strong>{totalActiveCount}</strong>
+          <small>en cours</small>
+        </article>
+        <article>
+          <span>Consultées</span>
+          <strong>{totalViewedCount}</strong>
+          <small>par les recruteurs</small>
+        </article>
+        <article>
+          <span>Shortlist</span>
+          <strong>{shortlistedCount}</strong>
+          <small>profil retenu</small>
+        </article>
       </section>
 
       <section className="candidateCard" aria-labelledby="applications-empty-title">

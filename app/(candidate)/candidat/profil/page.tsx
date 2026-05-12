@@ -55,6 +55,54 @@ type CandidateSkillRow = {
   label: string;
 };
 
+const candidateCities = [
+  "Ambanja",
+  "Antananarivo",
+  "Antsirabe",
+  "Antsiranana",
+  "Fianarantsoa",
+  "Mahajanga",
+  "Moramanga",
+  "Morondava",
+  "Nosy Be",
+  "Sainte-Marie",
+  "Taolagnaro",
+  "Toamasina",
+  "Toliara",
+  "Télétravail"
+];
+
+const candidateSectors = [
+  "Informatique & Digital",
+  "Centres d'appels & BPO",
+  "Commerce & Vente",
+  "Marketing, Communication & Médias",
+  "Banque, Finance & Comptabilité",
+  "Gestion, Administration & Secrétariat",
+  "Ressources humaines",
+  "Hôtellerie, Restauration & Tourisme",
+  "BTP, Construction & Immobilier",
+  "Industrie & Production",
+  "Logistique, Transport & Supply Chain",
+  "Santé & Médical",
+  "Enseignement & Formation",
+  "Juridique",
+  "Agriculture & Agroalimentaire",
+  "Textile, Mode & Confection",
+  "Énergie, Mines & Environnement",
+  "Associatif, ONG & Humanitaire",
+  "Artisanat & Métiers techniques",
+  "Sécurité & Gardiennage",
+  "Services à la personne"
+];
+
+const salaryRanges = [
+  "Moins de 500 000 Ar/mois",
+  "500 000 — 1 000 000 Ar/mois",
+  "1 000 000 — 2 000 000 Ar/mois",
+  "Plus de 2 000 000 Ar/mois"
+];
+
 function firstQueryValue(value: string | string[] | undefined) {
   return Array.isArray(value) ? value[0] : value;
 }
@@ -138,7 +186,7 @@ export default async function CandidateProfilePage({ searchParams }: CandidatePr
       <section className="candidateHero" aria-labelledby="profile-title">
         <p className="candidateEyebrow">Mon profil</p>
         <h1 id="profile-title">Votre dossier candidat</h1>
-        <p>Gardez vos informations à jour pour envoyer des candidatures complètes et crédibles.</p>
+        <p>Déposez votre CV, complétez votre parcours et gardez un profil clair pour les recruteurs.</p>
       </section>
 
       <CvUploadCard cvPath={candidateProfile?.cv_path} />
@@ -217,11 +265,21 @@ export default async function CandidateProfilePage({ searchParams }: CandidatePr
           </label>
           <label>
             Ville
-            <input name="city" defaultValue={candidateProfile?.city ?? ""} />
+            <select name="city" defaultValue={candidateProfile?.city ?? ""}>
+              <option value="">Sélectionner une ville</option>
+              {candidateCities.map((city) => (
+                <option key={city}>{city}</option>
+              ))}
+            </select>
           </label>
           <label>
             Secteur
-            <input name="sector" defaultValue={candidateProfile?.sector ?? ""} />
+            <select name="sector" defaultValue={candidateProfile?.sector ?? ""}>
+              <option value="">Sélectionner un secteur</option>
+              {candidateSectors.map((sector) => (
+                <option key={sector}>{sector}</option>
+              ))}
+            </select>
           </label>
           <label>
             Poste recherché
@@ -229,7 +287,12 @@ export default async function CandidateProfilePage({ searchParams }: CandidatePr
           </label>
           <label>
             Prétention salariale
-            <input name="salary_expectation" defaultValue={candidateProfile?.salary_expectation ?? ""} />
+            <select name="salary_expectation" defaultValue={candidateProfile?.salary_expectation ?? ""}>
+              <option value="">Sélectionner une fourchette</option>
+              {salaryRanges.map((range) => (
+                <option key={range}>{range}</option>
+              ))}
+            </select>
           </label>
           <div className="candidateFormActions">
             <button type="submit">Enregistrer le profil</button>
