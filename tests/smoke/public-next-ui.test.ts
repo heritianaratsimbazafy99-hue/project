@@ -25,6 +25,15 @@ describe("public Next UI routes", () => {
     expect(existsSync(resolve(process.cwd(), "app/(public)/tarifs/page.tsx"))).toBe(true);
   });
 
+  it("routes the public account button to the authenticated role dashboard", () => {
+    const publicComponents = read("src/features/public/components.tsx");
+
+    expect(publicComponents).toContain("getPublicAccountTarget");
+    expect(publicComponents).toContain("href={accountTarget.href}");
+    expect(publicComponents).toContain("/candidat/dashboard");
+    expect(publicComponents).not.toContain('className="account-pill" href="/recruteur/dashboard"');
+  });
+
   it("keeps the connexion page close to the observed Asako login structure", () => {
     const connexion = read("app/(public)/connexion/page.tsx");
 

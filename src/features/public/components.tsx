@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { cookies } from "next/headers";
 import {
   Bell,
   Building2,
@@ -21,6 +22,9 @@ import {
 import type { CSSProperties } from "react";
 
 import { brand } from "@/config/brand";
+import { DEMO_SESSION_COOKIE, dashboardPathForRole, parseDemoSession } from "@/lib/auth/demo-session";
+import { createSupabaseServerClient } from "@/lib/supabase/server";
+import type { UserRole } from "@/types/database";
 import type { JobListItem } from "@/types/database";
 
 const logoPositions = [
@@ -46,7 +50,53 @@ function logoIndex(name: string) {
   return [...name].reduce((sum, char) => sum + char.charCodeAt(0), 0) % logoPositions.length;
 }
 
-export function PublicHeader({ active = "/", variant = "default" }: { active?: string; variant?: "default" | "auth" }) {
+function accountTargetForRole(role: UserRole | null) {
+  if (role) {
+    return {
+      href: dashboardPathForRole(role),
+      initials: role === "recruiter" ? "HR" : role === "admin" ? "AD" : "C",
+      label: "Mon compte"
+    };
+  }
+
+  return {
+    href: "/connexion",
+    initials: "IN",
+    label: "Connexion"
+  };
+}
+
+async function getPublicAccountTarget() {
+  const cookieStore = await cookies();
+  const demoAccount = parseDemoSession(cookieStore.get(DEMO_SESSION_COOKIE)?.value);
+
+  if (demoAccount) {
+    return accountTargetForRole(demoAccount.role);
+  }
+
+  const hasSupabaseSession = cookieStore
+    .getAll()
+    .some((cookie) => cookie.name.startsWith("sb-") && cookie.name.includes("auth-token"));
+
+  if (!hasSupabaseSession) {
+    return accountTargetForRole(null);
+  }
+
+  const supabase = await createSupabaseServerClient();
+  const {
+    data: { user }
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return accountTargetForRole(null);
+  }
+
+  const { data: profile } = await supabase.from("profiles").select("role").eq("id", user.id).single<{ role: UserRole }>();
+
+  return accountTargetForRole(profile?.role ?? null);
+}
+
+export async function PublicHeader({ active = "/", variant = "default" }: { active?: string; variant?: "default" | "auth" }) {
   const nav = [
     ["Offres d'emploi", "/emploi"],
     ["Emploi CDD", "/emploi?contract=CDD"],
@@ -82,6 +132,8 @@ export function PublicHeader({ active = "/", variant = "default" }: { active?: s
     );
   }
 
+  const accountTarget = await getPublicAccountTarget();
+
   return (
     <header className="site-header">
       <div className="container header-inner">
@@ -93,9 +145,9 @@ export function PublicHeader({ active = "/", variant = "default" }: { active?: s
             </Link>
           ))}
         </nav>
-        <Link className="account-pill" href="/recruteur/dashboard">
-          <span>HR</span>
-          <span>Mon compte</span>
+        <Link className="account-pill" href={accountTarget.href}>
+          <span>{accountTarget.initials}</span>
+          <span>{accountTarget.label}</span>
           <ChevronDown size={16} aria-hidden="true" />
         </Link>
         <button className="hamburger" aria-label="Ouvrir le menu">
@@ -110,8 +162,8 @@ export function PublicHeader({ active = "/", variant = "default" }: { active?: s
             {label}
           </Link>
         ))}
-        <Link className="btn btn-primary" href="/recruteur/dashboard">
-          Mon compte
+        <Link className="btn btn-primary" href={accountTarget.href}>
+          {accountTarget.label}
         </Link>
       </nav>
     </header>
