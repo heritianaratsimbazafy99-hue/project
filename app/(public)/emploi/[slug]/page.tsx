@@ -15,7 +15,7 @@ import {
   PublicIcons,
   PublicJobCard
 } from "@/features/public/components";
-import { fallbackPublishedJobs, findPublicJob } from "@/features/public/demo-data";
+import { canUsePublicFallbackJobs, fallbackPublishedJobs, findPublicJob } from "@/features/public/demo-data";
 import { DEMO_SESSION_COOKIE, parseDemoSession } from "@/lib/auth/demo-session";
 import type { UserRole } from "@/types/database";
 
@@ -148,6 +148,10 @@ function formatDate(value: string | null) {
 }
 
 function fallbackJobDetail(slug: string): JobDetail | null {
+  if (!canUsePublicFallbackJobs()) {
+    return null;
+  }
+
   const job = findPublicJob(slug);
 
   if (!job) {
@@ -182,9 +186,11 @@ export default async function JobDetailPage({ params, searchParams }: JobDetailP
     notFound();
   }
 
-  const similarJobs = fallbackPublishedJobs
-    .filter((item) => item.sector === job.sector && item.slug !== job.slug)
-    .slice(0, 4);
+  const similarJobs = canUsePublicFallbackJobs()
+    ? fallbackPublishedJobs
+        .filter((item) => item.sector === job.sector && item.slug !== job.slug)
+        .slice(0, 4)
+    : [];
   const applyState = await resolveApplyState(job.id);
   const query = await searchParams;
   const appliedMessage = firstQueryValue(query.applied);

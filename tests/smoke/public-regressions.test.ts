@@ -1,13 +1,17 @@
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import type { JobListItem } from "@/types/database";
 
 const read = (path: string) => readFileSync(resolve(process.cwd(), path), "utf8");
 
 describe("public regression guards", () => {
+  afterEach(() => {
+    vi.unstubAllEnvs();
+  });
+
   it("keeps a full recruiting company strip even when Supabase returns a sparse live set", async () => {
     const module = (await import("@/features/public/demo-data")) as Record<string, unknown>;
     const getPublicCompanies = module.getPublicCompanies as
@@ -72,5 +76,25 @@ describe("public regression guards", () => {
     expect(publicStyles).toContain(".filter-panel input:focus-visible");
     expect(publicStyles).toContain(".job-card:focus-visible");
     expect(candidateStyles).toContain(".candidateTabs a:focus-visible");
+  });
+
+  it("does not show local fallback jobs in production unless explicitly enabled", async () => {
+    const { fallbackPublishedJobs, useFallbackJobs } = await import("@/features/public/demo-data");
+
+    vi.stubEnv("NODE_ENV", "production");
+    vi.stubEnv("ENABLE_PUBLIC_DEMO_FALLBACKS", undefined);
+
+    expect(useFallbackJobs([])).toEqual([]);
+
+    vi.stubEnv("ENABLE_PUBLIC_DEMO_FALLBACKS", "true");
+
+    expect(useFallbackJobs([])).toEqual(fallbackPublishedJobs);
+  });
+
+  it("uses the real candidate application status labels on the dashboard", () => {
+    const dashboardPage = read("app/(candidate)/candidat/dashboard/page.tsx");
+
+    expect(dashboardPage).toContain("candidateApplicationStatusLabels[application.status]");
+    expect(dashboardPage).not.toContain("<span>Envoyée</span>");
   });
 });

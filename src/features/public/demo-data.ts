@@ -118,8 +118,24 @@ export const publicSectors = [
   ["Industrie", 11]
 ] as const;
 
+export function canUsePublicFallbackJobs() {
+  if (process.env.ENABLE_PUBLIC_DEMO_FALLBACKS === "true") {
+    return true;
+  }
+
+  if (process.env.ENABLE_PUBLIC_DEMO_FALLBACKS === "false") {
+    return false;
+  }
+
+  return process.env.NODE_ENV !== "production";
+}
+
 export function useFallbackJobs(jobs: JobListItem[]) {
-  return jobs.length > 0 ? jobs : fallbackPublishedJobs;
+  if (jobs.length > 0) {
+    return jobs;
+  }
+
+  return canUsePublicFallbackJobs() ? fallbackPublishedJobs : [];
 }
 
 export function getPublicCompanies(jobs: JobListItem[]) {

@@ -13,7 +13,7 @@ import {
   PublicJobCard,
   SearchShell
 } from "@/features/public/components";
-import { fallbackPublishedJobs, publicSectors, useFallbackJobs } from "@/features/public/demo-data";
+import { canUsePublicFallbackJobs, fallbackPublishedJobs, publicSectors, useFallbackJobs } from "@/features/public/demo-data";
 
 export const dynamic = "force-dynamic";
 
@@ -25,7 +25,8 @@ export default async function EmploymentPage({ searchParams }: EmploymentPagePro
   const rawParams = await searchParams;
   const filters = buildJobFilters(rawParams);
   const livePage = await getPublishedJobsPageOrEmpty(filters);
-  const fallbackMatches = filterFallbackJobs(fallbackPublishedJobs, filters);
+  const fallbackEnabled = canUsePublicFallbackJobs();
+  const fallbackMatches = fallbackEnabled ? filterFallbackJobs(fallbackPublishedJobs, filters) : [];
   const fallbackStart = ((filters.page ?? 1) - 1) * (filters.pageSize ?? 12);
   const fallbackJobs = fallbackMatches.slice(fallbackStart, fallbackStart + (filters.pageSize ?? 12));
   const usingFallbackJobs = livePage.jobs.length === 0 && fallbackJobs.length > 0;
@@ -114,7 +115,7 @@ export default async function EmploymentPage({ searchParams }: EmploymentPagePro
                         defaultChecked={filters.contract.includes(contract)}
                       />{" "}
                       <span>{contract}</span>
-                      <em>{fallbackPublishedJobs.filter((job) => job.contract === contract).length}</em>
+                      <em>{fallbackEnabled ? fallbackPublishedJobs.filter((job) => job.contract === contract).length : 0}</em>
                     </label>
                   ))}
                 </div>
@@ -126,7 +127,7 @@ export default async function EmploymentPage({ searchParams }: EmploymentPagePro
                     <label key={city} className="check-row">
                       <input type="checkbox" name="city" value={city} defaultChecked={filters.city.includes(city)} />{" "}
                       <span>{city}</span>
-                      <em>{fallbackPublishedJobs.filter((job) => job.city === city).length}</em>
+                      <em>{fallbackEnabled ? fallbackPublishedJobs.filter((job) => job.city === city).length : 0}</em>
                     </label>
                   ))}
                 </div>
@@ -145,7 +146,7 @@ export default async function EmploymentPage({ searchParams }: EmploymentPagePro
               <label className="check-row">
                 <input type="checkbox" name="urgent" value="1" defaultChecked={filters.urgent} />{" "}
                 <span>Offres urgentes</span>
-                <em>{fallbackPublishedJobs.filter((job) => job.is_urgent).length}</em>
+                <em>{fallbackEnabled ? fallbackPublishedJobs.filter((job) => job.is_urgent).length : 0}</em>
               </label>
               <div>
                 <h4>Tri</h4>

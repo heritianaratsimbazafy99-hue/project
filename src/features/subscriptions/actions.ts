@@ -53,6 +53,28 @@ export async function requestSubscriptionPlan(plan: string): Promise<ActionResul
   }
 
   const supabase = await createSupabaseServerClient();
+  const { data: existingPendingRequest, error: existingPendingRequestError } = await supabase
+    .from("plan_change_requests")
+    .select("id")
+    .eq("company_id", companyId)
+    .eq("requested_plan", plan)
+    .eq("status", "pending")
+    .maybeSingle<{ id: string }>();
+
+  if (existingPendingRequestError) {
+    return {
+      ok: false,
+      message: "La disponibilité de ce changement de plan n'a pas pu être vérifiée."
+    };
+  }
+
+  if (existingPendingRequest) {
+    return {
+      ok: false,
+      message: "Une demande pour ce plan est déjà en attente."
+    };
+  }
+
   const { error } = await supabase.from("plan_change_requests").insert({
     company_id: companyId,
     requested_plan: plan,
@@ -146,60 +168,15 @@ export async function reviewPlanChangeRequest(
     };
   }
 
-  const { user } = await requireRole(["admin"]);
+  await requireRole(["admin"]);
   const supabase = await createSupabaseServerClient();
-  const { data: request, error: requestError } = await supabase
-    .from("plan_change_requests")
-    .select("id, company_id, requested_plan, status")
-    .eq("id", normalizedRequestId)
-    .maybeSingle<{
-      id: string;
-      company_id: string;
-      requested_plan: string;
-      status: string;
-    }>();
+  const { error } = await supabase.rpc("review_plan_change_request", {
+    request_uuid: normalizedRequestId,
+    review_decision: decision,
+    review_note: note
+  });
 
-  if (requestError || !request || request.status !== "pending" || !isSubscriptionPlan(request.requested_plan)) {
-    return {
-      ok: false,
-      message: "Demande introuvable ou déjà traitée."
-    };
-  }
-
-  if (decision === "approve") {
-    const entitlement = planEntitlements[request.requested_plan];
-    const { error: subscriptionError } = await supabase.from("subscriptions").upsert(
-      {
-        company_id: request.company_id,
-        plan: request.requested_plan,
-        status: "active",
-        job_quota: entitlement.jobQuota,
-        cv_access_enabled: entitlement.cvAccessEnabled,
-        updated_at: new Date().toISOString()
-      },
-      { onConflict: "company_id" }
-    );
-
-    if (subscriptionError) {
-      return {
-        ok: false,
-        message: "L'abonnement n'a pas pu être mis à jour."
-      };
-    }
-  }
-
-  const { error: updateError } = await supabase
-    .from("plan_change_requests")
-    .update({
-      status: decision === "approve" ? "approved" : "rejected",
-      reviewed_by: user.id,
-      review_note: note,
-      reviewed_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
-    })
-    .eq("id", request.id);
-
-  if (updateError) {
+  if (error) {
     return {
       ok: false,
       message: "La demande n'a pas pu être clôturée."

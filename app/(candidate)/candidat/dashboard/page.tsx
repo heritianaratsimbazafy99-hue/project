@@ -10,6 +10,7 @@ import { fallbackPublishedJobs } from "@/features/public/demo-data";
 import { getPublishedJobsOrEmpty } from "@/features/jobs/queries";
 import { requireRole } from "@/lib/auth/require-role";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import type { ApplicationStatus } from "@/types/database";
 
 export const dynamic = "force-dynamic";
 
@@ -27,6 +28,15 @@ type OnboardingStep = {
   done: boolean;
   href: string;
   Icon: LucideIcon;
+};
+
+const candidateApplicationStatusLabels: Record<ApplicationStatus, string> = {
+  submitted: "Envoyée",
+  viewed: "Consultée",
+  shortlisted: "Shortlistée",
+  rejected: "Non retenue",
+  interview: "Entretien",
+  hired: "Recruté"
 };
 
 function scoreRecommendedJob(job: (typeof fallbackPublishedJobs)[number], profile: CandidateProfileRow | null) {
@@ -257,7 +267,7 @@ export default async function CandidateDashboardPage() {
                 <strong>{application.job.title}</strong>
                 <span>{application.job.contract || "Contrat"}</span>
                 <span>{formatApplicationDate(application.created_at)}</span>
-                <span>Envoyée</span>
+                <span>{candidateApplicationStatusLabels[application.status]}</span>
               </Link>
             ))
           ) : (

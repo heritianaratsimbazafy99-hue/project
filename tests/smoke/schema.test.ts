@@ -116,4 +116,13 @@ describe("initial Supabase schema", () => {
     expect(migrationSql).toContain("applications_job_status_created_at_idx");
     expect(migrationSql).toContain("admin_reviews_target_created_at_idx");
   });
+
+  it("reviews plan changes transactionally and blocks duplicate pending requests", () => {
+    expect(migrationSql).toContain("plan_change_requests_one_pending_per_company_plan_idx");
+    expect(migrationSql).toContain("where status = 'pending'");
+    expect(migrationSql).toContain("create or replace function public.review_plan_change_request");
+    expect(migrationSql).toContain("for update");
+    expect(migrationSql).toContain("on conflict (company_id) do update");
+    expect(migrationSql).toContain("grant execute on function public.review_plan_change_request");
+  });
 });

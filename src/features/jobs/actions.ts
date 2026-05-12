@@ -179,6 +179,18 @@ function jobPayload(values: ReturnType<typeof readJobValues>, status: JobStatus)
   };
 }
 
+function nextJobStatusAfterEdit(current: JobStatus, mode: "draft" | "submit"): JobStatus {
+  if (current === "published") {
+    return "pending_review";
+  }
+
+  if (mode === "submit") {
+    return nextJobStatusAfterSubmit(current);
+  }
+
+  return current === "archived" ? "draft" : current;
+}
+
 async function createRecruiterJob(formData: FormData, mode: "draft" | "submit"): Promise<CreateJobResult> {
   const { user } = await requireRole(["recruiter"]);
   const values = readJobValues(formData);
@@ -304,7 +316,7 @@ export async function updateRecruiterJob(
     };
   }
 
-  const status = mode === "submit" ? nextJobStatusAfterSubmit(existingJob.status) : existingJob.status === "archived" ? "draft" : existingJob.status;
+  const status = nextJobStatusAfterEdit(existingJob.status, mode);
   const { error } = await supabase
     .from("jobs")
     .update(jobPayload(values, status))
@@ -325,7 +337,7 @@ export async function updateRecruiterJob(
 
   return {
     ok: true,
-    message: mode === "submit" ? "Offre envoyée en revue." : "Offre enregistrée."
+    message: status === "pending_review" ? "Offre renvoyée en revue." : "Offre enregistrée."
   };
 }
 

@@ -3,7 +3,8 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 const mocks = vi.hoisted(() => ({
   requireRole: vi.fn(),
   revalidatePath: vi.fn(),
-  from: vi.fn()
+  from: vi.fn(),
+  rpc: vi.fn()
 }));
 
 vi.mock("next/cache", () => ({
@@ -22,7 +23,8 @@ vi.mock("@/lib/auth/require-role", () => ({
 
 vi.mock("@/lib/supabase/server", () => ({
   createSupabaseServerClient: vi.fn(async () => ({
-    from: mocks.from
+    from: mocks.from,
+    rpc: mocks.rpc
   }))
 }));
 
@@ -42,6 +44,7 @@ describe("subscription actions", () => {
     mocks.requireRole.mockReset();
     mocks.revalidatePath.mockReset();
     mocks.from.mockReset();
+    mocks.rpc.mockReset();
     mocks.requireRole.mockResolvedValue({
       user: { id: "recruiter-1" },
       profile: { role: "recruiter" },
@@ -51,7 +54,13 @@ describe("subscription actions", () => {
 
   it("creates an auditable plan change request instead of updating entitlements directly", async () => {
     const companyQuery = setupCompanyQuery({ id: "company-1" });
+    const pendingRequestQuery = {
+      select: vi.fn().mockReturnThis(),
+      eq: vi.fn().mockReturnThis(),
+      maybeSingle: vi.fn(async () => ({ data: null, error: null }))
+    };
     const insert = vi.fn(async () => ({ error: null }));
+    let requestCallCount = 0;
 
     mocks.from.mockImplementation((table: string) => {
       if (table === "companies") {
@@ -59,7 +68,8 @@ describe("subscription actions", () => {
       }
 
       if (table === "plan_change_requests") {
-        return { insert };
+        requestCallCount += 1;
+        return requestCallCount === 1 ? pendingRequestQuery : { insert };
       }
 
       throw new Error(`Unexpected table ${table}`);
@@ -82,6 +92,37 @@ describe("subscription actions", () => {
     expect(mocks.revalidatePath).toHaveBeenCalledWith("/admin/abonnements");
   });
 
+  it("does not create a duplicate pending request for the same company and plan", async () => {
+    const companyQuery = setupCompanyQuery({ id: "company-1" });
+    const pendingRequestQuery = {
+      select: vi.fn().mockReturnThis(),
+      eq: vi.fn().mockReturnThis(),
+      maybeSingle: vi.fn(async () => ({ data: { id: "request-1" }, error: null }))
+    };
+    const insert = vi.fn(async () => ({ error: null }));
+
+    mocks.from.mockImplementation((table: string) => {
+      if (table === "companies") {
+        return companyQuery;
+      }
+
+      if (table === "plan_change_requests") {
+        return { ...pendingRequestQuery, insert };
+      }
+
+      throw new Error(`Unexpected table ${table}`);
+    });
+
+    const { requestSubscriptionPlan } = await import("@/features/subscriptions/actions");
+    const result = await requestSubscriptionPlan("booster");
+
+    expect(result).toEqual({
+      ok: false,
+      message: "Une demande pour ce plan est déjà en attente."
+    });
+    expect(insert).not.toHaveBeenCalled();
+  });
+
   it("rejects unknown plans before writing to Supabase", async () => {
     const { requestSubscriptionPlan } = await import("@/features/subscriptions/actions");
     const result = await requestSubscriptionPlan("enterprise");
@@ -93,63 +134,24 @@ describe("subscription actions", () => {
     expect(mocks.from).not.toHaveBeenCalled();
   });
 
-  it("admin approval updates the subscription and closes the request", async () => {
+  it("admin approval delegates plan changes to a transactional RPC", async () => {
     mocks.requireRole.mockResolvedValue({
       user: { id: "admin-1" },
       profile: { role: "admin" },
       isDemo: false
     });
 
-    const requestQuery = {
-      select: vi.fn().mockReturnThis(),
-      eq: vi.fn().mockReturnThis(),
-      maybeSingle: vi.fn(async () => ({
-        data: {
-          id: "request-1",
-          company_id: "company-1",
-          requested_plan: "starter",
-          status: "pending"
-        },
-        error: null
-      }))
-    };
-    const upsert = vi.fn(async () => ({ error: null }));
-    const updateQuery = {
-      update: vi.fn().mockReturnThis(),
-      eq: vi.fn(async () => ({ error: null }))
-    };
-
-    mocks.from.mockImplementation((table: string) => {
-      if (table === "plan_change_requests") {
-        return requestQuery.select.mock.calls.length === 0 ? requestQuery : updateQuery;
-      }
-
-      if (table === "subscriptions") {
-        return { upsert };
-      }
-
-      throw new Error(`Unexpected table ${table}`);
-    });
+    mocks.rpc.mockResolvedValue({ error: null });
 
     const { reviewPlanChangeRequest } = await import("@/features/subscriptions/actions");
     const result = await reviewPlanChangeRequest("request-1", "approve");
 
     expect(result).toEqual({ ok: true, message: "Plan approuvé." });
-    expect(upsert).toHaveBeenCalledWith(
-      expect.objectContaining({
-        company_id: "company-1",
-        plan: "starter",
-        status: "active",
-        job_quota: 10,
-        cv_access_enabled: false
-      }),
-      { onConflict: "company_id" }
-    );
-    expect(updateQuery.update).toHaveBeenCalledWith(
-      expect.objectContaining({
-        status: "approved",
-        reviewed_by: "admin-1"
-      })
-    );
+    expect(mocks.rpc).toHaveBeenCalledWith("review_plan_change_request", {
+      request_uuid: "request-1",
+      review_decision: "approve",
+      review_note: null
+    });
+    expect(mocks.from).not.toHaveBeenCalledWith("subscriptions");
   });
 });
