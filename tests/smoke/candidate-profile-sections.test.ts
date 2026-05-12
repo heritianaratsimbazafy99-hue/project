@@ -27,9 +27,15 @@ describe("candidate profile pages", () => {
     const layoutSource = readWorkspaceFile("app/(candidate)/candidat/layout.tsx");
     const sidebarSource = readWorkspaceFile("src/features/candidate/components/candidate-sidebar.tsx");
 
+    expect(layoutSource).toContain("candidateTopbar");
+    expect(layoutSource).toContain("candidateAccountButton");
     expect(layoutSource).toContain("readiness");
     expect(layoutSource).toContain("CandidateSidebar");
+    expect(layoutSource).toContain("alertCount");
+    expect(sidebarSource).toContain("candidateWorkspaceLabel");
+    expect(sidebarSource).toContain("candidateProgressRing");
     expect(sidebarSource).toContain("candidateReadinessList");
+    expect(sidebarSource).toContain("candidateNavBadge");
     expect(sidebarSource).toContain("candidatePrimaryLink");
     expect(sidebarSource).toContain("LayoutDashboard");
     expect(sidebarSource).toContain("LogOut");
@@ -54,6 +60,13 @@ describe("candidate profile pages", () => {
     const source = readWorkspaceFile("app/(candidate)/candidat/dashboard/page.tsx");
     const demoWorkspace = readWorkspaceFile("src/features/demo/workspace.ts");
 
+    expect(source).toContain("Vos prochaines");
+    expect(source).toContain("pistes");
+    expect(source).toContain("candidateOpportunityPanel");
+    expect(source).toContain("candidateOpportunityCard");
+    expect(source).toContain("Dernières");
+    expect(source).toContain("candidatures");
+    expect(source).toContain("candidateMiniApplicationTable");
     expect(source).toContain("Voici comment démarrer en 4 étapes");
     expect(source).toContain("Compte créé");
     expect(source).toContain("Déposer votre CV");
@@ -61,7 +74,7 @@ describe("candidate profile pages", () => {
     expect(source).toContain("Activer une alerte emploi");
     expect(source).toContain("onboardingProgress");
     expect(source).toContain("recommendedJobs");
-    expect(source).toContain("candidateHeroSummary");
+    expect(source).toContain("candidateHero");
     expect(source).toContain("candidateNextStepCard");
     expect(source).toContain("Action prioritaire");
     expect(demoWorkspace).toContain('cv_path: "demo/cv.pdf"');
@@ -85,7 +98,8 @@ describe("candidate profile pages", () => {
     expect(source).toContain("Toutes les villes");
     expect(source).toContain("Tous les secteurs");
     expect(source).toContain("activeAlerts");
-    expect(source).toContain("candidateAlertGuide");
+    expect(source).toContain("Créer une alerte");
+    expect(source).toContain("candidateAlertTable");
     expect(source).toContain("candidateAlertTableHead");
     expect(source).toContain("Créer ma première alerte");
   });
@@ -99,21 +113,26 @@ describe("candidate profile pages", () => {
     expect(source).toContain("filteredApplications");
   });
 
-  it("renders candidature metrics for the candidate tracking view", () => {
+  it("renders candidature table for the candidate tracking view", () => {
     const source = readWorkspaceFile("app/(candidate)/candidat/candidatures/page.tsx");
 
-    expect(source).toContain("candidateMetricGrid");
-    expect(source).toContain("Actives");
-    expect(source).toContain("Consultées");
-    expect(source).toContain("Shortlist");
-    expect(source).toContain("candidateStatusGuide");
+    expect(source).toContain("candidateApplicationsTable");
+    expect(source).toContain("candidateApplicationTableHead");
+    expect(source).toContain("candidateStatusPill");
+    expect(source).toContain("candidateMatchPill");
     expect(source).toContain("candidateTimeline");
-    expect(source).toContain("statusHints");
+    expect(source).toContain("matchScore");
   });
 
   it("keeps candidate UI polish classes available in global styles", () => {
     const source = readWorkspaceFile("app/globals.css");
 
+    expect(source).toContain(".candidateTopbar");
+    expect(source).toContain(".candidateOpportunityPanel");
+    expect(source).toContain(".candidateOpportunityCard");
+    expect(source).toContain(".candidateMiniApplicationTable");
+    expect(source).toContain(".candidateProgressRing");
+    expect(source).toContain(".candidateAlertTable");
     expect(source).toContain(".candidateDashboardGrid");
     expect(source).toContain(".candidateNextStepCard");
     expect(source).toContain(".candidateProfileGuide");

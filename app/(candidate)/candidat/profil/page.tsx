@@ -206,9 +206,8 @@ export default async function CandidateProfilePage({ searchParams }: CandidatePr
   return (
     <div className="candidateStack">
       <section className="candidateHero" aria-labelledby="profile-title">
-        <p className="candidateEyebrow">Mon profil</p>
-        <h1 id="profile-title">Votre dossier candidat</h1>
-        <p>Déposez votre CV, complétez votre parcours et gardez un profil clair pour les recruteurs.</p>
+        <h1 id="profile-title">Mon <strong>profil</strong></h1>
+        <p>Vérifiez vos informations, gardez votre CV prêt et complétez les détails utiles aux recruteurs.</p>
       </section>
 
       <CvUploadCard cvPath={candidateProfile?.cv_path} />

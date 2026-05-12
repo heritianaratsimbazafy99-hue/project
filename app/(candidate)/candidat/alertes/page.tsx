@@ -3,6 +3,7 @@ import {
   deleteCandidateJobAlertAndRedirect,
   updateCandidateJobAlertStatusAndRedirect
 } from "@/features/candidate/actions";
+import { Bell, Trash2 } from "lucide-react";
 import { demoCandidateAlerts } from "@/features/demo/workspace";
 import { requireRole } from "@/lib/auth/require-role";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
@@ -71,14 +72,6 @@ function firstQueryValue(value: string | string[] | undefined) {
   return Array.isArray(value) ? value[0] : value;
 }
 
-function formatFrequency(value: string) {
-  if (value === "weekly") {
-    return "Hebdomadaire";
-  }
-
-  return "Quotidienne";
-}
-
 export default async function CandidateAlertsPage({ searchParams }: CandidateAlertsPageProps) {
   const { user, isDemo } = await requireRole(["candidate"]);
   let alerts: JobAlertRow[] = isDemo ? demoCandidateAlerts : [];
@@ -104,17 +97,23 @@ export default async function CandidateAlertsPage({ searchParams }: CandidateAle
 
   return (
     <div className="candidateStack">
-      <section className="candidateHero" aria-labelledby="alerts-title">
-        <p className="candidateEyebrow">Mes alertes</p>
-        <h1 id="alerts-title">Alertes emploi</h1>
-        <p>Créez des alertes ciblées par secteur, ville et contrat pour ne manquer aucune opportunité.</p>
+      <section className="candidatePageHeading" aria-labelledby="alerts-title">
+        <h1 id="alerts-title">Mes <strong>alertes</strong></h1>
+        <span>
+          {activeAlerts} active{activeAlerts > 1 ? "s" : ""} sur {alerts.length}
+        </span>
       </section>
 
       <section className="candidateCard" aria-labelledby="alert-form-title">
-        <div className="candidateSectionHeader">
+        <div className="candidateSectionHeader compact">
           <div>
-            <p className="candidateEyebrow">Nouvelle alerte</p>
-            <h2 id="alert-form-title">Critères de recherche</h2>
+            <span className="candidatePanelIcon muted" aria-hidden="true">
+              <Bell size={18} />
+            </span>
+            <div>
+              <h2 id="alert-form-title">Créer une alerte</h2>
+              <p>Sélectionnez un secteur, une ville ou un contrat pour suivre les opportunités.</p>
+            </div>
           </div>
         </div>
 
@@ -144,17 +143,9 @@ export default async function CandidateAlertsPage({ searchParams }: CandidateAle
           </div>
         ) : null}
 
-        <div className="candidateAlertGuide" aria-label="Conseils pour créer une alerte">
-          <span>1. Choisissez le poste</span>
-          <span>2. Affinez ville et contrat</span>
-          <span>3. Recevez les offres ciblées</span>
-        </div>
-
         <form action={createCandidateJobAlertAndRedirect} className="candidateForm compact candidateAlertForm">
-          <label className="candidateFormLead">
-            Mot-clé
-            <input name="query" placeholder="Designer UI/UX, comptable, React..." />
-          </label>
+          <input type="hidden" name="query" value="" />
+          <input type="hidden" name="frequency" value="daily" />
           <label>
             Secteur
             <select name="sector" defaultValue="">
@@ -182,54 +173,42 @@ export default async function CandidateAlertsPage({ searchParams }: CandidateAle
               ))}
             </select>
           </label>
-          <label>
-            Fréquence
-            <select name="frequency" defaultValue="daily">
-              <option value="daily">Quotidienne</option>
-              <option value="weekly">Hebdomadaire</option>
-            </select>
-          </label>
           <div className="candidateFormActions">
-            <button type="submit">Créer</button>
+            <button type="submit">+ Créer</button>
           </div>
         </form>
       </section>
 
       <section className="candidateCard" aria-labelledby="alerts-empty-title">
         {alerts.length > 0 ? (
-          <div className="candidateAlertList">
-            <div className="candidateSectionHeader">
-              <div>
-                <p className="candidateEyebrow">Alertes sauvegardées</p>
-                <h2 id="alerts-empty-title">
-                  {activeAlerts} active{activeAlerts > 1 ? "s" : ""} sur {alerts.length}
-                </h2>
-              </div>
-            </div>
+          <div className="candidateAlertTable">
             <div className="candidateAlertTableHead" aria-hidden="true">
-              <span>Recherche</span>
-              <span>Fréquence</span>
+              <span>Secteur</span>
+              <span>Ville</span>
+              <span>Contrat</span>
               <span>Statut</span>
-              <span>Actions</span>
+              <span />
             </div>
+            <h2 id="alerts-empty-title" className="srOnly">
+              Alertes sauvegardées
+            </h2>
             {alerts.map((alert) => (
               <article key={alert.id}>
-                <div>
-                  <strong>{alert.query || "Toutes les offres"}</strong>
-                  <p>
-                    {[alert.sector, alert.city, alert.contract].filter(Boolean).join(" · ") || "Tous les critères"}
-                  </p>
-                </div>
-                <span>{formatFrequency(alert.frequency)}</span>
-                <small>{alert.is_active ? "Active" : "En pause"}</small>
+                <strong>{alert.sector || alert.query || "Toutes les offres"}</strong>
+                <span>{alert.city || "Toutes les villes"}</span>
+                <span>{alert.contract || "Tous"}</span>
                 <form action={updateCandidateJobAlertStatusAndRedirect}>
                   <input type="hidden" name="alert_id" value={alert.id} />
                   <input type="hidden" name="is_active" value={alert.is_active ? "false" : "true"} />
-                  <button type="submit">{alert.is_active ? "Mettre en pause" : "Réactiver"}</button>
+                  <button className={alert.is_active ? "candidateToggle isOn" : "candidateToggle"} type="submit">
+                    <span>{alert.is_active ? "Active" : "Pause"}</span>
+                  </button>
                 </form>
                 <form action={deleteCandidateJobAlertAndRedirect}>
                   <input type="hidden" name="alert_id" value={alert.id} />
-                  <button type="submit">Supprimer</button>
+                  <button className="candidateIconButton" type="submit" aria-label="Supprimer l'alerte">
+                    <Trash2 size={16} aria-hidden="true" />
+                  </button>
                 </form>
               </article>
             ))}

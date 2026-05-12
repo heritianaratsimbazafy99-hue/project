@@ -54,16 +54,25 @@ export default async function CandidateLayout({ children }: CandidateLayoutProps
     { label: "Poste recherché", done: Boolean(candidateProfile?.desired_role), href: "/candidat/profil#infos" },
     { label: "Alerte emploi", done: Boolean(alertCount && alertCount > 0), href: "/candidat/alertes" }
   ];
+  const accountInitial = (profile.display_name || profile.email || user.email || "C").trim().charAt(0).toUpperCase();
 
   return (
     <main className="siteShell candidateArea">
-      <header className="siteHeader publicHeader" aria-label="Navigation candidat">
-        <Link className="brand" href="/candidat/dashboard" aria-label="JobMada candidat">
-          <img src={brand.logoPath} alt="" width="56" height="56" />
+      <header className="candidateTopbar" aria-label="Navigation candidat">
+        <Link className="candidateTopbarBrand" href="/candidat/dashboard" aria-label="JobMada candidat">
+          <img src={brand.logoPath} alt="" width="44" height="44" />
           <span>{brand.name}</span>
         </Link>
-        <Link className="headerLink" href="/emploi">
-          Voir les offres
+        <nav className="candidateTopbarNav" aria-label="Navigation emploi">
+          <Link href="/emploi">Offres d'emploi</Link>
+          <Link href="/emploi?contract=CDD">Emploi CDD</Link>
+          <Link href="/emploi?contract=Freelance">Freelance</Link>
+          <Link href="/emploi?contract=Stage">Offre de stage</Link>
+          <Link href="/emploi?urgent=true">Offres urgentes</Link>
+        </nav>
+        <Link className="candidateAccountButton" href="/candidat/profil">
+          <span aria-hidden="true">{accountInitial}</span>
+          Mon compte
         </Link>
       </header>
 
@@ -73,6 +82,7 @@ export default async function CandidateLayout({ children }: CandidateLayoutProps
           displayName={profile.display_name}
           completion={completion}
           readiness={readiness}
+          alertCount={alertCount}
         />
         <div className="candidateContent">{children}</div>
       </div>

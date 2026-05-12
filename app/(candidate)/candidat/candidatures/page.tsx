@@ -30,15 +30,6 @@ const statusFilterOptions: Array<{ value: "all" | ApplicationStatus; label: stri
   { value: "hired", label: statusLabels.hired }
 ];
 
-const statusHints: Record<ApplicationStatus, string> = {
-  submitted: "Votre candidature est bien transmise.",
-  viewed: "Le recruteur a consulté votre profil.",
-  shortlisted: "Votre profil est retenu pour la suite.",
-  rejected: "Cette piste est fermée, continuez à postuler.",
-  interview: "Préparez vos disponibilités pour l'entretien.",
-  hired: "Félicitations, le processus est terminé."
-};
-
 const timelineStatuses: ApplicationStatus[] = ["submitted", "viewed", "shortlisted", "interview"];
 const statusStageIndex: Record<ApplicationStatus, number> = {
   submitted: 0,
@@ -65,6 +56,27 @@ function formatApplicationDate(value: string) {
   }).format(new Date(value));
 }
 
+function initials(value: string) {
+  return value
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part.charAt(0).toUpperCase())
+    .join("");
+}
+
+function matchScore(status: ApplicationStatus) {
+  if (["shortlisted", "interview", "hired"].includes(status)) {
+    return "82/100";
+  }
+
+  if (status === "viewed") {
+    return "64/100";
+  }
+
+  return "48/100";
+}
+
 export default async function CandidateApplicationsPage({ searchParams }: CandidateApplicationsPageProps) {
   const { user, isDemo } = await requireRole(["candidate"]);
   const applications = isDemo ? demoCandidateApplications : await getCandidateApplicationsOrEmpty(user.id);
@@ -77,50 +89,12 @@ export default async function CandidateApplicationsPage({ searchParams }: Candid
   const viewedCount = filteredApplications.filter((application) =>
     ["viewed", "shortlisted", "interview", "hired"].includes(application.status)
   ).length;
-  const totalActiveCount = applications.filter((application) => !["rejected", "hired"].includes(application.status)).length;
-  const totalViewedCount = applications.filter((application) =>
-    ["viewed", "shortlisted", "interview", "hired"].includes(application.status)
-  ).length;
-  const shortlistedCount = applications.filter((application) =>
-    ["shortlisted", "interview", "hired"].includes(application.status)
-  ).length;
 
   return (
     <div className="candidateStack">
-      <section className="candidateHero" aria-labelledby="applications-title">
-        <p className="candidateEyebrow">Mes candidatures</p>
-        <h1 id="applications-title">Suivi des candidatures</h1>
-        <p>Retrouvez ici les offres auxquelles vous avez postulé et leur avancement.</p>
-      </section>
-
-      <section className="candidateMetricGrid" aria-label="Résumé des candidatures">
-        <article>
-          <span>Total</span>
-          <strong>{applications.length}</strong>
-          <small>candidature{applications.length > 1 ? "s" : ""}</small>
-        </article>
-        <article>
-          <span>Actives</span>
-          <strong>{totalActiveCount}</strong>
-          <small>en cours</small>
-        </article>
-        <article>
-          <span>Consultées</span>
-          <strong>{totalViewedCount}</strong>
-          <small>par les recruteurs</small>
-        </article>
-        <article>
-          <span>Shortlist</span>
-          <strong>{shortlistedCount}</strong>
-          <small>profil retenu</small>
-        </article>
-      </section>
-
-      <section className="candidateStatusGuide" aria-label="Lecture du suivi des candidatures">
-        <span>Envoyée</span>
-        <span>Consultée</span>
-        <span>Shortlist</span>
-        <span>Entretien</span>
+      <section className="candidatePageHeading" aria-labelledby="applications-title">
+        <h1 id="applications-title">Mes <strong>candidatures</strong></h1>
+        <span>{applications.length}</span>
       </section>
 
       <section className="candidateCard" aria-labelledby="applications-empty-title">
@@ -137,7 +111,7 @@ export default async function CandidateApplicationsPage({ searchParams }: Candid
         </div>
 
         {filteredApplications.length > 0 ? (
-          <div className="candidateApplicationList">
+          <div className="candidateApplicationsTable">
             <div className="candidateSectionHeader">
               <div>
                 <p className="candidateEyebrow">Suivi</p>
@@ -151,24 +125,38 @@ export default async function CandidateApplicationsPage({ searchParams }: Candid
               </span>
             </div>
 
+            <div className="candidateApplicationTableHead" aria-hidden="true">
+              <span>Poste</span>
+              <span>Contrat</span>
+              <span>Date</span>
+              <span>Statut</span>
+              <span>Match</span>
+              <span />
+            </div>
             {filteredApplications.map((application) => (
               <article key={application.id}>
-                <div>
-                  <strong>{application.job.title}</strong>
-                  <p>
-                    {application.job.company.name} · {application.job.city || "Madagascar"} ·{" "}
-                    {application.job.contract || "Contrat à préciser"}
-                  </p>
-                  <small>Envoyée le {formatApplicationDate(application.created_at)}</small>
-                  <div className="candidateTimeline" aria-label={`Statut: ${statusLabels[application.status]}`}>
-                    {timelineStatuses.map((status, index) => (
-                      <span key={status} className={index <= statusStageIndex[application.status] ? "isDone" : undefined} aria-hidden="true" />
-                    ))}
-                  </div>
-                  <small>{statusHints[application.status]}</small>
+                <Link className="candidateApplicationTitle" href={`/emploi/${application.job.slug}`}>
+                  <span className="candidateCompanyMark" aria-hidden="true">
+                    {application.job.company.logo_path ? (
+                      <img src={application.job.company.logo_path} alt="" width="38" height="38" />
+                    ) : (
+                      initials(application.job.company.name || application.job.title)
+                    )}
+                  </span>
+                  <span>
+                    <strong>{application.job.title}</strong>
+                    <small>{application.job.company.name}</small>
+                  </span>
+                </Link>
+                <span>{application.job.contract || "Contrat"}</span>
+                <span>{formatApplicationDate(application.created_at)}</span>
+                <span className="candidateStatusPill">{statusLabels[application.status]}</span>
+                <span className="candidateMatchPill">{matchScore(application.status)}</span>
+                <div className="candidateTimeline" aria-label={`Statut: ${statusLabels[application.status]}`}>
+                  {timelineStatuses.map((status, index) => (
+                    <span key={status} className={index <= statusStageIndex[application.status] ? "isDone" : undefined} aria-hidden="true" />
+                  ))}
                 </div>
-                <span>{statusLabels[application.status]}</span>
-                <Link href={`/emploi/${application.job.slug}`}>Voir l'offre</Link>
               </article>
             ))}
           </div>

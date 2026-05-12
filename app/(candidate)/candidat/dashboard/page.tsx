@@ -1,8 +1,10 @@
 import Link from "next/link";
-import { ArrowRight, Bell, CheckCircle2, FileText, Search, Sparkles, Target } from "lucide-react";
+import { ArrowRight, Bell, BriefcaseBusiness, CheckCircle2, FileText, Folder, MapPin, Sparkles, Target } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
 import { calculateCandidateCompletion } from "@/features/candidate/completion";
+import { demoCandidateApplications } from "@/features/demo/workspace";
+import { getCandidateApplicationsOrEmpty } from "@/features/applications/queries";
 import { fallbackPublishedJobs } from "@/features/public/demo-data";
 import { getPublishedJobsOrEmpty } from "@/features/jobs/queries";
 import { requireRole } from "@/lib/auth/require-role";
@@ -55,6 +57,30 @@ function recommendedJobs(jobs: typeof fallbackPublishedJobs, profile: CandidateP
     .slice(0, 6);
 }
 
+function firstName(value: string | null | undefined) {
+  return value?.trim().split(/\s+/)[0] || "candidat";
+}
+
+function initials(value: string) {
+  return value
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part.charAt(0).toUpperCase())
+    .join("");
+}
+
+function matchLabel(index: number) {
+  return index < 2 ? "Forte correspondance" : "Bon potentiel";
+}
+
+function formatApplicationDate(value: string) {
+  return new Intl.DateTimeFormat("fr-FR", {
+    day: "2-digit",
+    month: "short"
+  }).format(new Date(value));
+}
+
 export default async function CandidateDashboardPage() {
   const { user, profile, isDemo } = await requireRole(["candidate"]);
   let candidateProfile: CandidateProfileRow | null = isDemo
@@ -89,6 +115,7 @@ export default async function CandidateDashboardPage() {
     ? fallbackPublishedJobs.slice(0, 4)
     : (await getPublishedJobsOrEmpty({ query: "", contract: "", city: "", sector: "" })).slice(0, 8);
   const recentJobs = recommendedJobs(jobs, candidateProfile);
+  const applications = isDemo ? demoCandidateApplications.slice(0, 3) : (await getCandidateApplicationsOrEmpty(user.id)).slice(0, 3);
   const onboardingSteps: OnboardingStep[] = [
     {
       label: "Compte créé",
@@ -140,18 +167,96 @@ export default async function CandidateDashboardPage() {
   return (
     <div className="candidateStack">
       <section className="candidateHero" aria-labelledby="candidate-dashboard-title">
-        <p className="candidateEyebrow">Dashboard</p>
-        <h1 id="candidate-dashboard-title">Bonjour{profile.display_name ? `, ${profile.display_name}` : ""}</h1>
-        <p>Bienvenue sur JobMada, votre prochain emploi commence ici.</p>
-        <div className="candidateHeroSummary" aria-label="Résumé du profil candidat">
-          <span>{completion.percent}% profil prêt</span>
-          <span>{alertCount} alerte{alertCount > 1 ? "s" : ""}</span>
-          <span>{candidateProfile?.cv_path ? "CV disponible" : "CV à déposer"}</span>
+        <h1 id="candidate-dashboard-title">Bienvenue, {firstName(profile.display_name)}</h1>
+        <p>Voici vos opportunités du jour</p>
+      </section>
+
+      <section className="candidateOpportunityPanel" aria-labelledby="opportunity-title">
+        <div className="candidateSectionHeader compact">
+          <div>
+            <span className="candidatePanelIcon" aria-hidden="true">
+              <Sparkles size={22} />
+            </span>
+            <div>
+              <h2 id="opportunity-title">Vos prochaines <strong>pistes</strong></h2>
+              <p>{recentJobs.length} opportunité{recentJobs.length > 1 ? "s" : ""} sélectionnée{recentJobs.length > 1 ? "s" : ""} pour vous</p>
+            </div>
+          </div>
+          <Link href="/emploi">Toutes les offres</Link>
+        </div>
+
+        {recentJobs.length > 0 ? (
+          <div className="candidateOpportunityGrid">
+            {recentJobs.map((job, index) => (
+              <Link key={job.id} className="candidateOpportunityCard" href={`/emploi/${job.slug}`}>
+                <span className="candidateCompanyMark" aria-hidden="true">
+                  {job.company.logo_path ? <img src={job.company.logo_path} alt="" width="44" height="44" /> : initials(job.company.name || job.title)}
+                </span>
+                <div>
+                  <h3>{job.title}</h3>
+                  <p>{job.company.name}</p>
+                  <div className="candidateOpportunityMeta">
+                    {job.city ? (
+                      <span>
+                        <MapPin size={14} aria-hidden="true" />
+                        {job.city}
+                      </span>
+                    ) : null}
+                    {job.sector ? (
+                      <span>
+                        <Folder size={14} aria-hidden="true" />
+                        {job.sector}
+                      </span>
+                    ) : null}
+                  </div>
+                  <div className="candidateOpportunityBadges">
+                    <span>
+                      <BriefcaseBusiness size={13} aria-hidden="true" />
+                      {job.contract || "Contrat"}
+                    </span>
+                    <span>{matchLabel(index)}</span>
+                  </div>
+                </div>
+              </Link>
+            ))}
+          </div>
+        ) : (
+          <div className="candidateEmptyState">
+            <h3>Aucune offre récente pour le moment</h3>
+            <p>Les nouvelles opportunités publiées sur JobMada apparaîtront ici.</p>
+          </div>
+        )}
+      </section>
+
+      <section className="candidateMiniApplications" aria-labelledby="candidate-recent-applications">
+        <div className="candidateSectionHeader flush">
+          <h2 id="candidate-recent-applications">Dernières <strong>candidatures</strong></h2>
+          <Link href="/candidat/candidatures">Voir tout</Link>
+        </div>
+        <div className="candidateMiniApplicationTable">
+          <div aria-hidden="true">
+            <span>Poste</span>
+            <span>Contrat</span>
+            <span>Date</span>
+            <span>Statut</span>
+          </div>
+          {applications.length > 0 ? (
+            applications.map((application) => (
+              <Link key={application.id} href={`/emploi/${application.job.slug}`}>
+                <strong>{application.job.title}</strong>
+                <span>{application.job.contract || "Contrat"}</span>
+                <span>{formatApplicationDate(application.created_at)}</span>
+                <span>Envoyée</span>
+              </Link>
+            ))
+          ) : (
+            <p>Aucune candidature récente.</p>
+          )}
         </div>
       </section>
 
       <div className="candidateDashboardGrid">
-        <section className="candidateCard" aria-labelledby="onboarding-title">
+        <section className="candidateCard candidateOnboardingCard" aria-labelledby="onboarding-title">
           <div className="candidateSectionHeader">
             <div>
               <p className="candidateEyebrow">Bienvenue sur JobMada</p>
@@ -205,39 +310,6 @@ export default async function CandidateDashboardPage() {
           </Link>
         </aside>
       </div>
-
-      <section className="candidateCard" aria-labelledby="recent-jobs-title">
-        <div className="candidateSectionHeader">
-          <div>
-            <p className="candidateEyebrow">Recommandations</p>
-            <h2 id="recent-jobs-title">
-              {candidateProfile?.desired_role ? "Offres proches de votre profil" : "Pour commencer, découvrez les offres récentes"}
-            </h2>
-          </div>
-          <Link href="/emploi">Toutes les offres</Link>
-        </div>
-
-        {recentJobs.length > 0 ? (
-          <div className="candidateJobList">
-            {recentJobs.map((job) => (
-              <Link key={job.id} href={`/emploi/${job.slug}`}>
-                <span aria-hidden="true">
-                  <Search size={17} />
-                </span>
-                <strong>{job.title}</strong>
-                <span>
-                  {job.company.name} · {job.city || "Madagascar"} · {job.contract || "Contrat à préciser"}
-                </span>
-              </Link>
-            ))}
-          </div>
-        ) : (
-          <div className="candidateEmptyState">
-            <h3>Aucune offre récente pour le moment</h3>
-            <p>Les nouvelles opportunités publiées sur JobMada apparaîtront ici.</p>
-          </div>
-        )}
-      </section>
     </div>
   );
 }
