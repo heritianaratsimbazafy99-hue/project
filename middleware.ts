@@ -23,7 +23,7 @@ export async function middleware(request: NextRequest) {
   const hasDemoSession = isDemoAuthEnabledInMiddleware() && cookieNames.includes(DEMO_SESSION_COOKIE);
   const hasSupabaseSession = cookieNames.some((name) => name.startsWith("sb-") && name.includes("auth-token"));
 
-  if (!supabaseUrl || !supabaseAnonKey || hasDemoSession || !hasSupabaseSession) {
+  if (!supabaseUrl || !supabaseAnonKey || !hasSupabaseSession) {
     return response;
   }
 

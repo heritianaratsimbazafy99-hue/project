@@ -120,6 +120,13 @@ function skillsText(skills: CandidateSkillRow[], kind: CandidateSkillRow["kind"]
     .join("\n");
 }
 
+function candidateProfileName(
+  candidateProfile: CandidateProfileRow | null,
+  fallback: string | null | undefined
+) {
+  return [candidateProfile?.first_name, candidateProfile?.last_name].filter(Boolean).join(" ").trim() || fallback || "Profil candidat";
+}
+
 export default async function CandidateProfilePage({ searchParams }: CandidateProfilePageProps) {
   const { user, profile, isDemo } = await requireRole(["candidate"]);
   let experiences: CandidateExperienceRow[] = [];
@@ -210,7 +217,13 @@ export default async function CandidateProfilePage({ searchParams }: CandidatePr
         <p>Vérifiez vos informations, gardez votre CV prêt et complétez les détails utiles aux recruteurs.</p>
       </section>
 
-      <CvUploadCard cvPath={candidateProfile?.cv_path} />
+      <CvUploadCard
+        city={candidateProfile?.city}
+        cvPath={candidateProfile?.cv_path}
+        desiredRole={candidateProfile?.desired_role}
+        profileName={candidateProfileName(candidateProfile, profile.display_name)}
+        skillCount={skills.length}
+      />
 
       {saved ? (
         <div className="candidateNotice" role="status">

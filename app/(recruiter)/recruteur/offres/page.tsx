@@ -7,6 +7,7 @@ import {
   duplicateRecruiterJobAndRedirect,
   unarchiveRecruiterJobAndRedirect
 } from "@/features/jobs/actions";
+import { calculateJobQuotaUsage, isJobCountedTowardQuota } from "@/features/recruiter/quota";
 import { requireRole } from "@/lib/auth/require-role";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { JobStatus } from "@/types/database";
@@ -143,9 +144,11 @@ export default async function RecruiterOffersPage({ searchParams }: RecruiterOff
   }
 
   const total = jobs.length;
+  const activeJobs = allJobs.filter((job) => isJobCountedTowardQuota(job.status)).length;
   const published = allJobs.filter((job) => job.status === "published").length;
   const inReview = allJobs.filter((job) => job.status === "pending_review").length;
   const quota = subscription.job_quota ?? demoRecruiterSubscription.job_quota;
+  const quotaUsage = calculateJobQuotaUsage({ quota, used: activeJobs });
   const planLabel = subscription.plan ? subscription.plan.toUpperCase() : "GRATUIT";
 
   return (
@@ -163,7 +166,7 @@ export default async function RecruiterOffersPage({ searchParams }: RecruiterOff
 
       <section className="dashboard-grid offers-kpis" aria-label="Indicateurs offres">
         {([
-          ["Offres actives", published, BriefcaseBusiness, `${published} sur ${quota} · Plan ${planLabel}`],
+          ["Offres actives", activeJobs, BriefcaseBusiness, `${published} publiée(s) · Plan ${planLabel}`],
           ["Candidatures", 0, UsersRound, "Aucune nouvelle"],
           ["Vues totales", isDemo ? 128 : 0, Eye, isDemo ? "+12 cette semaine" : "— vs sem. préc."],
           ["En revue", inReview, Clock, "Validation JobMada"]
@@ -296,7 +299,7 @@ export default async function RecruiterOffersPage({ searchParams }: RecruiterOff
 
         <div className="panel-footer">
           <span>{jobs.length} offres affichées</span>
-          <span>Plan {planLabel} · {allJobs.filter((job) => job.status !== "archived").length}/{quota} offres utilisées</span>
+          <span>Plan {planLabel} · {quotaUsage.label}</span>
         </div>
       </section>
     </>

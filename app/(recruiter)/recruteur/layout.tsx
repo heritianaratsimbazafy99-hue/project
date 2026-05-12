@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 
 import { demoRecruiterCompany, demoRecruiterSubscription } from "@/features/demo/workspace";
 import { RecruiterSidebar } from "@/features/recruiter/components/recruiter-sidebar";
+import { QUOTA_EXCLUDED_JOB_STATUS } from "@/features/recruiter/quota";
 import { requireRole } from "@/lib/auth/require-role";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
@@ -47,7 +48,11 @@ export default async function RecruiterLayout({ children }: RecruiterLayoutProps
           .select("plan, job_quota")
           .eq("company_id", company.id)
           .maybeSingle<SubscriptionRow>(),
-        supabase.from("jobs").select("id", { count: "exact", head: true }).eq("company_id", company.id)
+        supabase
+          .from("jobs")
+          .select("id", { count: "exact", head: true })
+          .eq("company_id", company.id)
+          .neq("status", QUOTA_EXCLUDED_JOB_STATUS)
       ]);
 
       subscription = subscriptionData;

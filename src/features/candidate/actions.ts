@@ -669,6 +669,58 @@ export async function deleteCandidateCvAndRedirect(): Promise<void> {
   redirectBackToProfile("cvDeleted", result);
 }
 
+export async function createCandidateCvSignedUrl(): Promise<CandidateActionResult & { signedUrl?: string }> {
+  const { user, isDemo } = await requireRole(["candidate"]);
+
+  if (isDemo) {
+    return {
+      ok: false,
+      message: "Le CV démo n'est pas disponible en téléchargement."
+    };
+  }
+
+  const supabase = await createSupabaseServerClient();
+  const { data: candidateProfile, error: candidateProfileError } = await supabase
+    .from("candidate_profiles")
+    .select("cv_path")
+    .eq("user_id", user.id)
+    .maybeSingle<{ cv_path: string | null }>();
+
+  const cvPath = candidateProfile?.cv_path?.trim() ?? "";
+
+  if (candidateProfileError || !cvPath) {
+    return {
+      ok: false,
+      message: "Aucun CV candidat n'est disponible."
+    };
+  }
+
+  const { data, error } = await supabase.storage.from("cvs").createSignedUrl(cvPath, 300);
+
+  if (error || !data?.signedUrl) {
+    return {
+      ok: false,
+      message: "Le lien sécurisé du CV n'a pas pu être créé."
+    };
+  }
+
+  return {
+    ok: true,
+    message: "Lien CV créé.",
+    signedUrl: data.signedUrl
+  };
+}
+
+export async function openCandidateCvAndRedirect(): Promise<void> {
+  const result = await createCandidateCvSignedUrl();
+
+  if (result.ok && result.signedUrl) {
+    redirect(result.signedUrl);
+  }
+
+  redirect(`/candidat/profil?error=${encodeURIComponent(result.message)}`);
+}
+
 export async function updateCandidatePassword(formData: FormData): Promise<CandidateActionResult> {
   const password = formValue(formData, "password");
   const passwordConfirm = formValue(formData, "password_confirm");

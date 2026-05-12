@@ -86,6 +86,16 @@ describe("admin review decision", () => {
     });
   });
 
+  it("requires a note before rejecting a company", async () => {
+    const { reviewCompany } = await import("@/features/admin/actions");
+
+    await expect(reviewCompany("company-1", "reject", new FormData())).rejects.toThrow(
+      "Ajoutez une note pour expliquer le rejet."
+    );
+
+    expect(mocks.rpc).not.toHaveBeenCalled();
+  });
+
   it("surfaces RPC errors instead of swallowing them", async () => {
     mocks.rpc.mockReturnValue({
       single: vi.fn(async () => ({ data: null, error: { message: "Job is not waiting for review" } }))

@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
 import { nextJobStatusAfterSubmit } from "@/features/jobs/status";
+import { calculateJobQuotaUsage, QUOTA_EXCLUDED_JOB_STATUS } from "@/features/recruiter/quota";
 import { planEntitlements } from "@/features/subscriptions/plans";
 import { requireRole } from "@/lib/auth/require-role";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
@@ -145,7 +146,7 @@ async function canCreateMoreJobs(
     .from("jobs")
     .select("id", { count: "exact", head: true })
     .eq("company_id", companyId)
-    .neq("status", "archived");
+    .neq("status", QUOTA_EXCLUDED_JOB_STATUS);
 
   if (excludingJobId) {
     request = request.neq("id", excludingJobId);
@@ -157,7 +158,7 @@ async function canCreateMoreJobs(
     return false;
   }
 
-  return (count ?? 0) < quota;
+  return calculateJobQuotaUsage({ quota, used: count ?? 0 }).remaining !== 0;
 }
 
 function jobPayload(values: ReturnType<typeof readJobValues>, status: JobStatus) {

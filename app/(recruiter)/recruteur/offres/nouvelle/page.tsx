@@ -16,6 +16,7 @@ import {
 
 import { createJobAndRedirect, saveDraftJobAndRedirect } from "@/features/jobs/actions";
 import { demoRecruiterCompany, demoRecruiterSubscription } from "@/features/demo/workspace";
+import { calculateJobQuotaUsage, QUOTA_EXCLUDED_JOB_STATUS } from "@/features/recruiter/quota";
 import { requireRole } from "@/lib/auth/require-role";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
@@ -90,7 +91,7 @@ export default async function NewRecruiterOfferPage({ searchParams }: NewRecruit
           .from("jobs")
           .select("id", { count: "exact", head: true })
           .eq("company_id", company.id)
-          .neq("status", "archived")
+          .neq("status", QUOTA_EXCLUDED_JOB_STATUS)
       ]);
 
       quota = subscription?.job_quota ?? quota;
@@ -98,7 +99,8 @@ export default async function NewRecruiterOfferPage({ searchParams }: NewRecruit
     }
   }
 
-  const remainingJobs = quota >= 999 ? "illimitées" : String(Math.max(quota - usedJobs, 0));
+  const quotaUsage = calculateJobQuotaUsage({ quota, used: usedJobs });
+  const remainingJobs = quotaUsage.remainingLabel;
 
   return (
     <div className="new-offer-page">

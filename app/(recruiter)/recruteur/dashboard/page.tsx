@@ -7,6 +7,7 @@ import {
   demoRecruiterJobs,
   demoRecruiterSubscription
 } from "@/features/demo/workspace";
+import { calculateJobQuotaUsage, QUOTA_EXCLUDED_JOB_STATUS } from "@/features/recruiter/quota";
 import { submitCompanyForReview } from "@/features/recruiter/company-actions";
 import { requireRole } from "@/lib/auth/require-role";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
@@ -58,6 +59,7 @@ export default async function RecruiterDashboardPage() {
   let subscription: SubscriptionRow | null = isDemo ? demoRecruiterSubscription : null;
   let ownedJobs: JobRow[] = isDemo ? demoRecruiterJobs : [];
   let publishedCount = isDemo ? 1 : 0;
+  let usedJobsCount = isDemo ? demoRecruiterJobs.filter((job) => job.status !== QUOTA_EXCLUDED_JOB_STATUS).length : 0;
   let unreadApplicationsCount = isDemo
     ? demoRecruiterApplications.filter((application) => application.status === "submitted").length
     : 0;
@@ -83,6 +85,7 @@ export default async function RecruiterDashboardPage() {
         { data: subscriptionData },
         { data: jobs },
         { count: published },
+        { count: usedJobs },
         { count: unreadApplications },
         { count: shortlistedApplications }
       ] = await Promise.all([
@@ -103,6 +106,11 @@ export default async function RecruiterDashboardPage() {
           .eq("company_id", company.id)
           .eq("status", "published"),
         supabase
+          .from("jobs")
+          .select("id", { count: "exact", head: true })
+          .eq("company_id", company.id)
+          .neq("status", QUOTA_EXCLUDED_JOB_STATUS),
+        supabase
           .from("applications")
           .select("id, jobs!inner(company_id)", { count: "exact", head: true })
           .eq("jobs.company_id", company.id)
@@ -117,14 +125,14 @@ export default async function RecruiterDashboardPage() {
       subscription = subscriptionData;
       ownedJobs = (jobs ?? []) as JobRow[];
       publishedCount = published ?? 0;
+      usedJobsCount = usedJobs ?? 0;
       unreadApplicationsCount = unreadApplications ?? 0;
       shortlistedCount = shortlistedApplications ?? 0;
     }
   }
 
-  const jobCount = ownedJobs.length;
-  const quota = subscription?.job_quota ?? 0;
-  const remaining = quota > 0 ? Math.max(quota - jobCount, 0) : 0;
+  const jobCount = usedJobsCount;
+  const quotaUsage = calculateJobQuotaUsage({ quota: subscription?.job_quota, used: usedJobsCount });
   const displayName = profile.display_name?.replace("JobMada", "").trim() || profile.email || "recruteur";
   const onboardingSteps = [
     { label: "Créer votre compte", done: true },
@@ -134,7 +142,7 @@ export default async function RecruiterDashboardPage() {
   const completedSteps = onboardingSteps.filter((step) => step.done).length;
 
   const metrics = [
-    ["Offres actives", publishedCount, BriefcaseBusiness, `${publishedCount} publiée(s)`],
+    ["Offres actives", quotaUsage.used, BriefcaseBusiness, `${publishedCount} publiée(s)`],
     [
       "Candidatures non lues",
       unreadApplicationsCount,
@@ -143,7 +151,7 @@ export default async function RecruiterDashboardPage() {
     ],
     ["Shortlistés en cours", shortlistedCount, FileText, shortlistedCount > 0 ? "Sélection active" : "Aucun shortlist"],
     ["Vues totales", isDemo ? 128 : 0, Eye, isDemo ? "+12 cette semaine" : "— vs sem. préc."],
-    ["Quota restant", remaining, FileText, quota > 0 ? `${jobCount}/${quota} utilisées` : "À configurer"]
+    ["Quota restant", quotaUsage.remainingLabel, FileText, quotaUsage.label]
   ] as const;
 
   return (

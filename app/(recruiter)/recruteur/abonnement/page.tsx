@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { BriefcaseBusiness, Circle, Layers, Star, TrendingUp, UsersRound, Zap } from "lucide-react";
 
+import { calculateJobQuotaUsage, QUOTA_EXCLUDED_JOB_STATUS } from "@/features/recruiter/quota";
 import { cancelSubscriptionPlanRequest, chooseSubscriptionPlan } from "@/features/subscriptions/actions";
 import { requireRole } from "@/lib/auth/require-role";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
@@ -75,7 +76,11 @@ export default async function RecruiterSubscriptionPage({ searchParams }: Recrui
           .select("plan, job_quota, cv_access_enabled, status")
           .eq("company_id", company.id)
           .maybeSingle<SubscriptionRow>(),
-        supabase.from("jobs").select("id", { count: "exact", head: true }).eq("company_id", company.id),
+        supabase
+          .from("jobs")
+          .select("id", { count: "exact", head: true })
+          .eq("company_id", company.id)
+          .neq("status", QUOTA_EXCLUDED_JOB_STATUS),
         supabase
           .from("plan_change_requests")
           .select("id, requested_plan, status, requested_at, review_note")
@@ -92,8 +97,9 @@ export default async function RecruiterSubscriptionPage({ searchParams }: Recrui
 
   const activePlan = subscription?.plan ?? "free";
   const activePlanLabel = planLabels.get(activePlan as (typeof plans)[number][0]) ?? "Gratuit";
-  const jobQuota = subscription?.job_quota ?? 2;
-  const usedPercent = jobQuota > 0 ? Math.min((jobCount / jobQuota) * 100, 100) : 0;
+  const quotaUsage = calculateJobQuotaUsage({ quota: subscription?.job_quota, used: jobCount });
+  const jobQuota = quotaUsage.quota;
+  const usedPercent = quotaUsage.percent;
 
   return (
     <>
@@ -145,7 +151,7 @@ export default async function RecruiterSubscriptionPage({ searchParams }: Recrui
         </h2>
         <div className="quota-grid">
           {([
-            ["Offres", jobQuota >= 999 ? `${jobCount}/illimité` : `${jobCount}/${jobQuota}`, usedPercent, BriefcaseBusiness],
+            ["Offres", quotaUsage.label.replace(" offres utilisées", ""), usedPercent, BriefcaseBusiness],
             ["Vedette", "—", 0, Star],
             ["Urgent", "—", 0, Zap],
             ["Remontée", "—", 0, TrendingUp],

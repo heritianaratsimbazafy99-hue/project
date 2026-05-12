@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 
 import { signOut } from "@/features/auth/actions";
+import { calculateJobQuotaUsage } from "@/features/recruiter/quota";
 
 type RecruiterSidebarProps = {
   companyName?: string | null;
@@ -68,9 +69,7 @@ export function RecruiterSidebar({
 }: RecruiterSidebarProps) {
   const pathname = usePathname();
   const initial = (companyName || displayName || email || "R").trim().charAt(0).toUpperCase();
-  const quotaLabel =
-    typeof jobQuota === "number" ? `${jobCount ?? 0}/${jobQuota} offres utilisées` : "Quota en attente";
-  const quotaPercent = typeof jobQuota === "number" && jobQuota > 0 ? Math.min(((jobCount ?? 0) / jobQuota) * 100, 100) : 0;
+  const quotaUsage = calculateJobQuotaUsage({ quota: jobQuota, used: jobCount });
 
   return (
     <aside className="recruiter-sidebar" aria-label="Espace recruteur">
@@ -127,9 +126,9 @@ export function RecruiterSidebar({
           Plan {plan ?? "Gratuit"} <span className="pill">{plan === "Gratuit" || !plan ? "0 Ar" : "Actif"}</span>
         </strong>
         <div className="quota-bar" aria-hidden="true">
-          <span style={{ width: `${quotaPercent}%` }} />
+          <span style={{ width: `${quotaUsage.percent}%` }} />
         </div>
-        <p>{quotaLabel}</p>
+        <p>{quotaUsage.label}</p>
         <Link className="btn btn-outline" href="/recruteur/abonnement" id="recruiter-quota-title">
           Changer de plan
         </Link>

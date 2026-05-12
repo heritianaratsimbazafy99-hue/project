@@ -54,6 +54,15 @@ describe("auth middleware", () => {
     expect(mocks.getUser).not.toHaveBeenCalled();
   });
 
+  it("refreshes Supabase auth when a local demo cookie is present alongside a Supabase session", async () => {
+    const { middleware } = await import("../../middleware");
+
+    await middleware(requestWithCookies(["jobmada_demo_session", "sb-project-auth-token"]) as never);
+
+    expect(mocks.createServerClient).toHaveBeenCalled();
+    expect(mocks.getUser).toHaveBeenCalled();
+  });
+
   it("does refresh Supabase auth when demo cookies are disabled", async () => {
     process.env.ENABLE_DEMO_AUTH = "false";
     const { middleware } = await import("../../middleware");

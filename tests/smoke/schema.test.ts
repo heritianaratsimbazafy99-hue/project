@@ -75,6 +75,25 @@ describe("initial Supabase schema", () => {
     expect(migrationSql).toContain("create or replace function public.review_company");
     expect(migrationSql).toContain("for update");
     expect(migrationSql).toContain("insert into public.admin_reviews");
+    expect(migrationSql).toContain("a rejection note is required");
+    expect(migrationSql).toContain("grant execute on function public.review_job");
+    expect(migrationSql).toContain("grant execute on function public.review_company");
+
+    const reviewJobDefinitions = migrationSql.match(
+      /create or replace function public\.review_job[\s\S]*?\$\$;/g
+    );
+    const reviewCompanyDefinitions = migrationSql.match(
+      /create or replace function public\.review_company[\s\S]*?\$\$;/g
+    );
+    const finalReviewJobDefinition = reviewJobDefinitions?.at(-1) ?? "";
+    const finalReviewCompanyDefinition = reviewCompanyDefinitions?.at(-1) ?? "";
+
+    expect(finalReviewJobDefinition).toContain("security definer");
+    expect(finalReviewJobDefinition).toContain("set search_path = ''");
+    expect(finalReviewJobDefinition).toContain("review_decision = 'reject'");
+    expect(finalReviewCompanyDefinition).toContain("security definer");
+    expect(finalReviewCompanyDefinition).toContain("set search_path = ''");
+    expect(finalReviewCompanyDefinition).toContain("review_decision = 'reject'");
   });
 
   it("onboards new Supabase Auth users into their business workspace", () => {
@@ -124,5 +143,12 @@ describe("initial Supabase schema", () => {
     expect(migrationSql).toContain("for update");
     expect(migrationSql).toContain("on conflict (company_id) do update");
     expect(migrationSql).toContain("grant execute on function public.review_plan_change_request");
+
+    const planReviewDefinitions = migrationSql.match(
+      /create or replace function public\.review_plan_change_request[\s\S]*?\$\$;/g
+    );
+    const finalPlanReviewDefinition = planReviewDefinitions?.at(-1) ?? "";
+
+    expect(finalPlanReviewDefinition).toMatch(/when 'booster' then\s+next_job_quota := 999;/);
   });
 });

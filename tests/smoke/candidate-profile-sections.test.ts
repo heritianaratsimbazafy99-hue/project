@@ -12,12 +12,20 @@ function readWorkspaceFile(path: string) {
 describe("candidate profile pages", () => {
   it("renders persistent forms for profile journey, skills, CV and password sections", () => {
     const source = readWorkspaceFile("app/(candidate)/candidat/profil/page.tsx");
+    const cvCardSource = readWorkspaceFile("src/features/candidate/components/cv-upload-card.tsx");
 
     expect(source).toContain("addCandidateExperienceAndRedirect");
     expect(source).toContain("addCandidateEducationAndRedirect");
     expect(source).toContain("saveCandidateSkillsAndRedirect");
     expect(source).toContain("deleteCandidateCvAndRedirect");
     expect(source).toContain("updateCandidatePasswordAndRedirect");
+    expect(source).toContain("profileName=");
+    expect(source).toContain("desiredRole=");
+    expect(source).toContain("skillCount={skills.length}");
+    expect(cvCardSource).toContain("openCandidateCvAndRedirect");
+    expect(cvCardSource).toContain("profileName");
+    expect(cvCardSource).toContain("desiredRole");
+    expect(cvCardSource).toContain("skillCount");
     expect(source).not.toContain('type="button">Ajouter une expérience');
     expect(source).not.toContain('type="button">Ajouter une formation');
     expect(source).not.toContain('type="button">Modifier le mot de passe');

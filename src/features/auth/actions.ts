@@ -1,6 +1,6 @@
 "use server";
 
-import { cookies } from "next/headers";
+import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 
 import {
@@ -47,6 +47,20 @@ function signupRouteForAccountType(accountType: SignupAccountType): string {
 
 function signupErrorPath(accountType: SignupAccountType, error: string): string {
   return `/inscription/${signupRouteForAccountType(accountType)}?error=${error}`;
+}
+
+async function requestOrigin() {
+  const headerStore = await headers();
+  const origin = headerStore.get("origin") ?? process.env.NEXT_PUBLIC_SITE_URL ?? process.env.NEXT_PUBLIC_APP_URL;
+
+  if (origin) {
+    return origin.replace(/\/+$/, "");
+  }
+
+  const host = headerStore.get("host");
+  const protocol = headerStore.get("x-forwarded-proto") ?? "http";
+
+  return host ? `${protocol}://${host}` : "http://localhost:3000";
 }
 
 function makeDisplayName(firstName: string, lastName: string, email: string): string {
@@ -192,6 +206,62 @@ export async function signOut() {
   cookieStore.delete(DEMO_SESSION_COOKIE);
 
   redirect("/connexion?logged_out=1");
+}
+
+export async function sendPasswordResetEmail(formData: FormData) {
+  const email = textValue(formData, "email").toLowerCase();
+
+  if (!email) {
+    redirect("/connexion?reset=1&error=missing_email");
+  }
+
+  const supabase = await createSupabaseServerClient();
+  const origin = await requestOrigin();
+  const { error } = await supabase.auth.resetPasswordForEmail(email, {
+    redirectTo: `${origin}/auth/callback?next=/connexion/reinitialiser`
+  });
+
+  if (error) {
+    redirect("/connexion?reset=1&error=reset_failed");
+  }
+
+  redirect("/connexion?reset=sent");
+}
+
+export async function updatePasswordFromRecovery(formData: FormData) {
+  const password = String(formData.get("password") ?? "");
+  const passwordConfirm = String(formData.get("password_confirm") ?? "");
+
+  if (password.length < 8) {
+    redirect("/connexion/reinitialiser?error=short");
+  }
+
+  if (password !== passwordConfirm) {
+    redirect("/connexion/reinitialiser?error=mismatch");
+  }
+
+  const supabase = await createSupabaseServerClient();
+  const {
+    data: { user },
+    error: userError
+  } = await supabase.auth.getUser();
+
+  if (userError || !user) {
+    redirect("/connexion?error=reset-session");
+  }
+
+  const { error } = await supabase.auth.updateUser({ password });
+
+  if (error) {
+    redirect("/connexion/reinitialiser?error=update_failed");
+  }
+
+  await supabase.auth.signOut();
+
+  const cookieStore = await cookies();
+  cookieStore.delete(DEMO_SESSION_COOKIE);
+
+  redirect("/connexion?reset=updated");
 }
 
 export async function signUpWithPassword(formData: FormData) {

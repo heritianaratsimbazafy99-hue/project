@@ -1,17 +1,30 @@
 import { Check, Eye, FileCheck2, LockKeyhole } from "lucide-react";
 
-import { uploadCandidateCvAndRedirect } from "@/features/candidate/actions";
+import { openCandidateCvAndRedirect, uploadCandidateCvAndRedirect } from "@/features/candidate/actions";
 
 type CvUploadCardProps = {
   cvPath?: string | null;
+  city?: string | null;
+  desiredRole?: string | null;
+  profileName?: string | null;
+  skillCount?: number;
 };
 
 function cvFileName(cvPath: string) {
   return cvPath.split("/").pop() || "CV enregistré";
 }
 
-export function CvUploadCard({ cvPath }: CvUploadCardProps) {
+export function CvUploadCard({
+  city,
+  cvPath,
+  desiredRole,
+  profileName,
+  skillCount = 0
+}: CvUploadCardProps) {
   const hasCv = Boolean(cvPath);
+  const skillLabel = skillCount > 0
+    ? `${skillCount} compétence${skillCount > 1 ? "s" : ""} renseignée${skillCount > 1 ? "s" : ""}`
+    : "Compétences à compléter";
 
   return (
     <section className="candidateCard cvUploadCard" aria-labelledby="cv-upload-title">
@@ -30,10 +43,10 @@ export function CvUploadCard({ cvPath }: CvUploadCardProps) {
       </div>
 
       <div className="cvReviewSummary">
-        <span>Profil candidat</span>
-        <span>Poste recherché</span>
-        <span>Antananarivo</span>
-        <span>Compétences à compléter</span>
+        <span>{profileName || "Profil candidat"}</span>
+        <span>{desiredRole || "Poste recherché à préciser"}</span>
+        <span>{city || "Ville à préciser"}</span>
+        <span>{skillLabel}</span>
       </div>
 
       <div className="cvReviewFooter">
@@ -61,10 +74,10 @@ export function CvUploadCard({ cvPath }: CvUploadCardProps) {
         <div className="cvUploadActions">
           <button type="submit">{hasCv ? "Mettre à jour" : "Enregistrer le CV"}</button>
           {hasCv ? (
-            <a href="#cv-management-title" aria-label="Voir le CV actuel">
+            <button type="submit" formAction={openCandidateCvAndRedirect} formNoValidate aria-label="Ouvrir le CV actuel">
               <Eye aria-hidden="true" size={16} />
               Voir mon CV
-            </a>
+            </button>
           ) : null}
         </div>
       </form>

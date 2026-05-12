@@ -110,4 +110,18 @@ describe("candidate job apply state", () => {
     const { getCandidateApplyState } = await import("@/features/applications/apply-state");
     await expect(getCandidateApplyState("job-1")).resolves.toEqual({ state: "missing_cv" });
   });
+
+  it("throws Supabase read errors instead of treating them as missing profile data", async () => {
+    mocks.getUser.mockResolvedValue({ data: { user: { id: "candidate-1" } }, error: null });
+    mocks.from.mockImplementation((table: string) => {
+      if (table === "profiles") {
+        return queryResult(null, { message: "profiles unavailable" });
+      }
+
+      throw new Error(`Unexpected table ${table}`);
+    });
+
+    const { getCandidateApplyState } = await import("@/features/applications/apply-state");
+    await expect(getCandidateApplyState("job-1")).rejects.toThrow("profiles unavailable");
+  });
 });

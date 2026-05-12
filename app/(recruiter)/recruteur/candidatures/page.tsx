@@ -123,6 +123,38 @@ export default async function RecruiterApplicationsPage({ searchParams }: Recrui
   const viewedCount = allApplications.filter((application) =>
     ["viewed", "shortlisted", "interview", "hired"].includes(application.status)
   ).length;
+  const statusTabItems: Array<{
+    label: string;
+    count: number;
+    href: string;
+    status?: ApplicationStatus;
+  }> = [
+    { label: "Toutes", count: total, href: "/recruteur/candidatures" },
+    {
+      label: "À traiter",
+      count: allApplications.filter((application) => application.status === "submitted").length,
+      href: "/recruteur/candidatures?status=submitted",
+      status: "submitted"
+    },
+    {
+      label: "Consultées",
+      count: allApplications.filter((application) => application.status === "viewed").length,
+      href: "/recruteur/candidatures?status=viewed",
+      status: "viewed"
+    },
+    {
+      label: "Shortlistées",
+      count: allApplications.filter((application) => application.status === "shortlisted").length,
+      href: "/recruteur/candidatures?status=shortlisted",
+      status: "shortlisted"
+    },
+    {
+      label: "Rejetées",
+      count: allApplications.filter((application) => application.status === "rejected").length,
+      href: "/recruteur/candidatures?status=rejected",
+      status: "rejected"
+    }
+  ];
 
   return (
     <>
@@ -183,23 +215,11 @@ export default async function RecruiterApplicationsPage({ searchParams }: Recrui
           <button className="btn btn-soft" type="submit">Filtrer</button>
         </form>
         <div className="status-tabs">
-          {[
-            ["Toutes", total, "/recruteur/candidatures"],
-            ["À traiter", submittedCount],
-            ["Consultées", viewedCount],
-            ["Shortlistées", allApplications.filter((application) => application.status === "shortlisted").length],
-            ["Rejetées", allApplications.filter((application) => application.status === "rejected").length]
-          ].map(([label, count], index) => (
+          {statusTabItems.map(({ label, count, href, status }) => (
             <Link
-              className={index === 0 && !statusFilter ? "active" : undefined}
-              href={
-                index === 0
-                  ? "/recruteur/candidatures"
-                  : `/recruteur/candidatures?status=${encodeURIComponent(
-                      index === 1 ? "submitted" : index === 2 ? "viewed" : index === 3 ? "shortlisted" : "rejected"
-                    )}`
-              }
-              key={String(label)}
+              className={status ? (statusFilter === status ? "active" : undefined) : !statusFilter ? "active" : undefined}
+              href={href}
+              key={label}
             >
               {label} <span>{count}</span>
             </Link>

@@ -74,6 +74,9 @@ describe("public Next UI routes", () => {
     expect(connexion).toContain('PublicHeader variant="auth"');
     expect(connexion).toContain("Content de");
     expect(connexion).toContain("Mot de passe oublié ?");
+    expect(connexion).toContain('htmlFor="login-password"');
+    expect(connexion).toContain('id="login-password"');
+    expect(connexion).not.toContain('<label className="login-field">\\n                  <span className="login-label-row">');
     expect(connexion).toContain("Pas encore de compte ?");
     expect(connexion).toContain("Je cherche un emploi");
     expect(connexion).toContain("Je recrute");
