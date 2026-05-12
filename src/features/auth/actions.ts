@@ -171,21 +171,27 @@ export async function signInWithPassword(formData: FormData) {
     redirect("/connexion?error=invalid");
   }
 
-  const { data: profile } = await supabase
+  const { data: profile, error: profileError } = await supabase
     .from("profiles")
     .select("role")
     .eq("id", data.user.id)
     .single<{ role: UserRole }>();
 
-  if (profile?.role === "recruiter") {
-    redirect("/recruteur/dashboard");
+  if (profileError || !profile) {
+    redirect("/connexion?error=profile");
   }
 
-  if (profile?.role === "admin") {
-    redirect("/admin");
-  }
+  redirect(dashboardPathForRole(profile.role));
+}
 
-  redirect("/candidat/dashboard");
+export async function signOut() {
+  const supabase = await createSupabaseServerClient();
+  await supabase.auth.signOut();
+
+  const cookieStore = await cookies();
+  cookieStore.delete(DEMO_SESSION_COOKIE);
+
+  redirect("/connexion?logged_out=1");
 }
 
 export async function signUpWithPassword(formData: FormData) {

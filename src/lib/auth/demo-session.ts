@@ -35,7 +35,23 @@ export const demoAccounts: DemoAccount[] = [
   }
 ];
 
+export function isDemoAuthEnabled() {
+  if (process.env.ENABLE_DEMO_AUTH === "true") {
+    return true;
+  }
+
+  if (process.env.ENABLE_DEMO_AUTH === "false") {
+    return false;
+  }
+
+  return process.env.NODE_ENV !== "production";
+}
+
 export function getDemoAccountForCredentials(email: string, password: string) {
+  if (!isDemoAuthEnabled()) {
+    return null;
+  }
+
   if (password !== DEMO_PASSWORD) {
     return null;
   }
@@ -55,6 +71,10 @@ export function serializeDemoSession(account: DemoAccount) {
 }
 
 export function parseDemoSession(value: string | undefined) {
+  if (!isDemoAuthEnabled()) {
+    return null;
+  }
+
   if (!value) {
     return null;
   }

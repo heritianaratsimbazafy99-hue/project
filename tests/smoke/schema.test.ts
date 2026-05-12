@@ -11,9 +11,13 @@ const migrationPath = resolve(
 const coreTables = [
   "profiles",
   "candidate_profiles",
+  "candidate_experiences",
+  "candidate_educations",
+  "candidate_skills",
   "companies",
   "jobs",
   "applications",
+  "saved_jobs",
   "job_alerts",
   "subscriptions",
   "plan_change_requests",
@@ -75,5 +79,16 @@ describe("initial Supabase schema", () => {
     expect(migrationSql).toContain("insert into public.candidate_profiles");
     expect(migrationSql).toContain("insert into public.companies");
     expect(migrationSql).toContain("insert into public.subscriptions");
+  });
+
+  it("hardens readiness-sensitive data paths", () => {
+    expect(migrationSql).toContain("protect_profile_system_fields");
+    expect(migrationSql).toContain("profile email is managed by authentication");
+    expect(migrationSql).toContain("protect_plan_request_owner_cancel");
+    expect(migrationSql).toContain("only pending plan requests can be canceled by company owners");
+    expect(migrationSql).toContain("plan_change_requests_requested_by_idx");
+    expect(migrationSql).toContain("plan_change_requests_reviewed_by_idx");
+    expect(migrationSql).toContain("allowed_mime_types");
+    expect(migrationSql).toContain("application/pdf");
   });
 });

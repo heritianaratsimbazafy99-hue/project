@@ -23,6 +23,11 @@ describe("connected workspace visual regressions", () => {
     expect(dashboard).toContain("dashboard-welcome");
     expect(dashboard).toContain("Démarrez en 3 étapes");
     expect(dashboard).toContain("Shortlistés en cours");
+    expect(dashboard).toContain('.eq("status", "submitted")');
+    expect(dashboard).toContain('.eq("status", "shortlisted")');
+    expect(dashboard).toContain("`/recruteur/offres/${job.id}/modifier`");
+    expect(sidebar).toContain("signOut");
+    expect(sidebar).not.toContain('{ href: "/connexion", label: "Déconnexion"');
     expect(styles).toContain("grid-template-columns: 272px minmax(0, 1fr)");
     expect(styles).toContain("width: min(calc(100% - 88px), 1248px)");
     expect(offers).toContain("offers-panel");
@@ -35,7 +40,7 @@ describe("connected workspace visual regressions", () => {
 
     expect(newOffer).toContain("Nouvelle offre");
     expect(newOffer).toContain("Remplissez les informations de votre offre");
-    expect(newOffer).toContain("Changer de méthode");
+    expect(newOffer).not.toContain("Changer de méthode");
     expect(newOffer).toContain("quota-notice");
     expect(newOffer).toContain("form-section");
     expect(newOffer).toContain("Informations du poste");

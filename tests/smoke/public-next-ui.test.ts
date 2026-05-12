@@ -34,6 +34,16 @@ describe("public Next UI routes", () => {
     expect(publicComponents).not.toContain('className="account-pill" href="/recruteur/dashboard"');
   });
 
+  it("keeps the public mobile drawer operable from the hamburger button", () => {
+    const publicComponents = read("src/features/public/components.tsx");
+    const toggle = read("src/features/public/mobile-menu-toggle.tsx");
+
+    expect(publicComponents).toContain("MobileMenuToggle");
+    expect(toggle).toContain('"use client"');
+    expect(toggle).toContain('document.body.classList.toggle("menu-open"');
+    expect(toggle).toContain("aria-expanded");
+  });
+
   it("keeps the connexion page close to the observed Asako login structure", () => {
     const connexion = read("app/(public)/connexion/page.tsx");
 

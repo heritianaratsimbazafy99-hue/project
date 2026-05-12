@@ -1373,10 +1373,21 @@ p {
   display: flex;
   align-items: center;
   gap: 10px;
+  width: 100%;
+  border: 0;
   border-radius: 12px;
+  background: transparent;
   color: var(--navy-ink);
   padding: 10px 11px;
+  font: inherit;
   font-weight: 800;
+  cursor: pointer;
+  text-align: left;
+  text-decoration: none;
+}
+
+.side-link-form {
+  margin: 0;
 }
 
 .recruiter-app.compact-ui .side-link {

@@ -1,7 +1,12 @@
 import Link from "next/link";
 import { BriefcaseBusiness, CheckCircle2, Circle, Eye, FileText, Plus, TrendingUp, UsersRound, Zap } from "lucide-react";
 
-import { demoRecruiterCompany, demoRecruiterJobs, demoRecruiterSubscription } from "@/features/demo/workspace";
+import {
+  demoRecruiterApplications,
+  demoRecruiterCompany,
+  demoRecruiterJobs,
+  demoRecruiterSubscription
+} from "@/features/demo/workspace";
 import { submitCompanyForReview } from "@/features/recruiter/company-actions";
 import { requireRole } from "@/lib/auth/require-role";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
@@ -53,6 +58,12 @@ export default async function RecruiterDashboardPage() {
   let subscription: SubscriptionRow | null = isDemo ? demoRecruiterSubscription : null;
   let ownedJobs: JobRow[] = isDemo ? demoRecruiterJobs : [];
   let publishedCount = isDemo ? 1 : 0;
+  let unreadApplicationsCount = isDemo
+    ? demoRecruiterApplications.filter((application) => application.status === "submitted").length
+    : 0;
+  let shortlistedCount = isDemo
+    ? demoRecruiterApplications.filter((application) => application.status === "shortlisted").length
+    : 0;
 
   if (!isDemo) {
     const supabase = await createSupabaseServerClient();
@@ -68,7 +79,13 @@ export default async function RecruiterDashboardPage() {
     company = companyData;
 
     if (company) {
-      const [{ data: subscriptionData }, { data: jobs }, { count: published }] = await Promise.all([
+      const [
+        { data: subscriptionData },
+        { data: jobs },
+        { count: published },
+        { count: unreadApplications },
+        { count: shortlistedApplications }
+      ] = await Promise.all([
         supabase
           .from("subscriptions")
           .select("plan, status, job_quota, cv_access_enabled")
@@ -84,12 +101,24 @@ export default async function RecruiterDashboardPage() {
           .from("jobs")
           .select("id", { count: "exact", head: true })
           .eq("company_id", company.id)
-          .eq("status", "published")
+          .eq("status", "published"),
+        supabase
+          .from("applications")
+          .select("id, jobs!inner(company_id)", { count: "exact", head: true })
+          .eq("jobs.company_id", company.id)
+          .eq("status", "submitted"),
+        supabase
+          .from("applications")
+          .select("id, jobs!inner(company_id)", { count: "exact", head: true })
+          .eq("jobs.company_id", company.id)
+          .eq("status", "shortlisted")
       ]);
 
       subscription = subscriptionData;
       ownedJobs = (jobs ?? []) as JobRow[];
       publishedCount = published ?? 0;
+      unreadApplicationsCount = unreadApplications ?? 0;
+      shortlistedCount = shortlistedApplications ?? 0;
     }
   }
 
@@ -106,8 +135,13 @@ export default async function RecruiterDashboardPage() {
 
   const metrics = [
     ["Offres actives", publishedCount, BriefcaseBusiness, `${publishedCount} publiée(s)`],
-    ["Candidatures non lues", 0, UsersRound, "Aucune nouvelle"],
-    ["Shortlistés en cours", 0, FileText, "Aucun shortlist"],
+    [
+      "Candidatures non lues",
+      unreadApplicationsCount,
+      UsersRound,
+      unreadApplicationsCount > 0 ? "À traiter" : "Aucune nouvelle"
+    ],
+    ["Shortlistés en cours", shortlistedCount, FileText, shortlistedCount > 0 ? "Sélection active" : "Aucun shortlist"],
     ["Vues totales", isDemo ? 128 : 0, Eye, isDemo ? "+12 cette semaine" : "— vs sem. préc."],
     ["Quota restant", remaining, FileText, quota > 0 ? `${jobCount}/${quota} utilisées` : "À configurer"]
   ] as const;
@@ -234,7 +268,7 @@ export default async function RecruiterDashboardPage() {
                   <p>{statusLabels[job.status]}</p>
                 </div>
                 <span className="pill rose">{statusLabels[job.status]}</span>
-                <Link className="btn btn-soft" href="/recruteur/offres">
+                <Link className="btn btn-soft" href={isDemo ? "/recruteur/offres" : `/recruteur/offres/${job.id}/modifier`}>
                   Modifier
                 </Link>
               </div>

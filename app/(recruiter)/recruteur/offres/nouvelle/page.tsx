@@ -7,7 +7,6 @@ import {
   Italic,
   List,
   ListOrdered,
-  RotateCcw,
   Save,
   Send,
   Sparkles,
@@ -108,10 +107,6 @@ export default async function NewRecruiterOfferPage({ searchParams }: NewRecruit
           <h1>Nouvelle offre</h1>
           <p>Remplissez les informations de votre offre</p>
         </div>
-        <Link className="change-method-link" href="/recruteur/offres/nouvelle?method=choice">
-          Changer de méthode
-          <RotateCcw aria-hidden="true" size={17} />
-        </Link>
       </div>
 
       {errorMessage ? (

@@ -664,22 +664,34 @@ a {
 }
 
 .candidateNav a,
+.candidateNav button,
 .candidateTabs a {
   display: flex;
   align-items: center;
   gap: 0.55rem;
+  width: 100%;
   min-height: 2.5rem;
   padding: 0.65rem 0.75rem;
+  border: 0;
   border-radius: 0.45rem;
+  background: transparent;
   color: var(--color-navy);
+  font: inherit;
   font-weight: 800;
   text-decoration: none;
+  cursor: pointer;
+  text-align: left;
 }
 
 .candidateNav a:hover,
+.candidateNav button:hover,
 .candidateNav a.isActive,
 .candidateTabs a:hover {
   background: rgba(40, 200, 245, 0.12);
+}
+
+.candidateLogoutForm {
+  margin: 0;
 }
 
 .completionCard {
@@ -771,6 +783,10 @@ a {
   color: var(--color-surface);
   font-weight: 850;
   text-decoration: none;
+}
+
+.completionCard .candidatePrimaryLink {
+  color: var(--color-surface);
 }
 
 .candidateContent {

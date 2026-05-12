@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
 
-import { DEMO_SESSION_COOKIE, parseDemoSession } from "@/lib/auth/demo-session";
+import { DEMO_SESSION_COOKIE, dashboardPathForRole, parseDemoSession } from "@/lib/auth/demo-session";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { UserRole } from "@/types/database";
 
@@ -20,7 +20,7 @@ export async function requireRole(roles: UserRole[]) {
 
   if (demoAccount) {
     if (!roles.includes(demoAccount.role)) {
-      redirect("/");
+      redirect(dashboardPathForRole(demoAccount.role));
     }
 
     return {
@@ -56,8 +56,12 @@ export async function requireRole(roles: UserRole[]) {
     .eq("id", user.id)
     .single<AuthenticatedProfile>();
 
-  if (profileError || !profile || !roles.includes(profile.role)) {
+  if (profileError || !profile) {
     redirect("/");
+  }
+
+  if (!roles.includes(profile.role)) {
+    redirect(dashboardPathForRole(profile.role));
   }
 
   return { isDemo: false, user, profile };

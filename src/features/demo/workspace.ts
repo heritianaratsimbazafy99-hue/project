@@ -29,7 +29,7 @@ export const demoRecruiterJobs = fallbackPublishedJobs.slice(0, 2).map((job, ind
 }));
 
 export const demoCandidateProfile = {
-  cv_path: null,
+  cv_path: "demo/cv.pdf",
   desired_role: "Designer UI/UX"
 };
 

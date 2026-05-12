@@ -16,6 +16,8 @@ import {
   UsersRound
 } from "lucide-react";
 
+import { signOut } from "@/features/auth/actions";
+
 type RecruiterSidebarProps = {
   companyName?: string | null;
   displayName?: string | null;
@@ -51,8 +53,7 @@ const navItems = [
   {
     title: "MON COMPTE",
     links: [
-      { href: "/recruteur/profil", label: "Mon profil", Icon: UserRound },
-      { href: "/connexion", label: "Déconnexion", Icon: LogOut }
+      { href: "/recruteur/profil", label: "Mon profil", Icon: UserRound }
     ]
   }
 ];
@@ -102,6 +103,14 @@ export function RecruiterSidebar({
                 </Link>
               );
             })}
+            {group.title === "MON COMPTE" ? (
+              <form action={signOut} className="side-link-form">
+                <button className="side-link" type="submit">
+                  <LogOut aria-hidden="true" size={18} strokeWidth={2.2} />
+                  <span>Déconnexion</span>
+                </button>
+              </form>
+            ) : null}
           </div>
         ))}
       </div>

@@ -26,6 +26,7 @@ describe("auth middleware", () => {
     vi.resetModules();
     process.env.NEXT_PUBLIC_SUPABASE_URL = "https://example.supabase.co";
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY = "anon";
+    delete process.env.ENABLE_DEMO_AUTH;
     mocks.getUser.mockReset();
     mocks.createServerClient.mockReset();
     mocks.createServerClient.mockReturnValue({
@@ -51,5 +52,16 @@ describe("auth middleware", () => {
 
     expect(mocks.createServerClient).not.toHaveBeenCalled();
     expect(mocks.getUser).not.toHaveBeenCalled();
+  });
+
+  it("does refresh Supabase auth when demo cookies are disabled", async () => {
+    process.env.ENABLE_DEMO_AUTH = "false";
+    const { middleware } = await import("../../middleware");
+
+    await middleware(requestWithCookies(["jobmada_demo_session", "sb-project-auth-token"]) as never);
+
+    expect(mocks.createServerClient).toHaveBeenCalled();
+    expect(mocks.getUser).toHaveBeenCalled();
+    delete process.env.ENABLE_DEMO_AUTH;
   });
 });

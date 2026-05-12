@@ -33,6 +33,8 @@ describe("candidate profile pages", () => {
     expect(sidebarSource).toContain("candidatePrimaryLink");
     expect(sidebarSource).toContain("LayoutDashboard");
     expect(sidebarSource).toContain("LogOut");
+    expect(sidebarSource).toContain("signOut");
+    expect(sidebarSource).not.toContain('href="/connexion"');
   });
 
   it("uses guided profile selectors inspired by the Asako candidate flow", () => {
@@ -50,6 +52,7 @@ describe("candidate profile pages", () => {
 
   it("renders the Asako-style onboarding checklist on the candidate dashboard", () => {
     const source = readWorkspaceFile("app/(candidate)/candidat/dashboard/page.tsx");
+    const demoWorkspace = readWorkspaceFile("src/features/demo/workspace.ts");
 
     expect(source).toContain("Voici comment démarrer en 4 étapes");
     expect(source).toContain("Compte créé");
@@ -61,6 +64,7 @@ describe("candidate profile pages", () => {
     expect(source).toContain("candidateHeroSummary");
     expect(source).toContain("candidateNextStepCard");
     expect(source).toContain("Action prioritaire");
+    expect(demoWorkspace).toContain('cv_path: "demo/cv.pdf"');
   });
 
   it("renders operational alert controls for pause resume and delete", () => {
@@ -116,5 +120,6 @@ describe("candidate profile pages", () => {
     expect(source).toContain(".candidateReadinessList");
     expect(source).toContain(".cvTrustList");
     expect(source).toContain(".candidateTimeline");
+    expect(source).toContain(".completionCard .candidatePrimaryLink");
   });
 });

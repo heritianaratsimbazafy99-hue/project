@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { Bell, BriefcaseBusiness, CheckCircle2, Circle, LayoutDashboard, LogOut, UserRound } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
+import { signOut } from "@/features/auth/actions";
 import type { CandidateCompletion } from "@/features/candidate/completion";
 
 type CandidateReadinessItem = {
@@ -57,10 +58,12 @@ export function CandidateSidebar({ email, displayName, completion, readiness }: 
               </Link>
             );
           })}
-          <Link href="/connexion">
-            <LogOut aria-hidden="true" size={18} strokeWidth={2.2} />
-            <span>Déconnexion</span>
-          </Link>
+          <form action={signOut} className="candidateLogoutForm">
+            <button type="submit">
+              <LogOut aria-hidden="true" size={18} strokeWidth={2.2} />
+              <span>Déconnexion</span>
+            </button>
+          </form>
         </nav>
       </section>
 

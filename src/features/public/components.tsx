@@ -24,6 +24,7 @@ import type { CSSProperties } from "react";
 import { brand } from "@/config/brand";
 import { DEMO_SESSION_COOKIE, dashboardPathForRole, parseDemoSession } from "@/lib/auth/demo-session";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { MobileMenuToggle } from "@/features/public/mobile-menu-toggle";
 import type { UserRole } from "@/types/database";
 import type { JobListItem } from "@/types/database";
 
@@ -150,11 +151,7 @@ export async function PublicHeader({ active = "/", variant = "default" }: { acti
           <span>{accountTarget.label}</span>
           <ChevronDown size={16} aria-hidden="true" />
         </Link>
-        <button className="hamburger" aria-label="Ouvrir le menu">
-          <span />
-          <span />
-          <span />
-        </button>
+        <MobileMenuToggle />
       </div>
       <nav className="mobile-drawer" aria-label="Navigation mobile">
         {nav.map(([label, href]) => (
