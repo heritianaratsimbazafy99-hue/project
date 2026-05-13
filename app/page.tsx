@@ -5,6 +5,7 @@ import { buildJobFilters, getPublishedJobsPageOrEmpty } from "@/features/jobs/qu
 import {
   BrandMark,
   CompanyLogo,
+  MascotGuide,
   MiniJob,
   PublicFooter,
   PublicHeader,
@@ -53,6 +54,13 @@ export default async function HomePage() {
                 <Link href="/emploi?q=commercial">Commercial</Link> ·{" "}
                 <Link href="/emploi?q=téléprospecteur">Téléprospecteur</Link>
               </div>
+              <MascotGuide
+                className="hero-mascot-guide"
+                title="Votre copilote emploi"
+                copy="Repérez les offres utiles, gardez votre CV prêt et laissez JobMada vous guider sans bruit."
+                ctaHref="/inscription/candidat"
+                ctaLabel="Créer mon profil"
+              />
             </div>
 
             <aside className="hero-side">

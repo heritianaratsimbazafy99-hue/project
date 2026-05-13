@@ -6,7 +6,7 @@ import {
   getCompanyCareerSiteBySlugOrNull,
   getPublishedCompanyJobsOrEmpty
 } from "@/features/companies/career-queries";
-import { CompanyLogo, PublicFooter, PublicHeader, PublicJobCard } from "@/features/public/components";
+import { CompanyLogo, MascotGuide, PublicFooter, PublicHeader, PublicJobCard } from "@/features/public/components";
 import { resolveCompanyCoverPath } from "@/features/public/company-logo";
 
 export const dynamic = "force-dynamic";
@@ -178,19 +178,13 @@ export default async function CompanyCareerPage({ params }: CompanyCareerPagePro
             </div>
 
             <aside className="side-stack company-career-side">
-              <div className="side-card">
-                <h3>{connectTitle}</h3>
-                <p>{connectDescription}</p>
-                {company.career_connect_enabled ? (
-                  <Link className="btn btn-primary" href={`/entreprises/${company.slug}/connect`}>
-                    Envoyer mon CV
-                  </Link>
-                ) : (
-                  <Link className="btn btn-outline" href="#company-jobs">
-                    Voir les offres
-                  </Link>
-                )}
-              </div>
+              <MascotGuide
+                className="company-mascot-guide"
+                title={connectTitle}
+                copy={connectDescription}
+                ctaHref={company.career_connect_enabled ? `/entreprises/${company.slug}/connect` : "#company-jobs"}
+                ctaLabel={company.career_connect_enabled ? "Envoyer mon CV" : "Voir les offres"}
+              />
               {company.website ? (
                 <div className="side-card">
                   <h3>Site web</h3>

@@ -5,6 +5,17 @@ import { describe, expect, it } from "vitest";
 
 const read = (path: string) => readFileSync(resolve(process.cwd(), path), "utf8");
 
+const readPngMetadata = (path: string) => {
+  const bytes = readFileSync(resolve(process.cwd(), path));
+
+  return {
+    colorType: bytes[25],
+    height: bytes.readUInt32BE(20),
+    signature: bytes.subarray(0, 8).toString("hex"),
+    width: bytes.readUInt32BE(16),
+  };
+};
+
 describe("public Next UI routes", () => {
   it("keeps the original prototype visual system mounted in Next", () => {
     expect(read("app/layout.tsx")).toContain('import "../styles.css"');
@@ -72,6 +83,30 @@ describe("public Next UI routes", () => {
     expect(publicComponents).toContain("logoPath={job.company.logo_path}");
     expect(publicComponents).toContain('src={resolvedLogoPath}');
     expect(logoHelper).toContain("company-logos");
+  });
+
+  it("integrates the JobMada mascot as a contextual public guide", () => {
+    const publicComponents = read("src/features/public/components.tsx");
+    const homePage = read("app/page.tsx");
+    const careerPage = read("app/(public)/entreprises/[slug]/page.tsx");
+    const connectPage = read("app/(public)/entreprises/[slug]/connect/page.tsx");
+    const styles = read("styles.css");
+    const mascot = readPngMetadata("public/assets/mascot/jobmada-mascot-wave-cutout.png");
+
+    expect(existsSync(resolve(process.cwd(), "public/assets/mascot/jobmada-mascot-wave-cutout.png"))).toBe(true);
+    expect(mascot).toMatchObject({
+      colorType: 6,
+      height: 1448,
+      signature: "89504e470d0a1a0a",
+      width: 1086,
+    });
+    expect(publicComponents).toContain("export function MascotGuide");
+    expect(publicComponents).toContain("/assets/mascot/jobmada-mascot-wave-cutout.png");
+    expect(publicComponents).toContain('width="1086" height="1448"');
+    expect(homePage).toContain("<MascotGuide");
+    expect(careerPage).toContain("<MascotGuide");
+    expect(connectPage).toContain("<MascotGuide");
+    expect(styles).toContain(".mascot-guide");
   });
 
   it("resolves Supabase company logo paths on candidate surfaces too", () => {

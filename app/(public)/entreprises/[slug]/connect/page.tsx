@@ -4,7 +4,7 @@ import { ArrowLeft, FileText, ShieldCheck, Send, UserRound } from "lucide-react"
 
 import { getVerifiedCompanyConnectBySlug } from "@/features/companies/career-queries";
 import { submitCompanyConnectAndRedirect } from "@/features/companies/connect-actions";
-import { CompanyLogo, PublicFooter, PublicHeader } from "@/features/public/components";
+import { CompanyLogo, MascotGuide, PublicFooter, PublicHeader } from "@/features/public/components";
 
 export const dynamic = "force-dynamic";
 
@@ -128,6 +128,11 @@ export default async function CompanyConnectPage({ params, searchParams }: Compa
             </form>
 
             <aside className="side-stack">
+              <MascotGuide
+                className="connect-mascot-guide"
+                title="Votre CV reste entre de bonnes mains"
+                copy={`JobMada transmet votre profil uniquement à ${company.name} et garde le fichier privé.`}
+              />
               <div className="side-card">
                 <FileText size={22} aria-hidden="true" />
                 <h3>Sans postuler à une offre</h3>

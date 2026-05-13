@@ -248,6 +248,36 @@ export function CompanyLogo({ name, logoPath = null, large = false }: { name: st
   );
 }
 
+export function MascotGuide({
+  title,
+  copy,
+  ctaHref,
+  ctaLabel,
+  className = ""
+}: {
+  title: string;
+  copy: string;
+  ctaHref?: string;
+  ctaLabel?: string;
+  className?: string;
+}) {
+  return (
+    <aside className={`mascot-guide ${className}`.trim()} aria-label="Guide JobMada">
+      <div className="mascot-guide-copy">
+        <span className="mascot-guide-kicker">Guide JobMada</span>
+        <strong>{title}</strong>
+        <p>{copy}</p>
+        {ctaHref && ctaLabel ? (
+          <Link className="btn btn-navy" href={ctaHref}>
+            {ctaLabel}
+          </Link>
+        ) : null}
+      </div>
+      <img src="/assets/mascot/jobmada-mascot-wave-cutout.png" alt="" loading="lazy" width="1086" height="1448" />
+    </aside>
+  );
+}
+
 export function PublicJobCard({ job }: { job: JobListItem }) {
   return (
     <Link
