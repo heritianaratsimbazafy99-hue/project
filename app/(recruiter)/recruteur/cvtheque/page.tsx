@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { BriefcaseBusiness, FileSearch, LockKeyhole, Search, ShieldCheck, Sparkles, Zap } from "lucide-react";
 
+import { sortCandidatesByJobMatch, type CandidateJobMatch, type JobMatchInput } from "@/features/recruiter/cv-matching";
 import { hasRecruiterCvLibraryAccess } from "@/features/subscriptions/plans";
 import { openRecruiterLibraryCvAndRedirect } from "@/features/recruiter/cv-library-actions";
 import { requireRole } from "@/lib/auth/require-role";
@@ -34,6 +35,17 @@ type CandidateProfileRow = {
   salary_expectation: string | null;
   cv_path: string | null;
   candidate_skills?: Array<{ label: string | null; kind: string | null }> | null;
+};
+
+type JobMatchRow = JobMatchInput & {
+  title: string | null;
+  city: string | null;
+  sector: string | null;
+  status: string | null;
+};
+
+type DisplayCandidateRow = CandidateProfileRow & {
+  match?: CandidateJobMatch;
 };
 
 function firstValue(value: string | string[] | undefined) {
@@ -72,10 +84,13 @@ function matchesSearch(candidate: CandidateProfileRow, search: string) {
 export default async function RecruiterCvLibraryPage({ searchParams }: RecruiterCvLibraryPageProps) {
   const { user, isDemo } = await requireRole(["recruiter"]);
   const query = await searchParams;
+  const mode = firstValue(query.mode) === "match" ? "match" : "search";
+  const selectedJobId = firstValue(query.job);
   const search = (firstValue(query.q) ?? "").trim().toLowerCase();
   const errorMessage = firstValue(query.error);
   let company: CompanySubscriptionRow | null = null;
   let candidates: CandidateProfileRow[] = [];
+  let jobs: JobMatchRow[] = [];
   let loadError = false;
 
   if (!isDemo) {
@@ -90,23 +105,38 @@ export default async function RecruiterCvLibraryPage({ searchParams }: Recruiter
 
     company = data;
 
-    if (hasRecruiterCvLibraryAccess(firstSubscription(company))) {
-      const { data: candidateData, error } = await supabase
-        .from("candidate_profiles")
-        .select("id, first_name, last_name, city, sector, desired_role, salary_expectation, cv_path, candidate_skills(label, kind)")
-        .not("cv_path", "is", null)
-        .order("updated_at", { ascending: false })
-        .limit(50)
-        .returns<CandidateProfileRow[]>();
+    if (company?.id && hasRecruiterCvLibraryAccess(firstSubscription(company))) {
+      const [candidateResult, jobResult] = await Promise.all([
+        supabase
+          .from("candidate_profiles")
+          .select(
+            "id, first_name, last_name, city, sector, desired_role, salary_expectation, cv_path, candidate_skills(label, kind)"
+          )
+          .not("cv_path", "is", null)
+          .order("updated_at", { ascending: false })
+          .limit(50)
+          .returns<CandidateProfileRow[]>(),
+        supabase
+          .from("jobs")
+          .select("id, title, city, sector, contract, summary, description, missions, profile, status")
+          .eq("company_id", company.id)
+          .order("updated_at", { ascending: false })
+          .limit(25)
+          .returns<JobMatchRow[]>()
+      ]);
 
-      candidates = candidateData ?? [];
-      loadError = Boolean(error);
+      candidates = candidateResult.data ?? [];
+      jobs = jobResult.data ?? [];
+      loadError = Boolean(candidateResult.error || jobResult.error);
     }
   }
 
   const subscription = firstSubscription(company);
   const hasCvAccess = hasRecruiterCvLibraryAccess(subscription);
+  const selectedJob = jobs.find((job) => job.id === selectedJobId) ?? jobs[0] ?? null;
+  const matchedCandidates = selectedJob ? sortCandidatesByJobMatch(candidates, selectedJob) : [];
   const filteredCandidates = candidates.filter((candidate) => matchesSearch(candidate, search));
+  const displayedCandidates: DisplayCandidateRow[] = mode === "match" ? matchedCandidates : filteredCandidates;
   const planLabel = subscription?.plan ? subscription.plan.toUpperCase() : "GRATUIT";
 
   return (
@@ -148,25 +178,61 @@ export default async function RecruiterCvLibraryPage({ searchParams }: Recruiter
             <span>Votre plan donne accès aux profils candidats avec CV et aux signaux de matching JobMada.</span>
           </div>
 
-          <form className="toolbar cv-search" action="/recruteur/cvtheque">
-            <div className="input-with-icon">
-              <Search aria-hidden="true" size={18} />
-              <input
-                className="input"
-                name="q"
-                defaultValue={firstValue(query.q) ?? ""}
-                placeholder="Rechercher par poste, ville, secteur ou compétence..."
-              />
-            </div>
-            <button className="btn btn-soft" type="submit">
-              Rechercher
-            </button>
-            {search ? (
-              <Link className="btn btn-outline" href="/recruteur/cvtheque">
-                Réinitialiser
+          <div className="cv-search-panel">
+            <div className="segmented cv-mode-tabs" aria-label="Mode de recherche CVthèque">
+              <Link className={mode === "search" ? "active" : ""} href="/recruteur/cvtheque">
+                <Search aria-hidden="true" size={18} />
+                Recherche libre
               </Link>
-            ) : null}
-          </form>
+              <Link className={mode === "match" ? "active" : ""} href="/recruteur/cvtheque?mode=match">
+                <BriefcaseBusiness aria-hidden="true" size={18} />
+                Matcher par offre
+              </Link>
+            </div>
+
+            {mode === "match" ? (
+              <form className="toolbar cv-search" action="/recruteur/cvtheque">
+                <input type="hidden" name="mode" value="match" />
+                <div className="input-with-icon">
+                  <BriefcaseBusiness aria-hidden="true" size={18} />
+                  <select className="select" name="job" defaultValue={selectedJob?.id ?? ""}>
+                    {jobs.length > 0 ? (
+                      jobs.map((job) => (
+                        <option key={job.id} value={job.id}>
+                          {job.title || "Offre sans titre"} · {job.city || "Ville à préciser"}
+                        </option>
+                      ))
+                    ) : (
+                      <option value="">Aucune offre disponible</option>
+                    )}
+                  </select>
+                </div>
+                <button className="btn btn-soft" type="submit" disabled={jobs.length === 0}>
+                  Matcher
+                </button>
+              </form>
+            ) : (
+              <form className="toolbar cv-search" action="/recruteur/cvtheque">
+                <div className="input-with-icon">
+                  <Search aria-hidden="true" size={18} />
+                  <input
+                    className="input"
+                    name="q"
+                    defaultValue={firstValue(query.q) ?? ""}
+                    placeholder="Rechercher par poste, ville, secteur ou compétence..."
+                  />
+                </div>
+                <button className="btn btn-soft" type="submit">
+                  Rechercher
+                </button>
+                {search ? (
+                  <Link className="btn btn-outline" href="/recruteur/cvtheque">
+                    Réinitialiser
+                  </Link>
+                ) : null}
+              </form>
+            )}
+          </div>
 
           {loadError ? (
             <div className="recruiterNotice isError" role="alert">
@@ -174,9 +240,15 @@ export default async function RecruiterCvLibraryPage({ searchParams }: Recruiter
             </div>
           ) : null}
 
-          {filteredCandidates.length > 0 ? (
+          {mode === "match" && !selectedJob ? (
+            <div className="empty-state">
+              Publiez ou créez une offre pour lancer le matching candidats.
+            </div>
+          ) : null}
+
+          {displayedCandidates.length > 0 ? (
             <div className="table-list cv-search">
-              {filteredCandidates.map((candidate) => {
+              {displayedCandidates.map((candidate) => {
                 const skills = (candidate.candidate_skills ?? []).filter((skill) => skill.label).slice(0, 4);
 
                 return (
@@ -191,6 +263,17 @@ export default async function RecruiterCvLibraryPage({ searchParams }: Recruiter
                           {candidate.sector || "Secteur à préciser"}
                           {candidate.salary_expectation ? ` · ${candidate.salary_expectation}` : ""}
                         </small>
+                        {candidate.match ? (
+                          <div className="popular-row" aria-label="Score matching">
+                            <strong>Score matching</strong>
+                            <span className="status-badge ok">{candidate.match.score}%</span>
+                            {candidate.match.reasons.slice(0, 3).map((reason) => (
+                              <span className="status-badge" key={`${candidate.id}-${reason}`}>
+                                {reason}
+                              </span>
+                            ))}
+                          </div>
+                        ) : null}
                       </div>
                       <form action={openRecruiterLibraryCvAndRedirect.bind(null, candidate.id)}>
                         <button className="btn btn-soft" type="submit">
@@ -214,9 +297,11 @@ export default async function RecruiterCvLibraryPage({ searchParams }: Recruiter
             </div>
           ) : (
             <div className="empty-state">
-              {search
-                ? "Aucun profil CV ne correspond à cette recherche."
-                : "Aucun profil candidat avec CV n'est encore disponible."}
+              {mode === "match"
+                ? "Aucun profil avec CV n'est disponible pour calculer un matching."
+                : search
+                  ? "Aucun profil CV ne correspond à cette recherche."
+                  : "Aucun profil candidat avec CV n'est encore disponible."}
             </div>
           )}
         </section>

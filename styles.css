@@ -2029,7 +2029,8 @@ p {
   padding: 4px;
 }
 
-.segmented button {
+.segmented button,
+.segmented a {
   flex: 1;
   display: inline-flex;
   align-items: center;
@@ -2041,9 +2042,11 @@ p {
   background: transparent;
   color: var(--muted);
   font-weight: 900;
+  text-decoration: none;
 }
 
-.segmented button.active {
+.segmented button.active,
+.segmented a.active {
   background: #fff;
   color: var(--navy);
   box-shadow: var(--shadow-sm);
