@@ -59,6 +59,10 @@ const navItems = [
   }
 ];
 
+export function isRecruiterPathActive(pathname: string | null, href: string) {
+  return pathname === href || Boolean(pathname?.startsWith(`${href}/`));
+}
+
 export function RecruiterSidebar({
   companyName,
   displayName,
@@ -93,7 +97,7 @@ export function RecruiterSidebar({
           <div className="side-group" key={group.title}>
             <p className="side-group-title">{group.title}</p>
             {group.links.map(({ href, label, Icon }) => {
-              const isActive = pathname === href || pathname.startsWith(`${href}/`);
+              const isActive = isRecruiterPathActive(pathname, href);
 
               return (
                 <Link key={href} className={`side-link${isActive ? " active" : ""}`} href={href}>
