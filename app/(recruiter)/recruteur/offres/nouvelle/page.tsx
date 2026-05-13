@@ -15,8 +15,10 @@ import {
 } from "lucide-react";
 
 import { createJobAndRedirect, saveDraftJobAndRedirect } from "@/features/jobs/actions";
+import { JobDescriptionAssistant } from "@/features/jobs/components/job-description-assistant";
 import { demoRecruiterCompany, demoRecruiterSubscription } from "@/features/demo/workspace";
 import { calculateJobQuotaUsage, QUOTA_EXCLUDED_JOB_STATUS } from "@/features/recruiter/quota";
+import { hasAdvancedRecruiterTools } from "@/features/subscriptions/plans";
 import { requireRole } from "@/lib/auth/require-role";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
@@ -69,6 +71,14 @@ export default async function NewRecruiterOfferPage({ searchParams }: NewRecruit
   const errorMessage = firstValue((await searchParams).error);
   let quota = demoRecruiterSubscription.job_quota;
   let usedJobs = isDemo ? 1 : 0;
+  let subscription: {
+    plan: string | null;
+    status: string | null;
+    job_quota: number | null;
+    cv_access_enabled: boolean | null;
+  } | null = isDemo
+    ? { plan: "free", status: "active", job_quota: demoRecruiterSubscription.job_quota, cv_access_enabled: false }
+    : null;
 
   if (!isDemo) {
     const supabase = await createSupabaseServerClient();
@@ -81,12 +91,17 @@ export default async function NewRecruiterOfferPage({ searchParams }: NewRecruit
       .maybeSingle<typeof demoRecruiterCompany>();
 
     if (company) {
-      const [{ data: subscription }, { count }] = await Promise.all([
+      const [{ data: subscriptionData }, { count }] = await Promise.all([
         supabase
           .from("subscriptions")
-          .select("job_quota")
+          .select("plan, status, job_quota, cv_access_enabled")
           .eq("company_id", company.id)
-          .maybeSingle<{ job_quota: number | null }>(),
+          .maybeSingle<{
+            plan: string | null;
+            status: string | null;
+            job_quota: number | null;
+            cv_access_enabled: boolean | null;
+          }>(),
         supabase
           .from("jobs")
           .select("id", { count: "exact", head: true })
@@ -94,6 +109,7 @@ export default async function NewRecruiterOfferPage({ searchParams }: NewRecruit
           .neq("status", QUOTA_EXCLUDED_JOB_STATUS)
       ]);
 
+      subscription = subscriptionData ?? null;
       quota = subscription?.job_quota ?? quota;
       usedJobs = count ?? 0;
     }
@@ -101,6 +117,7 @@ export default async function NewRecruiterOfferPage({ searchParams }: NewRecruit
 
   const quotaUsage = calculateJobQuotaUsage({ quota, used: usedJobs });
   const remainingJobs = quotaUsage.remainingLabel;
+  const advancedToolsEnabled = hasAdvancedRecruiterTools(subscription);
 
   return (
     <div className="new-offer-page">
@@ -274,16 +291,20 @@ export default async function NewRecruiterOfferPage({ searchParams }: NewRecruit
               name="profile"
               placeholder="Compétences techniques et humaines attendues"
             />
-            <div className="ai-row full">
-              <div>
-                <strong>Améliorer avec l'IA</strong>
-                <p>Fonctionnalité disponible après validation d'un plan avancé.</p>
+            {advancedToolsEnabled ? (
+              <JobDescriptionAssistant />
+            ) : (
+              <div className="ai-row full">
+                <div>
+                  <strong>Améliorer avec l'IA</strong>
+                  <p>Fonctionnalité disponible après validation d'un plan avancé.</p>
+                </div>
+                <Link className="btn btn-soft" href="/recruteur/abonnement">
+                  <Sparkles aria-hidden="true" size={17} />
+                  Voir les plans
+                </Link>
               </div>
-              <Link className="btn btn-soft" href="/recruteur/abonnement">
-                <Sparkles aria-hidden="true" size={17} />
-                Voir les plans
-              </Link>
-            </div>
+            )}
           </div>
         </section>
 
@@ -306,7 +327,7 @@ export default async function NewRecruiterOfferPage({ searchParams }: NewRecruit
                 <strong>
                   <Star aria-hidden="true" size={18} /> Vedette
                 </strong>
-                <Link href="/recruteur/abonnement">Débloquer</Link>
+                {advancedToolsEnabled ? <span>Inclus</span> : <Link href="/recruteur/abonnement">Débloquer</Link>}
               </div>
               <p>Mise en avant en haut des résultats avec un badge doré.</p>
               <small>Durée : 7 jours · Plan Booster+</small>
@@ -316,12 +337,16 @@ export default async function NewRecruiterOfferPage({ searchParams }: NewRecruit
                 <strong>
                   <Zap aria-hidden="true" size={18} /> Urgent
                 </strong>
-                <Link href="/recruteur/abonnement">Débloquer</Link>
+                {advancedToolsEnabled ? <span>Inclus</span> : <Link href="/recruteur/abonnement">Débloquer</Link>}
               </div>
               <p>Badge rouge « Urgent » sur l'offre. Pour les recrutements à pourvoir vite.</p>
               <small>Durée : 7 jours · Plan Starter+</small>
             </article>
-            <p className="form-tip full">Les options s'activent après validation de l'offre par notre équipe.</p>
+            <p className="form-tip full">
+              {advancedToolsEnabled
+                ? "Options incluses dans votre plan. Elles sont confirmées pendant la validation de l'offre."
+                : "Les options s'activent après validation de l'offre par notre équipe."}
+            </p>
           </div>
         </section>
 

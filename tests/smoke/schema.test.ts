@@ -57,6 +57,14 @@ describe("initial Supabase schema", () => {
     expect(migrationSql).toContain("select public.can_read_cv_object(storage.objects.name)");
   });
 
+  it("opens CV library candidate data to active subscriptions with CV access", () => {
+    expect(migrationSql).toContain("create or replace function public.current_recruiter_has_cv_access");
+    expect(migrationSql).toContain("public.subscriptions.cv_access_enabled = true");
+    expect(migrationSql).toContain("public.subscriptions.plan in ('booster', 'agency')");
+    expect(migrationSql).toContain("or (select public.current_recruiter_has_cv_access())");
+    expect(migrationSql).toContain("public.candidate_profiles.cv_path = object_name");
+  });
+
   it("routes plan upgrades through auditable admin requests", () => {
     expect(migrationSql).toContain("create table if not exists public.plan_change_requests");
     expect(migrationSql).toContain("create policy plan_change_requests_insert_owner");

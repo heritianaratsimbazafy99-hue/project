@@ -33,3 +33,40 @@ export const planEntitlements: Record<
 export function isSubscriptionPlan(plan: string): plan is SubscriptionPlan {
   return Object.hasOwn(planEntitlements, plan);
 }
+
+type RecruiterSubscriptionAccess = {
+  plan?: SubscriptionPlan | string | null;
+  status?: string | null;
+  job_quota?: number | null;
+  cv_access_enabled?: boolean | null;
+};
+
+function isActiveSubscription(subscription: RecruiterSubscriptionAccess | null | undefined) {
+  return subscription?.status == null || subscription.status === "active";
+}
+
+export function hasRecruiterCvLibraryAccess(subscription: RecruiterSubscriptionAccess | null | undefined) {
+  if (!subscription || !isActiveSubscription(subscription)) {
+    return false;
+  }
+
+  if (subscription.cv_access_enabled) {
+    return true;
+  }
+
+  const plan = subscription.plan ?? "";
+
+  return isSubscriptionPlan(plan) && planEntitlements[plan].cvAccessEnabled;
+}
+
+export function hasAdvancedRecruiterTools(subscription: RecruiterSubscriptionAccess | null | undefined) {
+  if (!subscription || !isActiveSubscription(subscription)) {
+    return false;
+  }
+
+  if (hasRecruiterCvLibraryAccess(subscription)) {
+    return true;
+  }
+
+  return (subscription.job_quota ?? 0) >= 999;
+}
