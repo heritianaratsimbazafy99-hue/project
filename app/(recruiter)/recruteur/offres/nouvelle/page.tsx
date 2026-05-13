@@ -28,6 +28,10 @@ type NewRecruiterOfferPageProps = {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 };
 
+type CompanyRow = {
+  id: string;
+};
+
 function firstValue(value: string | string[] | undefined) {
   return Array.isArray(value) ? value[0] : value;
 }
@@ -69,6 +73,7 @@ function EditorField({
 export default async function NewRecruiterOfferPage({ searchParams }: NewRecruiterOfferPageProps) {
   const { user, isDemo } = await requireRole(["recruiter"]);
   const errorMessage = firstValue((await searchParams).error);
+  let company: CompanyRow | null = isDemo ? demoRecruiterCompany : null;
   let quota = demoRecruiterSubscription.job_quota;
   let usedJobs = isDemo ? 1 : 0;
   let subscription: {
@@ -82,13 +87,15 @@ export default async function NewRecruiterOfferPage({ searchParams }: NewRecruit
 
   if (!isDemo) {
     const supabase = await createSupabaseServerClient();
-    const { data: company } = await supabase
+    const { data: companyData } = await supabase
       .from("companies")
       .select("id")
       .eq("owner_id", user.id)
       .order("created_at", { ascending: true })
       .limit(1)
-      .maybeSingle<typeof demoRecruiterCompany>();
+      .maybeSingle<CompanyRow>();
+
+    company = companyData;
 
     if (company) {
       const [{ data: subscriptionData }, { count }] = await Promise.all([
@@ -134,12 +141,19 @@ export default async function NewRecruiterOfferPage({ searchParams }: NewRecruit
         </div>
       ) : null}
 
-      <div className="quota-notice">
-        <Zap aria-hidden="true" size={19} />
-        <span>
-          Il vous reste <strong>{remainingJobs} offres</strong> sur votre plan
-        </span>
-      </div>
+      {company ? (
+        <div className="quota-notice">
+          <Zap aria-hidden="true" size={19} />
+          <span>
+            Il vous reste <strong>{remainingJobs} offres</strong> sur votre plan
+          </span>
+        </div>
+      ) : (
+        <div className="recruiterNotice" role="status">
+          <strong>Aucune entreprise rattachée.</strong>{" "}
+          <Link href="/recruteur/entreprise">Complétez votre profil entreprise</Link> avant de publier une offre.
+        </div>
+      )}
 
       <form action={createJobAndRedirect}>
         <section className="form-section" aria-labelledby="job-basics-title">

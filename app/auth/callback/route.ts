@@ -3,7 +3,11 @@ import { NextResponse, type NextRequest } from "next/server";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 function safeNextPath(value: string | null) {
-  return value?.startsWith("/") ? value : "/";
+  if (!value?.startsWith("/") || value.startsWith("//")) {
+    return "/";
+  }
+
+  return value;
 }
 
 export async function GET(request: NextRequest) {

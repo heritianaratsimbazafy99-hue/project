@@ -49,20 +49,60 @@ describe("initial Supabase schema", () => {
 
   it("allows recruiters to read CV storage objects only for received applications", () => {
     expect(migrationSql).toContain("create policy cvs_select_applicant_owner_recruiter_or_admin");
-    expect(migrationSql).toContain("create or replace function public.can_read_cv_object");
+    expect(migrationSql).toContain("create or replace function private.can_read_cv_object");
     expect(migrationSql).toContain("security definer");
     expect(migrationSql).toContain("set search_path = ''");
     expect(migrationSql).toContain("public.applications.cv_path = object_name");
     expect(migrationSql).toContain("public.companies.owner_id = (select auth.uid())");
-    expect(migrationSql).toContain("select public.can_read_cv_object(storage.objects.name)");
+    expect(migrationSql).toContain("select private.can_read_cv_object(storage.objects.name)");
   });
 
   it("opens CV library candidate data to active subscriptions with CV access", () => {
-    expect(migrationSql).toContain("create or replace function public.current_recruiter_has_cv_access");
+    expect(migrationSql).toContain("create or replace function private.current_recruiter_has_cv_access");
     expect(migrationSql).toContain("public.subscriptions.cv_access_enabled = true");
     expect(migrationSql).toContain("public.subscriptions.plan in ('booster', 'agency')");
-    expect(migrationSql).toContain("or (select public.current_recruiter_has_cv_access())");
+    expect(migrationSql).toContain("or (select private.current_recruiter_has_cv_access())");
     expect(migrationSql).toContain("public.candidate_profiles.cv_path = object_name");
+
+    const accessDefinitions = migrationSql.match(
+      /create or replace function private\.current_recruiter_has_cv_access\(\)[\s\S]*?\$\$;/g
+    );
+    const finalAccessDefinition = accessDefinitions?.at(-1) ?? "";
+
+    expect(finalAccessDefinition).toContain("private.current_user_role() = 'recruiter'");
+    expect(finalAccessDefinition).toContain("public.companies.status = 'verified'");
+  });
+
+  it("checks candidate CV ownership without recursive application policies", () => {
+    expect(migrationSql).toContain("create or replace function private.candidate_owns_cv_path");
+
+    const applicationInsertPolicies = migrationSql.match(
+      /create policy applications_insert_candidate_for_published_job[\s\S]*?;\n/g
+    );
+    const finalInsertPolicy = applicationInsertPolicies?.at(-1) ?? "";
+
+    expect(finalInsertPolicy).toContain("select private.candidate_owns_cv_path(public.applications.cv_path)");
+    expect(finalInsertPolicy).not.toContain("from public.candidate_profiles");
+  });
+
+  it("keeps security-definer RLS helpers outside the exposed public schema", () => {
+    expect(migrationSql).toContain("create schema if not exists private");
+    expect(migrationSql).toContain("create or replace function private.current_user_role");
+    expect(migrationSql).toContain("create or replace function private.is_admin");
+    expect(migrationSql).toContain("create or replace function private.owns_company");
+    expect(migrationSql).toContain("create or replace function private.owns_job");
+    expect(migrationSql).toContain("revoke all on function public.current_user_role() from public, anon, authenticated");
+    expect(migrationSql).toContain("revoke all on function public.is_admin() from public, anon, authenticated");
+    expect(migrationSql).toContain("grant execute on function private.is_admin() to authenticated");
+
+    const finalPolicies = migrationSql.slice(migrationSql.lastIndexOf("create schema if not exists private"));
+
+    expect(finalPolicies).toContain("select private.is_admin()");
+    expect(finalPolicies).toContain("select private.owns_company");
+    expect(finalPolicies).toContain("select private.owns_job");
+    expect(finalPolicies).not.toContain("select public.is_admin()");
+    expect(finalPolicies).not.toContain("select public.owns_company");
+    expect(finalPolicies).not.toContain("select public.owns_job");
   });
 
   it("routes plan upgrades through auditable admin requests", () => {
@@ -96,10 +136,10 @@ describe("initial Supabase schema", () => {
     const finalReviewJobDefinition = reviewJobDefinitions?.at(-1) ?? "";
     const finalReviewCompanyDefinition = reviewCompanyDefinitions?.at(-1) ?? "";
 
-    expect(finalReviewJobDefinition).toContain("security definer");
+    expect(finalReviewJobDefinition).toContain("security invoker");
     expect(finalReviewJobDefinition).toContain("set search_path = ''");
     expect(finalReviewJobDefinition).toContain("review_decision = 'reject'");
-    expect(finalReviewCompanyDefinition).toContain("security definer");
+    expect(finalReviewCompanyDefinition).toContain("security invoker");
     expect(finalReviewCompanyDefinition).toContain("set search_path = ''");
     expect(finalReviewCompanyDefinition).toContain("review_decision = 'reject'");
   });
@@ -157,6 +197,7 @@ describe("initial Supabase schema", () => {
     );
     const finalPlanReviewDefinition = planReviewDefinitions?.at(-1) ?? "";
 
+    expect(finalPlanReviewDefinition).toContain("security invoker");
     expect(finalPlanReviewDefinition).toMatch(/when 'booster' then\s+next_job_quota := 999;/);
   });
 });

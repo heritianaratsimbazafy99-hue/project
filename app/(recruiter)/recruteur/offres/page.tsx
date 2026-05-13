@@ -86,6 +86,7 @@ export default async function RecruiterOffersPage({ searchParams }: RecruiterOff
   let company: CompanyRow | null = isDemo ? demoRecruiterCompany : null;
   let allJobs: JobRow[] = isDemo ? demoRecruiterJobs : [];
   let subscription: SubscriptionRow = isDemo ? demoRecruiterSubscription : { plan: "free", job_quota: 2 };
+  let applicationsCount = 0;
   let reviewsByJob = new Map<string, AdminReviewRow[]>();
 
   if (!isDemo) {
@@ -102,7 +103,7 @@ export default async function RecruiterOffersPage({ searchParams }: RecruiterOff
     company = companyData;
 
     if (company) {
-      const [{ data: jobData }, { data: subscriptionData }] = await Promise.all([
+      const [{ data: jobData }, { data: subscriptionData }, { count: companyApplicationsCount }] = await Promise.all([
         supabase
           .from("jobs")
           .select("id, title, contract, city, sector, status, is_featured, is_urgent, created_at")
@@ -112,11 +113,16 @@ export default async function RecruiterOffersPage({ searchParams }: RecruiterOff
           .from("subscriptions")
           .select("plan, job_quota")
           .eq("company_id", company.id)
-          .maybeSingle<SubscriptionRow>()
+          .maybeSingle<SubscriptionRow>(),
+        supabase
+          .from("applications")
+          .select("id, jobs!inner(company_id)", { count: "exact", head: true })
+          .eq("jobs.company_id", company.id)
       ]);
 
       allJobs = (jobData ?? []) as JobRow[];
       subscription = subscriptionData ?? subscription;
+      applicationsCount = companyApplicationsCount ?? 0;
 
       const jobIds = allJobs.map((job) => job.id);
       if (jobIds.length > 0) {
@@ -167,7 +173,7 @@ export default async function RecruiterOffersPage({ searchParams }: RecruiterOff
       <section className="dashboard-grid offers-kpis" aria-label="Indicateurs offres">
         {([
           ["Offres actives", activeJobs, BriefcaseBusiness, `${published} publiée(s) · Plan ${planLabel}`],
-          ["Candidatures", 0, UsersRound, "Aucune nouvelle"],
+          ["Candidatures", applicationsCount, UsersRound, applicationsCount > 0 ? "À traiter" : "Aucune nouvelle"],
           ["Vues totales", isDemo ? 128 : 0, Eye, isDemo ? "+12 cette semaine" : "— vs sem. préc."],
           ["En revue", inReview, Clock, "Validation JobMada"]
         ] as const).map(([label, value, Icon, hint]) => (

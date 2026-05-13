@@ -32,6 +32,11 @@ describe("connected workspace visual regressions", () => {
     expect(styles).toContain("width: min(calc(100% - 88px), 1248px)");
     expect(offers).toContain("offers-panel");
     expect(offers).toContain("status-tabs");
+    expect(offers).toContain('let applicationsCount = 0');
+    expect(offers).toContain('.from("applications")');
+    expect(offers).toContain('.eq("jobs.company_id", company.id)');
+    expect(offers).toContain('["Candidatures", applicationsCount');
+    expect(offers).not.toContain('["Candidatures", 0');
   });
 
   it("keeps the new offer page aligned with the observed Asako manual form", () => {
@@ -42,6 +47,8 @@ describe("connected workspace visual regressions", () => {
     expect(newOffer).toContain("Remplissez les informations de votre offre");
     expect(newOffer).not.toContain("Changer de méthode");
     expect(newOffer).toContain("quota-notice");
+    expect(newOffer).toContain("Aucune entreprise rattachée");
+    expect(newOffer).toContain("/recruteur/entreprise");
     expect(newOffer).toContain("form-section");
     expect(newOffer).toContain("Informations du poste");
     expect(newOffer).toContain("Description de l'offre");

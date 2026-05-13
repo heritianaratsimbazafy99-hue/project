@@ -27,6 +27,8 @@ as $$
     join public.subscriptions
       on public.subscriptions.company_id = public.companies.id
     where public.companies.owner_id = (select auth.uid())
+      and public.companies.status = 'verified'
+      and public.current_user_role() = 'recruiter'
       and public.subscriptions.status = 'active'
       and (
         public.subscriptions.cv_access_enabled = true

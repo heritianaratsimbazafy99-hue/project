@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({
   cookieDelete: vi.fn(),
+  exchangeCodeForSession: vi.fn(),
   getUser: vi.fn(),
   headersGet: vi.fn(),
   redirect: vi.fn((url: string) => {
@@ -30,6 +31,7 @@ vi.mock("next/headers", () => ({
 vi.mock("@/lib/supabase/server", () => ({
   createSupabaseServerClient: vi.fn(async () => ({
     auth: {
+      exchangeCodeForSession: mocks.exchangeCodeForSession,
       getUser: mocks.getUser,
       resetPasswordForEmail: mocks.resetPasswordForEmail,
       signOut: mocks.signOut,
@@ -52,6 +54,7 @@ describe("password reset flow", () => {
   beforeEach(() => {
     vi.resetModules();
     mocks.cookieDelete.mockReset();
+    mocks.exchangeCodeForSession.mockReset();
     mocks.getUser.mockReset();
     mocks.headersGet.mockReset();
     mocks.redirect.mockClear();
@@ -109,5 +112,27 @@ describe("password reset flow", () => {
     ).rejects.toThrow("NEXT_REDIRECT:/connexion/reinitialiser?error=mismatch");
 
     expect(mocks.updateUser).not.toHaveBeenCalled();
+  });
+
+  it("keeps callback redirects on same-origin relative paths", async () => {
+    mocks.exchangeCodeForSession.mockResolvedValue({ error: null });
+
+    const { GET } = await import("../../app/auth/callback/route");
+    const response = await GET(
+      new Request("https://app.jobmada.mg/auth/callback?code=ok&next=//evil.example/path") as never
+    );
+
+    expect(response.headers.get("location")).toBe("https://app.jobmada.mg/");
+  });
+
+  it("allows callback redirects to approved app paths", async () => {
+    mocks.exchangeCodeForSession.mockResolvedValue({ error: null });
+
+    const { GET } = await import("../../app/auth/callback/route");
+    const response = await GET(
+      new Request("https://app.jobmada.mg/auth/callback?code=ok&next=/connexion/reinitialiser") as never
+    );
+
+    expect(response.headers.get("location")).toBe("https://app.jobmada.mg/connexion/reinitialiser");
   });
 });
