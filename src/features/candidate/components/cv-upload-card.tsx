@@ -4,6 +4,9 @@ import { openCandidateCvAndRedirect, uploadCandidateCvAndRedirect } from "@/feat
 
 type CvUploadCardProps = {
   cvPath?: string | null;
+  cvParsedAt?: string | null;
+  cvParseSource?: "openai" | "fallback" | string | null;
+  cvParseSummary?: string | null;
   city?: string | null;
   desiredRole?: string | null;
   profileName?: string | null;
@@ -16,12 +19,19 @@ function cvFileName(cvPath: string) {
 
 export function CvUploadCard({
   city,
+  cvParsedAt,
   cvPath,
+  cvParseSource,
+  cvParseSummary,
   desiredRole,
   profileName,
   skillCount = 0
 }: CvUploadCardProps) {
   const hasCv = Boolean(cvPath);
+  const parseLabel = cvParseSource === "openai" ? "Analyse IA" : "Analyse CV";
+  const parseDate = cvParsedAt
+    ? new Intl.DateTimeFormat("fr-FR", { day: "2-digit", month: "short" }).format(new Date(cvParsedAt))
+    : null;
   const skillLabel = skillCount > 0
     ? `${skillCount} compétence${skillCount > 1 ? "s" : ""} renseignée${skillCount > 1 ? "s" : ""}`
     : "Compétences à compléter";
@@ -48,6 +58,14 @@ export function CvUploadCard({
         <span>{city || "Ville à préciser"}</span>
         <span>{skillLabel}</span>
       </div>
+
+      {hasCv ? (
+        <div className="cvParseInsight" aria-label="Analyse CV">
+          <strong>{parseLabel}</strong>
+          <p>{cvParseSummary || "Déposez un CV lisible pour enrichir automatiquement votre profil et le matching."}</p>
+          {parseDate ? <span>{parseDate}</span> : null}
+        </div>
+      ) : null}
 
       <div className="cvReviewFooter">
         <p className={hasCv ? "cvCurrent" : "cvCurrent isMissing"}>

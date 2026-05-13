@@ -97,4 +97,11 @@ describe("recruiter CV matching", () => {
     expect(page).toContain(".from(\"jobs\")");
     expect(page).toContain("Score matching");
   });
+
+  it("does not render the candidate matching empty state when no recruiter job is available", () => {
+    const page = read("app/(recruiter)/recruteur/cvtheque/page.tsx");
+
+    expect(page).toContain('const shouldShowCandidateResults = mode !== "match" || Boolean(selectedJob);');
+    expect(page).toContain("{shouldShowCandidateResults ? (");
+  });
 });

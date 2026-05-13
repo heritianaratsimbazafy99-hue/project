@@ -5,7 +5,8 @@ const mocks = vi.hoisted(() => ({
   revalidatePath: vi.fn(),
   from: vi.fn(),
   storageFrom: vi.fn(),
-  authUpdateUser: vi.fn()
+  authUpdateUser: vi.fn(),
+  parseCandidateCvFile: vi.fn()
 }));
 
 vi.mock("next/cache", () => ({
@@ -28,6 +29,10 @@ vi.mock("@/lib/supabase/server", () => ({
   }))
 }));
 
+vi.mock("@/features/candidate/cv-parser", () => ({
+  parseCandidateCvFile: mocks.parseCandidateCvFile
+}));
+
 function candidateForm(values: Record<string, string>) {
   const formData = new FormData();
 
@@ -46,10 +51,21 @@ describe("candidate profile actions", () => {
     mocks.from.mockReset();
     mocks.storageFrom.mockReset();
     mocks.authUpdateUser.mockReset();
+    mocks.parseCandidateCvFile.mockReset();
     mocks.requireRole.mockResolvedValue({
       user: { id: "candidate-1", email: "hery@example.com" },
       profile: { role: "candidate", email: "hery@example.com" },
       isDemo: false
+    });
+    mocks.parseCandidateCvFile.mockResolvedValue({
+      source: "fallback",
+      desiredRole: null,
+      city: null,
+      sector: null,
+      hardSkills: [],
+      softSkills: [],
+      languages: [],
+      summary: null
     });
   });
 
@@ -220,6 +236,105 @@ describe("candidate profile actions", () => {
     expect(profileUpdate).toHaveBeenCalledWith({ onboarding_completion: 100 });
     expect(mocks.revalidatePath).toHaveBeenCalledWith("/candidat/profil");
     expect(mocks.revalidatePath).toHaveBeenCalledWith("/candidat/dashboard");
+
+    dateSpy.mockRestore();
+  });
+
+  it("parses a candidate CV and persists extracted matching signals", async () => {
+    const dateSpy = vi.spyOn(Date, "now").mockReturnValue(1778339000000);
+    const upload = vi.fn(async () => ({ error: null }));
+    mocks.storageFrom.mockReturnValue({ upload });
+    mocks.parseCandidateCvFile.mockResolvedValue({
+      source: "openai",
+      desiredRole: "Développeur React",
+      city: "Antananarivo",
+      sector: "Informatique & Digital",
+      hardSkills: ["React", "TypeScript", "SQL"],
+      softSkills: ["Rigueur"],
+      languages: ["Français", "Anglais"],
+      summary: "Profil React orienté dashboard et bases SQL."
+    });
+
+    const candidateMaybeSingle = vi
+      .fn()
+      .mockResolvedValueOnce({ data: { id: "profile-1", desired_role: null, city: null, sector: null }, error: null })
+      .mockResolvedValueOnce({ data: { id: "profile-1" }, error: null });
+    const candidateSelect = {
+      select: vi.fn().mockReturnThis(),
+      eq: vi.fn().mockReturnThis(),
+      maybeSingle: candidateMaybeSingle
+    };
+    const alertsCount = {
+      select: vi.fn().mockReturnThis(),
+      eq: vi.fn(async () => ({ count: 0, error: null }))
+    };
+    const candidateUpsert = vi.fn(async () => ({ error: null }));
+    const profileUpdateEq = vi.fn(async () => ({ error: null }));
+    const profileUpdate = vi.fn(() => ({ eq: profileUpdateEq }));
+    const skillsUpsert = vi.fn(async () => ({ error: null }));
+
+    mocks.from.mockImplementation((table: string) => {
+      if (table === "candidate_profiles") {
+        return {
+          ...candidateSelect,
+          upsert: candidateUpsert
+        };
+      }
+
+      if (table === "candidate_skills") {
+        return { upsert: skillsUpsert };
+      }
+
+      if (table === "profiles") {
+        return { update: profileUpdate };
+      }
+
+      if (table === "job_alerts") {
+        return alertsCount;
+      }
+
+      throw new Error(`Unexpected table ${table}`);
+    });
+
+    const formData = new FormData();
+    const file = new File(["fake pdf"], "cv-react.pdf", { type: "application/pdf" });
+    formData.set("cv", file);
+
+    const { uploadCandidateCv } = await import("@/features/candidate/actions");
+    const result = await uploadCandidateCv(formData);
+
+    expect(result).toEqual({ ok: true, message: "CV enregistré." });
+    expect(mocks.parseCandidateCvFile).toHaveBeenCalledWith(file);
+    expect(candidateUpsert).toHaveBeenCalledWith(
+      expect.objectContaining({
+        user_id: "candidate-1",
+        cv_path: "candidate-1/1778339000000-cv-react.pdf",
+        desired_role: "Développeur React",
+        city: "Antananarivo",
+        sector: "Informatique & Digital",
+        cv_parse_source: "openai",
+        cv_parse_summary: "Profil React orienté dashboard et bases SQL.",
+        profile_completion: 75
+      }),
+      { onConflict: "user_id" }
+    );
+    const parsedUpsertPayload = (
+      candidateUpsert.mock.calls as unknown as Array<[{ cv_parsed_at?: unknown }, unknown]>
+    )[0]?.[0];
+
+    expect(parsedUpsertPayload?.cv_parsed_at).toEqual(expect.any(String));
+    expect(skillsUpsert).toHaveBeenCalledWith(
+      [
+        { candidate_profile_id: "profile-1", kind: "hard", label: "React", level: null },
+        { candidate_profile_id: "profile-1", kind: "hard", label: "TypeScript", level: null },
+        { candidate_profile_id: "profile-1", kind: "hard", label: "SQL", level: null },
+        { candidate_profile_id: "profile-1", kind: "soft", label: "Rigueur", level: null },
+        { candidate_profile_id: "profile-1", kind: "language", label: "Français", level: null },
+        { candidate_profile_id: "profile-1", kind: "language", label: "Anglais", level: null }
+      ],
+      { onConflict: "candidate_profile_id,kind,label" }
+    );
+    expect(profileUpdate).toHaveBeenCalledWith({ onboarding_completion: 75 });
 
     dateSpy.mockRestore();
   });

@@ -74,6 +74,14 @@ describe("initial Supabase schema", () => {
     expect(finalAccessDefinition).toContain("public.companies.status = 'verified'");
   });
 
+  it("persists CV parsing metadata used by matching signals", () => {
+    expect(migrationSql).toContain("alter table public.candidate_profiles");
+    expect(migrationSql).toContain("cv_parsed_at timestamptz");
+    expect(migrationSql).toContain("cv_parse_source text");
+    expect(migrationSql).toContain("cv_parse_summary text");
+    expect(migrationSql).toContain("cv_parse_source in ('openai', 'fallback')");
+  });
+
   it("checks candidate CV ownership without recursive application policies", () => {
     expect(migrationSql).toContain("create or replace function private.candidate_owns_cv_path");
 

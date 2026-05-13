@@ -41,12 +41,31 @@ type RecruiterSubscriptionAccess = {
   cv_access_enabled?: boolean | null;
 };
 
+type RecruiterCvLibraryAccessOptions = {
+  companyStatus?: string | null;
+};
+
 function isActiveSubscription(subscription: RecruiterSubscriptionAccess | null | undefined) {
-  return subscription?.status == null || subscription.status === "active";
+  return subscription?.status === "active";
 }
 
-export function hasRecruiterCvLibraryAccess(subscription: RecruiterSubscriptionAccess | null | undefined) {
+function hasVerifiedCompanyAccess(options: RecruiterCvLibraryAccessOptions | undefined) {
+  if (!options || !Object.hasOwn(options, "companyStatus")) {
+    return true;
+  }
+
+  return options.companyStatus === "verified";
+}
+
+export function hasRecruiterCvLibraryAccess(
+  subscription: RecruiterSubscriptionAccess | null | undefined,
+  options?: RecruiterCvLibraryAccessOptions
+) {
   if (!subscription || !isActiveSubscription(subscription)) {
+    return false;
+  }
+
+  if (!hasVerifiedCompanyAccess(options)) {
     return false;
   }
 
@@ -56,7 +75,7 @@ export function hasRecruiterCvLibraryAccess(subscription: RecruiterSubscriptionA
 
   const plan = subscription.plan ?? "";
 
-  return isSubscriptionPlan(plan) && planEntitlements[plan].cvAccessEnabled;
+  return (isSubscriptionPlan(plan) && planEntitlements[plan].cvAccessEnabled) || (subscription.job_quota ?? 0) >= 999;
 }
 
 export function hasAdvancedRecruiterTools(subscription: RecruiterSubscriptionAccess | null | undefined) {

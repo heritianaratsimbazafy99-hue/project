@@ -32,14 +32,33 @@ describe("recruiter premium entitlements", () => {
     expect(hasAdvancedRecruiterTools(freeSubscription)).toBe(false);
   });
 
+  it("aligns CV library access with verified company RLS requirements", () => {
+    const agencySubscription = {
+      plan: "agency",
+      status: "active",
+      job_quota: 999,
+      cv_access_enabled: false
+    };
+
+    expect(hasRecruiterCvLibraryAccess(agencySubscription, { companyStatus: "verified" })).toBe(true);
+    expect(hasRecruiterCvLibraryAccess(agencySubscription, { companyStatus: "pending_review" })).toBe(false);
+    expect(hasRecruiterCvLibraryAccess({ ...agencySubscription, status: null }, { companyStatus: "verified" })).toBe(false);
+  });
+
   it("uses the entitlement helpers in recruiter CV library and new offer pages", () => {
     const cvLibraryPage = read("app/(recruiter)/recruteur/cvtheque/page.tsx");
+    const cvLibraryActions = read("src/features/recruiter/cv-library-actions.ts");
     const newOfferPage = read("app/(recruiter)/recruteur/offres/nouvelle/page.tsx");
 
     expect(cvLibraryPage).toContain("hasRecruiterCvLibraryAccess");
+    expect(cvLibraryPage).toContain("id, status, subscriptions(plan, status, job_quota, cv_access_enabled)");
+    expect(cvLibraryPage).toContain("hasRecruiterCvLibraryAccess(subscription, { companyStatus: company?.status })");
     expect(cvLibraryPage).toContain("candidate_profiles");
     expect(cvLibraryPage).toContain("openRecruiterLibraryCvAndRedirect");
     expect(cvLibraryPage).toContain("Recherche libre activée");
+
+    expect(cvLibraryActions).toContain("id, status, subscriptions(plan, status, job_quota, cv_access_enabled)");
+    expect(cvLibraryActions).toContain("hasRecruiterCvLibraryAccess(firstRelation(company.subscriptions), { companyStatus: company.status })");
 
     expect(newOfferPage).toContain("hasAdvancedRecruiterTools");
     expect(newOfferPage).toContain("JobDescriptionAssistant");

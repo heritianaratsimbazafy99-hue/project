@@ -15,6 +15,7 @@ type SubscriptionAccessRow = {
 
 type CompanyAccessRow = {
   id: string;
+  status: string | null;
   subscriptions?: SubscriptionAccessRow | SubscriptionAccessRow[] | null;
 };
 
@@ -67,13 +68,17 @@ export async function createRecruiterLibraryCvSignedUrl(
   const supabase = await createSupabaseServerClient();
   const { data: company, error: companyError } = await supabase
     .from("companies")
-    .select("id, subscriptions(plan, status, job_quota, cv_access_enabled)")
+    .select("id, status, subscriptions(plan, status, job_quota, cv_access_enabled)")
     .eq("owner_id", user.id)
     .order("created_at", { ascending: true })
     .limit(1)
     .maybeSingle<CompanyAccessRow>();
 
-  if (companyError || !company || !hasRecruiterCvLibraryAccess(firstRelation(company.subscriptions))) {
+  if (
+    companyError ||
+    !company ||
+    !hasRecruiterCvLibraryAccess(firstRelation(company.subscriptions), { companyStatus: company.status })
+  ) {
     return {
       ok: false,
       message: "Votre plan ne donne pas accès à la CVthèque."

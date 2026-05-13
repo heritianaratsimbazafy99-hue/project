@@ -22,6 +22,7 @@ type SubscriptionAccessRow = {
 
 type CompanySubscriptionRow = {
   id: string;
+  status: string | null;
   subscriptions?: SubscriptionAccessRow | SubscriptionAccessRow[] | null;
 };
 
@@ -34,6 +35,8 @@ type CandidateProfileRow = {
   desired_role: string | null;
   salary_expectation: string | null;
   cv_path: string | null;
+  cv_parse_source: "openai" | "fallback" | null;
+  cv_parse_summary: string | null;
   candidate_skills?: Array<{ label: string | null; kind: string | null }> | null;
 };
 
@@ -97,7 +100,7 @@ export default async function RecruiterCvLibraryPage({ searchParams }: Recruiter
     const supabase = await createSupabaseServerClient();
     const { data } = await supabase
       .from("companies")
-      .select("id, subscriptions(plan, status, job_quota, cv_access_enabled)")
+      .select("id, status, subscriptions(plan, status, job_quota, cv_access_enabled)")
       .eq("owner_id", user.id)
       .order("created_at", { ascending: true })
       .limit(1)
@@ -105,12 +108,15 @@ export default async function RecruiterCvLibraryPage({ searchParams }: Recruiter
 
     company = data;
 
-    if (company?.id && hasRecruiterCvLibraryAccess(firstSubscription(company))) {
+    if (
+      company?.id &&
+      hasRecruiterCvLibraryAccess(firstSubscription(company), { companyStatus: company.status })
+    ) {
       const [candidateResult, jobResult] = await Promise.all([
         supabase
           .from("candidate_profiles")
           .select(
-            "id, first_name, last_name, city, sector, desired_role, salary_expectation, cv_path, candidate_skills(label, kind)"
+            "id, first_name, last_name, city, sector, desired_role, salary_expectation, cv_path, cv_parse_source, cv_parse_summary, candidate_skills(label, kind)"
           )
           .not("cv_path", "is", null)
           .order("updated_at", { ascending: false })
@@ -132,11 +138,12 @@ export default async function RecruiterCvLibraryPage({ searchParams }: Recruiter
   }
 
   const subscription = firstSubscription(company);
-  const hasCvAccess = hasRecruiterCvLibraryAccess(subscription);
+  const hasCvAccess = hasRecruiterCvLibraryAccess(subscription, { companyStatus: company?.status });
   const selectedJob = jobs.find((job) => job.id === selectedJobId) ?? jobs[0] ?? null;
   const matchedCandidates = selectedJob ? sortCandidatesByJobMatch(candidates, selectedJob) : [];
   const filteredCandidates = candidates.filter((candidate) => matchesSearch(candidate, search));
   const displayedCandidates: DisplayCandidateRow[] = mode === "match" ? matchedCandidates : filteredCandidates;
+  const shouldShowCandidateResults = mode !== "match" || Boolean(selectedJob);
   const planLabel = subscription?.plan ? subscription.plan.toUpperCase() : "GRATUIT";
 
   return (
@@ -246,64 +253,75 @@ export default async function RecruiterCvLibraryPage({ searchParams }: Recruiter
             </div>
           ) : null}
 
-          {displayedCandidates.length > 0 ? (
-            <div className="table-list cv-search">
-              {displayedCandidates.map((candidate) => {
-                const skills = (candidate.candidate_skills ?? []).filter((skill) => skill.label).slice(0, 4);
+          {shouldShowCandidateResults ? (
+            displayedCandidates.length > 0 ? (
+              <div className="table-list cv-search">
+                {displayedCandidates.map((candidate) => {
+                  const skills = (candidate.candidate_skills ?? []).filter((skill) => skill.label).slice(0, 4);
 
-                return (
-                  <article className="candidate-card" key={candidate.id}>
-                    <div className="candidate-card-head">
-                      <div>
-                        <strong>{candidateName(candidate)}</strong>
-                        <p>
-                          {candidate.desired_role || "Profil candidat"} · {candidate.city || "Ville à préciser"}
-                        </p>
-                        <small>
-                          {candidate.sector || "Secteur à préciser"}
-                          {candidate.salary_expectation ? ` · ${candidate.salary_expectation}` : ""}
-                        </small>
-                        {candidate.match ? (
-                          <div className="popular-row" aria-label="Score matching">
-                            <strong>Score matching</strong>
-                            <span className="status-badge ok">{candidate.match.score}%</span>
-                            {candidate.match.reasons.slice(0, 3).map((reason) => (
-                              <span className="status-badge" key={`${candidate.id}-${reason}`}>
-                                {reason}
-                              </span>
-                            ))}
-                          </div>
-                        ) : null}
+                  return (
+                    <article className="candidate-card" key={candidate.id}>
+                      <div className="candidate-card-head">
+                        <div>
+                          <strong>{candidateName(candidate)}</strong>
+                          <p>
+                            {candidate.desired_role || "Profil candidat"} · {candidate.city || "Ville à préciser"}
+                          </p>
+                          <small>
+                            {candidate.sector || "Secteur à préciser"}
+                            {candidate.salary_expectation ? ` · ${candidate.salary_expectation}` : ""}
+                          </small>
+                          {candidate.match ? (
+                            <div className="popular-row" aria-label="Score matching">
+                              <strong>Score matching</strong>
+                              <span className="status-badge ok">{candidate.match.score}%</span>
+                              {candidate.match.reasons.slice(0, 3).map((reason) => (
+                                <span className="status-badge" key={`${candidate.id}-${reason}`}>
+                                  {reason}
+                                </span>
+                              ))}
+                            </div>
+                          ) : null}
+                        </div>
+                        <form action={openRecruiterLibraryCvAndRedirect.bind(null, candidate.id)}>
+                          <button className="btn btn-soft" type="submit">
+                            Voir le CV
+                          </button>
+                        </form>
                       </div>
-                      <form action={openRecruiterLibraryCvAndRedirect.bind(null, candidate.id)}>
-                        <button className="btn btn-soft" type="submit">
-                          Voir le CV
-                        </button>
-                      </form>
-                    </div>
-                    {skills.length > 0 ? (
-                      <div className="popular-row" aria-label="Compétences candidat">
-                        <strong>COMPÉTENCES</strong>
-                        {skills.map((skill) => (
-                          <span className="status-badge" key={`${candidate.id}-${skill.kind}-${skill.label}`}>
-                            {skill.label}
+                      {skills.length > 0 ? (
+                        <div className="popular-row" aria-label="Compétences candidat">
+                          <strong>COMPÉTENCES</strong>
+                          {skills.map((skill) => (
+                            <span className="status-badge" key={`${candidate.id}-${skill.kind}-${skill.label}`}>
+                              {skill.label}
+                            </span>
+                          ))}
+                        </div>
+                      ) : null}
+                      {candidate.cv_parse_summary ? (
+                        <div className="popular-row" aria-label="Profil enrichi">
+                          <strong>Profil enrichi</strong>
+                          <span className="status-badge ok">
+                            {candidate.cv_parse_source === "openai" ? "IA" : "CV"}
                           </span>
-                        ))}
-                      </div>
-                    ) : null}
-                  </article>
-                );
-              })}
-            </div>
-          ) : (
-            <div className="empty-state">
-              {mode === "match"
-                ? "Aucun profil avec CV n'est disponible pour calculer un matching."
-                : search
-                  ? "Aucun profil CV ne correspond à cette recherche."
-                  : "Aucun profil candidat avec CV n'est encore disponible."}
-            </div>
-          )}
+                          <span>{candidate.cv_parse_summary}</span>
+                        </div>
+                      ) : null}
+                    </article>
+                  );
+                })}
+              </div>
+            ) : (
+              <div className="empty-state">
+                {mode === "match"
+                  ? "Aucun profil avec CV n'est disponible pour calculer un matching."
+                  : search
+                    ? "Aucun profil CV ne correspond à cette recherche."
+                    : "Aucun profil candidat avec CV n'est encore disponible."}
+              </div>
+            )
+          ) : null}
         </section>
       ) : (
         <section className="limited-cv">

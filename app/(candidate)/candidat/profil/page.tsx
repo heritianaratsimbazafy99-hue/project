@@ -28,6 +28,9 @@ type CandidateProfileRow = {
   desired_role: string | null;
   salary_expectation: string | null;
   cv_path: string | null;
+  cv_parsed_at: string | null;
+  cv_parse_source: "openai" | "fallback" | null;
+  cv_parse_summary: string | null;
 };
 
 type CandidateExperienceRow = {
@@ -141,7 +144,10 @@ export default async function CandidateProfilePage({ searchParams }: CandidatePr
         sector: "Informatique & Digital",
         desired_role: demoCandidateProfile.desired_role,
         salary_expectation: "",
-        cv_path: demoCandidateProfile.cv_path
+        cv_path: demoCandidateProfile.cv_path,
+        cv_parsed_at: null,
+        cv_parse_source: null,
+        cv_parse_summary: null
       }
     : null;
 
@@ -149,7 +155,7 @@ export default async function CandidateProfilePage({ searchParams }: CandidatePr
     const supabase = await createSupabaseServerClient();
     const { data } = await supabase
       .from("candidate_profiles")
-      .select("id, first_name, last_name, city, sector, desired_role, salary_expectation, cv_path")
+      .select("id, first_name, last_name, city, sector, desired_role, salary_expectation, cv_path, cv_parsed_at, cv_parse_source, cv_parse_summary")
       .eq("user_id", user.id)
       .maybeSingle<CandidateProfileRow>();
 
@@ -219,7 +225,10 @@ export default async function CandidateProfilePage({ searchParams }: CandidatePr
 
       <CvUploadCard
         city={candidateProfile?.city}
+        cvParsedAt={candidateProfile?.cv_parsed_at}
         cvPath={candidateProfile?.cv_path}
+        cvParseSource={candidateProfile?.cv_parse_source}
+        cvParseSummary={candidateProfile?.cv_parse_summary}
         desiredRole={candidateProfile?.desired_role}
         profileName={candidateProfileName(candidateProfile, profile.display_name)}
         skillCount={skills.length}

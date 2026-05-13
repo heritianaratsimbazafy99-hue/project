@@ -51,6 +51,19 @@ describe("candidate profile pages", () => {
     expect(sidebarSource).not.toContain('href="/connexion"');
   });
 
+  it("surfaces CV parsing status in the candidate profile experience", () => {
+    const source = readWorkspaceFile("app/(candidate)/candidat/profil/page.tsx");
+    const cvCardSource = readWorkspaceFile("src/features/candidate/components/cv-upload-card.tsx");
+    const cvLibrarySource = readWorkspaceFile("app/(recruiter)/recruteur/cvtheque/page.tsx");
+
+    expect(source).toContain("cv_parsed_at, cv_parse_source, cv_parse_summary");
+    expect(source).toContain("cvParseSource={candidateProfile?.cv_parse_source}");
+    expect(cvCardSource).toContain("Analyse CV");
+    expect(cvCardSource).toContain("cvParseSummary");
+    expect(cvLibrarySource).toContain("cv_parse_summary");
+    expect(cvLibrarySource).toContain("Profil enrichi");
+  });
+
   it("uses guided profile selectors inspired by the Asako candidate flow", () => {
     const source = readWorkspaceFile("app/(candidate)/candidat/profil/page.tsx");
 

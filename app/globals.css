@@ -1444,6 +1444,39 @@ a {
   white-space: nowrap;
 }
 
+.cvParseInsight {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 0.55rem;
+  align-items: center;
+  padding: 0.75rem 0.85rem;
+  border: 1px solid rgba(156, 114, 208, 0.18);
+  border-radius: 0.75rem;
+  background: #fbf8ff;
+  color: var(--candidate-muted);
+}
+
+.cvParseInsight strong {
+  color: var(--candidate-ink);
+  font-size: 0.84rem;
+}
+
+.cvParseInsight p {
+  min-width: 0;
+  margin: 0;
+  overflow: hidden;
+  color: var(--candidate-muted);
+  font-size: 0.86rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cvParseInsight span {
+  color: var(--candidate-purple);
+  font-size: 0.78rem;
+  font-weight: 850;
+}
+
 .cvReviewFooter {
   display: flex;
   flex-wrap: wrap;

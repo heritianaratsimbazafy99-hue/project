@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
 import { calculateCandidateCompletion } from "@/features/candidate/completion";
+import { parseCandidateCvFile, type ParsedCandidateCv } from "@/features/candidate/cv-parser";
 import { requireRole } from "@/lib/auth/require-role";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
@@ -14,8 +15,10 @@ export type CandidateActionResult = {
 
 type CandidateProfileState = {
   id?: string;
-  cv_path: string | null;
+  cv_path?: string | null;
   desired_role?: string | null;
+  city?: string | null;
+  sector?: string | null;
 };
 
 const candidateProfilePaths = ["/candidat/profil", "/candidat/dashboard"] as const;
@@ -73,14 +76,14 @@ function sanitizeCvFileName(fileName: string) {
   return normalizedName || "cv.pdf";
 }
 
-async function candidateCompletionAfterCv(supabase: Awaited<ReturnType<typeof createSupabaseServerClient>>, userId: string) {
+async function candidateContextForCvUpload(supabase: Awaited<ReturnType<typeof createSupabaseServerClient>>, userId: string) {
   const [
     { data: candidateProfile, error: candidateProfileError },
     { count: alertCount, error: alertError }
   ] = await Promise.all([
     supabase
       .from("candidate_profiles")
-      .select("desired_role")
+      .select("id, desired_role, city, sector")
       .eq("user_id", userId)
       .maybeSingle<CandidateProfileState>(),
     supabase
@@ -93,11 +96,22 @@ async function candidateCompletionAfterCv(supabase: Awaited<ReturnType<typeof cr
     return null;
   }
 
+  return {
+    alertCount: alertCount ?? 0,
+    candidateProfile
+  };
+}
+
+function candidateCompletionAfterCv(
+  candidateProfile: CandidateProfileState | null,
+  alertCount: number,
+  parsedCv: ParsedCandidateCv
+) {
   return calculateCandidateCompletion({
     accountCreated: true,
     hasCv: true,
-    hasDesiredRole: Boolean(candidateProfile?.desired_role),
-    hasAlert: Boolean(alertCount && alertCount > 0)
+    hasDesiredRole: Boolean(candidateProfile?.desired_role || parsedCv.desiredRole),
+    hasAlert: alertCount > 0
   });
 }
 
@@ -162,6 +176,29 @@ function parseSkillLabels(value: string) {
     .filter(Boolean);
 }
 
+function parsedCvSkillRows(candidateProfileId: string, parsedCv: ParsedCandidateCv) {
+  return [
+    ...parsedCv.hardSkills.map((label) => ({
+      candidate_profile_id: candidateProfileId,
+      kind: "hard",
+      label,
+      level: null
+    })),
+    ...parsedCv.softSkills.map((label) => ({
+      candidate_profile_id: candidateProfileId,
+      kind: "soft",
+      label,
+      level: null
+    })),
+    ...parsedCv.languages.map((label) => ({
+      candidate_profile_id: candidateProfileId,
+      kind: "language",
+      label,
+      level: null
+    }))
+  ];
+}
+
 function alertIdFromForm(formData: FormData) {
   return formValue(formData, "alert_id");
 }
@@ -195,14 +232,26 @@ export async function uploadCandidateCv(formData: FormData): Promise<CandidateAc
   const supabase = await createSupabaseServerClient();
   const fileName = sanitizeCvFileName(file.name);
   const cvPath = `${user.id}/${Date.now()}-${fileName}`;
-  const completion = await candidateCompletionAfterCv(supabase, user.id);
+  const [cvUploadContext, parsedCv] = await Promise.all([
+    candidateContextForCvUpload(supabase, user.id),
+    parseCandidateCvFile(file)
+  ]);
 
-  if (!completion) {
+  if (!cvUploadContext) {
     return {
       ok: false,
       message: "Impossible de recalculer votre progression candidat."
     };
   }
+
+  const nextDesiredRole = cvUploadContext.candidateProfile?.desired_role || parsedCv.desiredRole;
+  const nextCity = cvUploadContext.candidateProfile?.city || parsedCv.city;
+  const nextSector = cvUploadContext.candidateProfile?.sector || parsedCv.sector;
+  const completion = candidateCompletionAfterCv(
+    cvUploadContext.candidateProfile,
+    cvUploadContext.alertCount,
+    parsedCv
+  );
 
   const { error: uploadError } = await supabase.storage.from("cvs").upload(cvPath, file, {
     contentType: file.type || "application/octet-stream",
@@ -220,6 +269,12 @@ export async function uploadCandidateCv(formData: FormData): Promise<CandidateAc
     {
       user_id: user.id,
       cv_path: cvPath,
+      desired_role: nextDesiredRole,
+      city: nextCity,
+      sector: nextSector,
+      cv_parsed_at: new Date().toISOString(),
+      cv_parse_source: parsedCv.source,
+      cv_parse_summary: parsedCv.summary,
       profile_completion: completion.percent
     },
     { onConflict: "user_id" }
@@ -230,6 +285,32 @@ export async function uploadCandidateCv(formData: FormData): Promise<CandidateAc
       ok: false,
       message: "Le chemin du CV n'a pas pu être enregistré."
     };
+  }
+
+  const parsedSkills = parsedCvSkillRows(cvUploadContext.candidateProfile?.id ?? "", parsedCv);
+
+  if (parsedSkills.length > 0) {
+    const { id: candidateProfileId, error: profileIdError } = cvUploadContext.candidateProfile?.id
+      ? { id: cvUploadContext.candidateProfile.id, error: null }
+      : await loadCandidateProfileId(supabase, user.id);
+
+    if (profileIdError || !candidateProfileId) {
+      return profileIdFailure();
+    }
+
+    const { error: skillsError } = await supabase
+      .from("candidate_skills")
+      .upsert(
+        parsedCvSkillRows(candidateProfileId, parsedCv),
+        { onConflict: "candidate_profile_id,kind,label" }
+      );
+
+    if (skillsError) {
+      return {
+        ok: false,
+        message: "Les compétences extraites du CV n'ont pas pu être enregistrées."
+      };
+    }
   }
 
   const { error: profileError } = await supabase
