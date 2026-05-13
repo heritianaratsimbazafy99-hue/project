@@ -31,6 +31,43 @@ describe("public regression guards", () => {
     );
   });
 
+  it("does not inject fallback companies into production public pages unless enabled", async () => {
+    const module = (await import("@/features/public/demo-data")) as Record<string, unknown>;
+    const getPublicCompanies = module.getPublicCompanies as
+      | ((jobs: JobListItem[]) => JobListItem["company"][])
+      | undefined;
+
+    vi.stubEnv("NODE_ENV", "production");
+    vi.stubEnv("ENABLE_PUBLIC_DEMO_FALLBACKS", undefined);
+
+    expect(getPublicCompanies?.([])).toEqual([]);
+  });
+
+  it("keeps fallback job sectors aligned with public sector links", async () => {
+    const { fallbackPublishedJobs, publicSectors } = await import("@/features/public/demo-data");
+    const sectorNames = new Set<string>(publicSectors);
+
+    for (const job of fallbackPublishedJobs) {
+      expect(sectorNames.has(job.sector)).toBe(true);
+    }
+  });
+
+  it("does not advertise static marketplace counters on public acquisition pages", () => {
+    const home = read("app/page.tsx");
+    const emploi = read("app/(public)/emploi/page.tsx");
+    const signup = read("app/(public)/inscription/[type]/page.tsx");
+
+    for (const source of [home, emploi, signup]) {
+      expect(source).not.toContain("874+");
+      expect(source).not.toContain("1392+");
+      expect(source).not.toContain("1 392+");
+      expect(source).not.toContain("40 000+");
+      expect(source).not.toContain("40k+");
+      expect(source).not.toContain("250+");
+      expect(source).not.toContain("|| 169");
+    }
+  });
+
   it("keeps the public homepage scale close to the Asako reference", () => {
     const styles = read("styles.css");
 
@@ -53,8 +90,8 @@ describe("public regression guards", () => {
     expect(signup).toContain("Publier ma première offre");
     expect(signup).toContain("Créez votre espace candidat");
     expect(signup).toContain("Déposer mon CV");
-    expect(signup).toContain("5 000+");
-    expect(signup).toContain("40 000+");
+    expect(signup).toContain("sur les offres vérifiées");
+    expect(signup).toContain("CVthèque");
     expect(styles).toContain(".signup-asako-shell");
     expect(styles).toContain(".signup-form-card");
   });

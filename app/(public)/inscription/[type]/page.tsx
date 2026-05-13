@@ -40,13 +40,13 @@ export default async function SignupPage({ params, searchParams }: SignupPagePro
 
   const stats: Array<{ value: string; label: string; Icon: LucideIcon }> = isRecruiter
     ? [
-        { value: "5 000+", label: "visiteurs/jour", Icon: UserRound },
-        { value: "40 000+", label: "CVs dans la base", Icon: FileText },
-        { value: "~30", label: "candidatures/offre", Icon: Send }
+        { value: "Visible", label: "sur les offres vérifiées", Icon: UserRound },
+        { value: "CVthèque", label: "selon votre plan", Icon: FileText },
+        { value: "Suivi", label: "des candidatures", Icon: Send }
       ]
     : [
-        { value: "874+", label: "offres actives", Icon: FileText },
-        { value: "1 392+", label: "recruteurs actifs", Icon: Building2 },
+        { value: "Offres", label: "publiées et vérifiées", Icon: FileText },
+        { value: "Recruteurs", label: "validés par JobMada", Icon: Building2 },
         { value: "2 min", label: "pour postuler", Icon: CheckCircle2 }
       ];
 

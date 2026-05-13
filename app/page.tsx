@@ -1,6 +1,6 @@
 import Link from "next/link";
 
-import { buildJobFilters, getPublishedJobsOrEmpty } from "@/features/jobs/queries";
+import { buildJobFilters, getPublishedJobsPageOrEmpty } from "@/features/jobs/queries";
 import {
   BrandMark,
   CompanyLogo,
@@ -16,8 +16,11 @@ import { getPublicCompanies, publicSectors, useFallbackJobs } from "@/features/p
 export const dynamic = "force-dynamic";
 
 export default async function HomePage() {
-  const liveJobs = await getPublishedJobsOrEmpty(buildJobFilters({}));
+  const livePage = await getPublishedJobsPageOrEmpty({ ...buildJobFilters({}), pageSize: 12 });
+  const liveJobs = livePage.jobs;
   const jobs = useFallbackJobs(liveJobs);
+  const usingFallbackJobs = liveJobs.length === 0 && jobs.length > 0;
+  const activeJobCount = usingFallbackJobs ? jobs.length : livePage.total;
   const featuredJobs = jobs.filter((job) => job.is_featured).slice(0, 3);
   const latestJobs = jobs.slice(0, 6);
   const companies = getPublicCompanies(liveJobs);
@@ -55,13 +58,13 @@ export default async function HomePage() {
               <div className="stat-grid">
                 <div className="stat-card">
                   <BriefcaseBusiness size={18} aria-hidden="true" />
-                  <strong>874+</strong>
-                  <span>offres actives</span>
+                  <strong>{activeJobCount}</strong>
+                  <span>{activeJobCount === 1 ? "offre active vérifiée" : "offres actives vérifiées"}</span>
                 </div>
                 <div className="stat-card rose">
                   <Users size={18} aria-hidden="true" />
-                  <strong>1392+</strong>
-                  <span>recruteurs actifs</span>
+                  <strong>Recruteurs</strong>
+                  <span>entreprises validées par JobMada</span>
                 </div>
               </div>
               <div className="featured-card">
@@ -190,14 +193,14 @@ export default async function HomePage() {
               On a classé <strong>tous nos jobs !</strong>
             </h2>
             <div className="category-grid" style={{ marginTop: 28 }}>
-              {publicSectors.map(([name, count]) => (
+              {publicSectors.map((name) => (
                 <Link key={name} className="category-card" href={`/emploi?sector=${encodeURIComponent(name)}`}>
                   <span className="icon-tile">
                     <Layers size={18} aria-hidden="true" />
                   </span>
                   <span>
                     <strong>{name}</strong>
-                    <span>{count} offres</span>
+                    <span>Explorer</span>
                   </span>
                 </Link>
               ))}
@@ -215,11 +218,11 @@ export default async function HomePage() {
             </h2>
             <div className="prepare-grid" style={{ marginTop: 28 }}>
               <div className="prepare-card">
-                <strong>40 000+</strong>
+                <strong>CVthèque</strong>
                 <p>
-                  CVs dans la base,
+                  Profils candidats,
                   <br />
-                  soyez le prochain à être vu !
+                  accessibles selon votre plan.
                 </p>
               </div>
               <div className="prepare-card">
@@ -231,9 +234,9 @@ export default async function HomePage() {
                 </p>
               </div>
               <div className="prepare-card">
-                <strong>874+</strong>
+                <strong>{activeJobCount}</strong>
                 <p>
-                  offres actives,
+                  offres vérifiées,
                   <br />
                   on vous envoie celles qui collent ?
                 </p>
@@ -265,7 +268,7 @@ export default async function HomePage() {
               <h2>
                 Trouvez votre perle rare avec <span style={{ color: "var(--rose)" }}>JobMada</span>
               </h2>
-              <p>Publiez vos offres et accédez à 40 000+ CVs qualifiés.</p>
+              <p>Publiez vos offres et accédez à la CVthèque qualifiée selon votre plan.</p>
               <Link className="btn btn-primary" href="/recruteur/offres/nouvelle">
                 Publier une offre →
               </Link>
@@ -278,14 +281,14 @@ export default async function HomePage() {
             <div className="logo-orbit">
               <BrandMark />
               <span className="badge one">
-                40k+
+                CVs
                 <br />
-                <small>CVs qualifiés</small>
+                <small>qualifiés selon plan</small>
               </span>
               <span className="badge two">
-                250+
+                {activeJobCount}
                 <br />
-                <small>offres actives</small>
+                <small>offres vérifiées</small>
               </span>
             </div>
             <div>

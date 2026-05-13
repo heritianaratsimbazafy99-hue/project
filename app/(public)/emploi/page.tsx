@@ -44,7 +44,7 @@ export default async function EmploymentPage({ searchParams }: EmploymentPagePro
           <div className="container">
             <h1>Offres d'emploi à Madagascar</h1>
             <p>
-              <strong>{totalJobs || 169}</strong> offres disponibles
+              <strong>{totalJobs}</strong> {totalJobs === 1 ? "offre disponible" : "offres disponibles"}
             </p>
             <SearchShell defaultValue={filters.query} />
           </div>
@@ -73,7 +73,7 @@ export default async function EmploymentPage({ searchParams }: EmploymentPagePro
 
               <div className="load-more-block">
                 <p>
-                  Vous voyez <strong id="jobCount">{jobs.length}</strong> offres sur {totalJobs || jobs.length}
+                  Vous voyez <strong id="jobCount">{jobs.length}</strong> offres sur {totalJobs}
                 </p>
                 <span className="progress-line">
                   <span style={{ width: `${Math.min(100, Math.round((jobs.length / Math.max(totalJobs, 1)) * 100))}%` }} />
@@ -136,7 +136,7 @@ export default async function EmploymentPage({ searchParams }: EmploymentPagePro
                 <h4>Secteur</h4>
                 <select className="select" name="sector" defaultValue={filters.sector}>
                   <option value="">Tous les secteurs</option>
-                  {publicSectors.map(([name]) => (
+                  {publicSectors.map((name) => (
                     <option key={name} value={name}>
                       {name}
                     </option>

@@ -33,7 +33,7 @@ export const fallbackPublishedJobs: JobListItem[] = [
     title: "Chef de salle pâtisserie",
     contract: "CDI",
     city: "Antananarivo",
-    sector: "Hotellerie & Restauration",
+    sector: "Hôtellerie & Restauration",
     summary: "Pilotez l'accueil, le service et l'expérience client d'une adresse premium.",
     is_featured: true,
     is_urgent: true,
@@ -108,14 +108,14 @@ export const fallbackPublishedJobs: JobListItem[] = [
 ];
 
 export const publicSectors = [
-  ["Informatique & Digital", 42],
-  ["BPO & Relation client", 38],
-  ["Commerce & Distribution", 31],
-  ["Finance & Comptabilité", 24],
-  ["Hôtellerie & Restauration", 18],
-  ["Ressources humaines", 16],
-  ["ONG & Projet", 13],
-  ["Industrie", 11]
+  "Informatique & Digital",
+  "BPO & Relation client",
+  "Commerce & Distribution",
+  "Finance & Comptabilité",
+  "Hôtellerie & Restauration",
+  "Ressources humaines",
+  "ONG & Projet",
+  "Industrie"
 ] as const;
 
 export function canUsePublicFallbackJobs() {
@@ -138,10 +138,13 @@ export function useFallbackJobs(jobs: JobListItem[]) {
   return canUsePublicFallbackJobs() ? fallbackPublishedJobs : [];
 }
 
-export function getPublicCompanies(jobs: JobListItem[]) {
+export function getPublicCompanies(
+  jobs: JobListItem[],
+  { includeFallback = canUsePublicFallbackJobs() }: { includeFallback?: boolean } = {}
+) {
   const companies = new Map<string, JobListItem["company"]>();
 
-  for (const job of [...jobs, ...fallbackPublishedJobs]) {
+  for (const job of includeFallback ? [...jobs, ...fallbackPublishedJobs] : jobs) {
     const key = job.company.slug || job.company.name;
 
     if (key && !companies.has(key)) {
