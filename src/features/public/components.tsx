@@ -102,6 +102,7 @@ async function getPublicAccountTarget() {
 export async function PublicHeader({ active = "/", variant = "default" }: { active?: string; variant?: "default" | "auth" }) {
   const nav = [
     { label: "Offres d'emploi", href: "/emploi" },
+    { label: "Cooptation", href: "/cooptation" },
     ...PUBLIC_CONTRACT_NAV_LINKS,
     { label: "Offres urgentes", href: "/emploi?urgent=1" }
   ];
@@ -193,6 +194,7 @@ export function PublicFooter() {
           <div>
             <h3>Ressources</h3>
             <Link href="/emploi">Explorer les offres</Link>
+            <Link href="/cooptation">Cooptation</Link>
             <Link href="/connexion">Connexion</Link>
           </div>
         </div>

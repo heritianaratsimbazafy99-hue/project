@@ -23,6 +23,22 @@ describe("public Next UI routes", () => {
     expect(existsSync(resolve(process.cwd(), "app/(public)/connexion/page.tsx"))).toBe(true);
     expect(existsSync(resolve(process.cwd(), "app/(public)/inscription/[type]/page.tsx"))).toBe(true);
     expect(existsSync(resolve(process.cwd(), "app/(public)/tarifs/page.tsx"))).toBe(true);
+    expect(existsSync(resolve(process.cwd(), "app/(public)/cooptation/page.tsx"))).toBe(true);
+  });
+
+  it("mounts a public cooptation page with reward messaging and CV submission", () => {
+    const page = read("app/(public)/cooptation/page.tsx");
+    const publicComponents = read("src/features/public/components.tsx");
+
+    expect(publicComponents).toContain("/cooptation");
+    expect(publicComponents).toContain("Cooptation");
+    expect(page).toContain("<PublicHeader active=\"/cooptation\"");
+    expect(page).toContain("Cooptez un talent");
+    expect(page).toContain("récompense");
+    expect(page).toContain("reçu en entretien");
+    expect(page).toContain('name="candidate_cv"');
+    expect(page).toContain('accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"');
+    expect(page).toContain("submitCooptationReferralAndRedirect");
   });
 
   it("routes the public account button to the authenticated role dashboard", () => {

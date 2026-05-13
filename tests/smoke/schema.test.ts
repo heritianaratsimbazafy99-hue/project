@@ -21,7 +21,8 @@ const coreTables = [
   "job_alerts",
   "subscriptions",
   "plan_change_requests",
-  "admin_reviews"
+  "admin_reviews",
+  "cooptation_referrals"
 ] as const;
 
 describe("initial Supabase schema", () => {
@@ -110,6 +111,29 @@ describe("initial Supabase schema", () => {
     expect(migrationSql).toContain("create policy plan_change_requests_insert_owner");
     expect(migrationSql).toContain("create policy plan_change_requests_update_owner_cancel_or_admin");
     expect(migrationSql).toContain("create policy admin_reviews_select_owner_or_admin");
+  });
+
+  it("stores public cooptation referrals privately with admin-only review access", () => {
+    expect(migrationSql).toContain("create table if not exists public.cooptation_referrals");
+    expect(migrationSql).toContain("create policy cooptation_referrals_insert_public");
+    expect(migrationSql).toContain("for insert to anon, authenticated");
+    expect(migrationSql).toContain("create policy cooptation_referrals_select_admin");
+    expect(migrationSql).toContain("create policy cooptation_referrals_update_admin");
+    expect(migrationSql).toContain("create policy cooptation_referrals_delete_admin");
+    expect(migrationSql).toContain("grant insert on public.cooptation_referrals to anon, authenticated");
+    expect(migrationSql).toContain("cooptation_referrals_created_at_idx");
+    expect(migrationSql).toContain("'interview'");
+  });
+
+  it("keeps cooptation CV uploads in a private storage bucket", () => {
+    expect(migrationSql).toContain("'cooptation-cvs'");
+    expect(migrationSql).toContain("public = false");
+    expect(migrationSql).toContain("file_size_limit = 10485760");
+    expect(migrationSql).toContain("create policy cooptation_cvs_insert_public");
+    expect(migrationSql).toContain("for insert to anon, authenticated");
+    expect(migrationSql).toContain("create policy cooptation_cvs_select_admin");
+    expect(migrationSql).toContain("bucket_id = 'cooptation-cvs'");
+    expect(migrationSql).toContain("select private.is_admin()");
   });
 
   it("allows recruiter company submission without self-verification", () => {
