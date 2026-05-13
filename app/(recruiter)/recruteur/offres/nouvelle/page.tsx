@@ -16,6 +16,7 @@ import {
 
 import { createJobAndRedirect, saveDraftJobAndRedirect } from "@/features/jobs/actions";
 import { JobDescriptionAssistant } from "@/features/jobs/components/job-description-assistant";
+import { JOB_CONTRACT_OPTIONS } from "@/features/jobs/contracts";
 import { demoRecruiterCompany, demoRecruiterSubscription } from "@/features/demo/workspace";
 import { calculateJobQuotaUsage, QUOTA_EXCLUDED_JOB_STATUS } from "@/features/recruiter/quota";
 import { hasAdvancedRecruiterTools } from "@/features/subscriptions/plans";
@@ -182,10 +183,9 @@ export default async function NewRecruiterOfferPage({ searchParams }: NewRecruit
             <div className="form-field">
               <label htmlFor="contract">Type de contrat *</label>
               <select className="select" id="contract" name="contract" required defaultValue="CDI">
-                <option>CDI</option>
-                <option>CDD</option>
-                <option>Stage</option>
-                <option>Freelance</option>
+                {JOB_CONTRACT_OPTIONS.map((contract) => (
+                  <option key={contract}>{contract}</option>
+                ))}
               </select>
             </div>
             <div className="form-field">

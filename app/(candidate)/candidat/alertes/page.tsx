@@ -5,6 +5,7 @@ import {
 } from "@/features/candidate/actions";
 import { Bell, Trash2 } from "lucide-react";
 import { demoCandidateAlerts } from "@/features/demo/workspace";
+import { JOB_CONTRACT_OPTIONS } from "@/features/jobs/contracts";
 import { requireRole } from "@/lib/auth/require-role";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
@@ -66,7 +67,7 @@ const alertCities = [
   "Télétravail"
 ];
 
-const alertContracts = ["CDI", "CDD", "Stage", "Freelance"];
+const alertContracts = JOB_CONTRACT_OPTIONS;
 
 function firstQueryValue(value: string | string[] | undefined) {
   return Array.isArray(value) ? value[0] : value;

@@ -22,9 +22,10 @@ import {
 import type { CSSProperties } from "react";
 
 import { brand } from "@/config/brand";
+import { PUBLIC_CONTRACT_NAV_LINKS } from "@/features/jobs/contracts";
+import { resolveCompanyLogoPath } from "@/features/public/company-logo";
 import { DEMO_SESSION_COOKIE, dashboardPathForRole, parseDemoSession } from "@/lib/auth/demo-session";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import { resolveCompanyLogoPath } from "@/features/public/company-logo";
 import { MobileMenuToggle } from "@/features/public/mobile-menu-toggle";
 import type { UserRole } from "@/types/database";
 import type { JobListItem } from "@/types/database";
@@ -100,11 +101,9 @@ async function getPublicAccountTarget() {
 
 export async function PublicHeader({ active = "/", variant = "default" }: { active?: string; variant?: "default" | "auth" }) {
   const nav = [
-    ["Offres d'emploi", "/emploi"],
-    ["Emploi CDD", "/emploi?contract=CDD"],
-    ["Freelance", "/emploi?contract=Freelance"],
-    ["Offre de stage", "/emploi?contract=Stage"],
-    ["Offres urgentes", "/emploi?urgent=1"]
+    { label: "Offres d'emploi", href: "/emploi" },
+    ...PUBLIC_CONTRACT_NAV_LINKS,
+    { label: "Offres urgentes", href: "/emploi?urgent=1" }
   ];
 
   if (variant === "auth") {
@@ -113,7 +112,7 @@ export async function PublicHeader({ active = "/", variant = "default" }: { acti
         <div className="container header-inner auth-header-inner">
           <BrandMark />
           <nav className="top-nav auth-top-nav" aria-label="Navigation principale">
-            {nav.map(([label, href]) => (
+            {nav.map(({ label, href }) => (
               <Link key={label} href={href}>
                 {label}
               </Link>
@@ -141,7 +140,7 @@ export async function PublicHeader({ active = "/", variant = "default" }: { acti
       <div className="container header-inner">
         <BrandMark />
         <nav className="top-nav" aria-label="Navigation principale">
-          {nav.map(([label, href]) => (
+          {nav.map(({ label, href }) => (
             <Link key={label} className={active === href ? "active" : undefined} href={href}>
               {label}
             </Link>
@@ -155,7 +154,7 @@ export async function PublicHeader({ active = "/", variant = "default" }: { acti
         <MobileMenuToggle />
       </div>
       <nav id="public-mobile-drawer" className="mobile-drawer" aria-label="Navigation mobile" hidden>
-        {nav.map(([label, href]) => (
+        {nav.map(({ label, href }) => (
           <Link key={label} className="side-link" href={href}>
             {label}
           </Link>

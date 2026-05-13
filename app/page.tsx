@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import { contractSearchHref, HOME_JOB_CONTRACT_TABS } from "@/features/jobs/contracts";
 import { buildJobFilters, getPublishedJobsPageOrEmpty } from "@/features/jobs/queries";
 import {
   BrandMark,
@@ -165,11 +166,15 @@ export default async function HomePage() {
                 </h2>
               </div>
               <div className="tabs">
-                {["Toutes", "CDI", "CDD", "Stage", "Freelance"].map((tab, index) => (
-                  <Link key={tab} className={`tab-btn ${index === 0 ? "active" : ""}`} href={`/emploi${index ? `?contract=${tab}` : ""}`}>
-                    {tab}
-                  </Link>
-                ))}
+                {HOME_JOB_CONTRACT_TABS.map((tab) => {
+                  const isAllTab = tab === "Toutes";
+
+                  return (
+                    <Link key={tab} className={`tab-btn ${isAllTab ? "active" : ""}`} href={isAllTab ? "/emploi" : contractSearchHref(tab)}>
+                      {tab}
+                    </Link>
+                  );
+                })}
               </div>
               <div className="job-list" id="homeJobs">
                 {latestJobs.map((job) => (

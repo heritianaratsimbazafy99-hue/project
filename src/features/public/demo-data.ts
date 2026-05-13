@@ -70,7 +70,7 @@ export const fallbackPublishedJobs: JobListItem[] = [
     id: "demo-commercial",
     slug: "commercial-terrain",
     title: "Commercial terrain",
-    contract: "CDI",
+    contract: "Intérim",
     city: "Toamasina",
     sector: "Commerce & Distribution",
     summary: "Développez un portefeuille clients et suivez les opportunités terrain.",

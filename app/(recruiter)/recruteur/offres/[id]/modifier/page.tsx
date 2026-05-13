@@ -3,6 +3,7 @@ import { ArrowLeft, Save, Send } from "lucide-react";
 import { notFound } from "next/navigation";
 
 import { updateRecruiterJobAndRedirect } from "@/features/jobs/actions";
+import { JOB_CONTRACT_OPTIONS, type JobContractOption } from "@/features/jobs/contracts";
 import { requireRole } from "@/lib/auth/require-role";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { JobStatus } from "@/types/database";
@@ -90,6 +91,9 @@ export default async function EditRecruiterOfferPage({ params, searchParams }: E
   const query = await searchParams;
   const error = firstQueryValue(query.error);
   const canSubmit = job.status === "draft" || job.status === "rejected";
+  const contractOptions: readonly string[] = JOB_CONTRACT_OPTIONS.includes(job.contract as JobContractOption)
+    ? JOB_CONTRACT_OPTIONS
+    : [job.contract, ...JOB_CONTRACT_OPTIONS];
 
   return (
     <div className="new-offer-page">
@@ -127,7 +131,11 @@ export default async function EditRecruiterOfferPage({ params, searchParams }: E
             </div>
             <div className="form-field">
               <label htmlFor="contract">Type de contrat</label>
-              <input className="input" id="contract" name="contract" defaultValue={job.contract} required />
+              <select className="select" id="contract" name="contract" defaultValue={job.contract} required>
+                {contractOptions.map((contract) => (
+                  <option key={contract}>{contract}</option>
+                ))}
+              </select>
             </div>
             <div className="form-field">
               <label htmlFor="city">Ville</label>

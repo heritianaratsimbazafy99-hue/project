@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import { JOB_CONTRACT_OPTIONS } from "@/features/jobs/contracts";
 import {
   buildJobFilters,
   buildJobPageHref,
@@ -106,7 +107,7 @@ export default async function EmploymentPage({ searchParams }: EmploymentPagePro
               <div>
                 <h4>Type de contrat</h4>
                 <div className="check-list">
-                  {["CDI", "CDD", "Stage", "Freelance"].map((contract) => (
+                  {JOB_CONTRACT_OPTIONS.map((contract) => (
                     <label key={contract} className="check-row">
                       <input
                         type="checkbox"

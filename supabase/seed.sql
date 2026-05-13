@@ -339,7 +339,7 @@ values
     '00000000-0000-0000-0000-000000000101',
     'Chargé de recrutement',
     'charge-de-recrutement-media-click',
-    'CDI',
+    'Intérim',
     'Antananarivo',
     'Ressources Humaines',
     'Structurer le sourcing et la relation candidat.',

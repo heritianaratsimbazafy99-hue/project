@@ -52,6 +52,31 @@ describe("public regression guards", () => {
     }
   });
 
+  it("exposes Intérim as a first-class contract option across public and recruiter flows", async () => {
+    const contracts = await import("@/features/jobs/contracts");
+    const fallbackData = read("src/features/public/demo-data.ts");
+
+    expect(contracts.JOB_CONTRACT_OPTIONS).toEqual(expect.arrayContaining(["Intérim"]));
+    expect(contracts.HOME_JOB_CONTRACT_TABS).toEqual(expect.arrayContaining(["Toutes", "Intérim"]));
+    expect(contracts.contractSearchHref("Intérim")).toBe("/emploi?contract=Int%C3%A9rim");
+    expect(contracts.PUBLIC_CONTRACT_NAV_LINKS).toEqual(
+      expect.arrayContaining([{ label: "Intérim", href: "/emploi?contract=Int%C3%A9rim" }])
+    );
+
+    for (const path of [
+      "app/page.tsx",
+      "app/(public)/emploi/page.tsx",
+      "app/(candidate)/candidat/layout.tsx",
+      "app/(candidate)/candidat/alertes/page.tsx",
+      "app/(recruiter)/recruteur/offres/nouvelle/page.tsx",
+      "app/(recruiter)/recruteur/offres/[id]/modifier/page.tsx"
+    ]) {
+      expect(read(path)).toMatch(/JOB_CONTRACT_OPTIONS|HOME_JOB_CONTRACT_TABS|PUBLIC_CONTRACT_NAV_LINKS/);
+    }
+
+    expect(fallbackData).toContain('contract: "Intérim"');
+  });
+
   it("does not advertise static marketplace counters on public acquisition pages", () => {
     const home = read("app/page.tsx");
     const emploi = read("app/(public)/emploi/page.tsx");

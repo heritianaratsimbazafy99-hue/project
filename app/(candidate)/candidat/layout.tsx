@@ -5,6 +5,7 @@ import { brand } from "@/config/brand";
 import { calculateCandidateCompletion } from "@/features/candidate/completion";
 import { CandidateSidebar } from "@/features/candidate/components/candidate-sidebar";
 import { demoCandidateAlertCount, demoCandidateProfile } from "@/features/demo/workspace";
+import { PUBLIC_CONTRACT_NAV_LINKS } from "@/features/jobs/contracts";
 import { requireRole } from "@/lib/auth/require-role";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
@@ -65,9 +66,11 @@ export default async function CandidateLayout({ children }: CandidateLayoutProps
         </Link>
         <nav className="candidateTopbarNav" aria-label="Navigation emploi">
           <Link href="/emploi">Offres d'emploi</Link>
-          <Link href="/emploi?contract=CDD">Emploi CDD</Link>
-          <Link href="/emploi?contract=Freelance">Freelance</Link>
-          <Link href="/emploi?contract=Stage">Offre de stage</Link>
+          {PUBLIC_CONTRACT_NAV_LINKS.map(({ label, href }) => (
+            <Link key={label} href={href}>
+              {label}
+            </Link>
+          ))}
           <Link href="/emploi?urgent=1">Offres urgentes</Link>
         </nav>
         <Link className="candidateAccountButton" href="/candidat/profil">
