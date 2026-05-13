@@ -22,7 +22,8 @@ const coreTables = [
   "subscriptions",
   "plan_change_requests",
   "admin_reviews",
-  "cooptation_referrals"
+  "cooptation_referrals",
+  "company_connect_profiles"
 ] as const;
 
 describe("initial Supabase schema", () => {
@@ -142,6 +143,42 @@ describe("initial Supabase schema", () => {
     expect(migrationSql).toContain("create policy cooptation_cvs_select_admin");
     expect(migrationSql).toContain("bucket_id = 'cooptation-cvs'");
     expect(migrationSql).toContain("select private.is_admin()");
+  });
+
+  it("adds public company career sites with private Connect leads", () => {
+    expect(migrationSql).toContain("career_headline text");
+    expect(migrationSql).toContain("career_intro text");
+    expect(migrationSql).toContain("career_values text[] not null default '{}'");
+    expect(migrationSql).toContain("career_benefits text[] not null default '{}'");
+    expect(migrationSql).toContain("career_gallery_paths text[] not null default '{}'");
+    expect(migrationSql).toContain("career_connect_enabled boolean not null default true");
+
+    expect(migrationSql).toContain("create table if not exists public.company_connect_profiles");
+    expect(migrationSql).toContain("company_id uuid not null references public.companies(id) on delete cascade");
+    expect(migrationSql).toContain("consent_accepted boolean not null default false");
+    expect(migrationSql).toContain("status text not null default 'new'");
+    expect(migrationSql).toContain("status in ('new', 'reviewed', 'contacted', 'archived')");
+    expect(migrationSql).toContain("alter table public.company_connect_profiles enable row level security");
+    expect(migrationSql).toContain("create policy company_connect_profiles_insert_public");
+    expect(migrationSql).toContain("for insert to anon, authenticated");
+    expect(migrationSql).toContain("public.companies.status = 'verified'::public.company_status");
+    expect(migrationSql).toContain("public.companies.career_connect_enabled = true");
+    expect(migrationSql).toContain("create policy company_connect_profiles_select_owner_or_admin");
+    expect(migrationSql).toContain("select private.is_admin()");
+    expect(migrationSql).toContain("select private.owns_company(public.company_connect_profiles.company_id)");
+  });
+
+  it("keeps company Connect CV uploads in a private owner/admin bucket", () => {
+    expect(migrationSql).toContain("'company-connect-cvs'");
+    expect(migrationSql).toContain("public = false");
+    expect(migrationSql).toContain("file_size_limit = 10485760");
+    expect(migrationSql).toContain("create or replace function private.can_read_company_connect_cv_object");
+    expect(migrationSql).toContain("grant execute on function private.can_read_company_connect_cv_object(text) to authenticated");
+    expect(migrationSql).toContain("create policy company_connect_cvs_insert_public");
+    expect(migrationSql).toContain("for insert to anon, authenticated");
+    expect(migrationSql).toContain("create policy company_connect_cvs_select_owner_or_admin");
+    expect(migrationSql).toContain("bucket_id = 'company-connect-cvs'");
+    expect(migrationSql).toContain("select private.can_read_company_connect_cv_object(storage.objects.name)");
   });
 
   it("allows recruiter company submission without self-verification", () => {

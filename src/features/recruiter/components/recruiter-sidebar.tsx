@@ -8,6 +8,7 @@ import {
   CreditCard,
   ExternalLink,
   FileSearch,
+  Inbox,
   LayoutDashboard,
   LogOut,
   Plus,
@@ -41,6 +42,7 @@ const navItems = [
     title: "SOURCING",
     links: [
       { href: "/recruteur/cvtheque", label: "CVthèque", Icon: FileSearch },
+      { href: "/recruteur/vivier", label: "Vivier", Icon: Inbox },
       { href: "/recruteur/selection", label: "Ma sélection", Icon: Star }
     ]
   },

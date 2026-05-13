@@ -212,7 +212,7 @@ export default async function JobDetailPage({ params, searchParams }: JobDetailP
               <div>
                 <h1>{job.title}</h1>
                 <div className="job-meta">
-                  <Link className="pill mauve" href={`/emploi?company=${encodeURIComponent(job.company.name)}`}>
+                  <Link className="pill mauve" href={job.company.slug ? `/entreprises/${job.company.slug}` : `/emploi?company=${encodeURIComponent(job.company.name)}`}>
                     {job.company.name}
                   </Link>
                   <span>
@@ -329,7 +329,9 @@ export default async function JobDetailPage({ params, searchParams }: JobDetailP
                 <div className="company-card-head">
                   <CompanyLogo name={job.company.name} logoPath={job.company.logo_path} />
                   <div>
+                  <Link href={job.company.slug ? `/entreprises/${job.company.slug}` : `/emploi?company=${encodeURIComponent(job.company.name)}`}>
                     <strong>{job.company.name}</strong>
+                  </Link>
                     <br />
                     <span>Entreprise vérifiée</span>
                   </div>

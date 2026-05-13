@@ -34,7 +34,7 @@ function companyForm(values: Record<string, string>) {
   return formData;
 }
 
-function setupExistingCompanyQuery(company: { id: string } | null) {
+function setupExistingCompanyQuery(company: { id: string; slug?: string } | null) {
   const query = {
     select: vi.fn().mockReturnThis(),
     eq: vi.fn().mockReturnThis(),
@@ -91,13 +91,14 @@ describe("recruiter company actions", () => {
     );
 
     expect(result).toEqual({ ok: true, message: "Profil entreprise enregistré." });
-    expect(update).toHaveBeenCalledWith({
+    expect(update).toHaveBeenCalledWith(expect.objectContaining({
       name: "Media Click",
       sector: "Informatique & Digital",
       city: "Antananarivo",
       website: "https://mediaclick.mg",
-      description: "Studio digital malgache."
-    });
+      description: "Studio digital malgache.",
+      career_connect_enabled: false
+    }));
     expect(updateChain.eq).toHaveBeenNthCalledWith(1, "id", "company-1");
     expect(updateChain.eq).toHaveBeenNthCalledWith(2, "owner_id", "recruiter-1");
     expect(mocks.revalidatePath).toHaveBeenCalledWith("/recruteur/entreprise");
@@ -217,6 +218,60 @@ describe("recruiter company actions", () => {
       job_quota: 2,
       cv_access_enabled: false
     });
+  });
+
+  it("persists career-site content as normalized arrays and Connect settings", async () => {
+    const existingCompanyQuery = setupExistingCompanyQuery({ id: "company-1", slug: "media-click" });
+    const updateChain = {
+      eq: vi.fn()
+    };
+    const update = vi.fn(() => updateChain);
+
+    mocks.from.mockImplementation((table: string) => {
+      if (table === "companies") {
+        return {
+          ...existingCompanyQuery,
+          update
+        };
+      }
+
+      throw new Error(`Unexpected table ${table}`);
+    });
+    updateChain.eq.mockReturnValueOnce(updateChain).mockResolvedValueOnce({ error: null });
+
+    const { saveRecruiterCompany } = await import("@/features/recruiter/company-actions");
+    const result = await saveRecruiterCompany(
+      companyForm({
+        name: "Media Click",
+        sector: "Informatique & Digital",
+        size_label: "11 à 50 employés",
+        city: "Antananarivo",
+        website: "https://mediaclick.mg",
+        description: "Studio digital malgache.",
+        career_headline: "Construisez des produits utiles à Madagascar",
+        career_intro: "Une équipe produit, design et acquisition.",
+        career_values: "Ownership\nImpact\n\nApprentissage",
+        career_benefits: "Hybride\nFormation continue\nAssurance santé",
+        career_connect_enabled: "on",
+        career_connect_title: "Restons en contact",
+        career_connect_description: "Envoyez votre CV pour nos prochaines ouvertures."
+      })
+    );
+
+    expect(result).toEqual({ ok: true, message: "Profil entreprise enregistré." });
+    expect(update).toHaveBeenCalledWith(
+      expect.objectContaining({
+        size_label: "11 à 50 employés",
+        career_headline: "Construisez des produits utiles à Madagascar",
+        career_intro: "Une équipe produit, design et acquisition.",
+        career_values: ["Ownership", "Impact", "Apprentissage"],
+        career_benefits: ["Hybride", "Formation continue", "Assurance santé"],
+        career_connect_enabled: true,
+        career_connect_title: "Restons en contact",
+        career_connect_description: "Envoyez votre CV pour nos prochaines ouvertures."
+      })
+    );
+    expect(mocks.revalidatePath).toHaveBeenCalledWith("/entreprises/media-click");
   });
 
   it("rejects incomplete company profiles before writing to Supabase", async () => {

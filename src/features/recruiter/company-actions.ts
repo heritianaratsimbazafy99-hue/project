@@ -13,6 +13,7 @@ export type SaveRecruiterCompanyResult = {
 
 type OwnedCompanyRow = {
   id: string;
+  slug?: string | null;
 };
 
 const companySavePaths = [
@@ -54,6 +55,26 @@ function sanitizeImageFileName(fileName: string) {
   return normalizedName || "image.png";
 }
 
+function formTextList(formData: FormData, key: string, maxItems = 8) {
+  return formValue(formData, key)
+    .split(/\n|;/)
+    .map((item) => item.trim())
+    .filter(Boolean)
+    .slice(0, maxItems);
+}
+
+function formBoolean(formData: FormData, key: string) {
+  return formData.get(key) === "on";
+}
+
+function existingGalleryPaths(formData: FormData) {
+  return formData
+    .getAll("career_gallery_existing")
+    .map((value) => (typeof value === "string" ? value.trim() : ""))
+    .filter(Boolean)
+    .slice(0, 3);
+}
+
 function slugify(value: string) {
   return (
     value
@@ -71,8 +92,12 @@ function buildCompanySlug(companyName: string, ownerId: string) {
   return `${slugify(companyName)}-${suffix}`;
 }
 
-function revalidateCompanyWorkspace() {
+function revalidateCompanyWorkspace(slug?: string | null) {
   companySavePaths.forEach((path) => revalidatePath(path));
+  if (slug) {
+    revalidatePath(`/entreprises/${slug}`);
+    revalidatePath(`/entreprises/${slug}/connect`);
+  }
 }
 
 async function uploadCompanyImage(
@@ -137,11 +162,75 @@ async function uploadCompanyAssets(
     return coverUpload;
   }
 
+  const galleryUpload = await uploadCompanyGallery(supabase, companyId, formData);
+
+  if (!galleryUpload.ok) {
+    return galleryUpload;
+  }
+
   return {
     ok: true as const,
     values: {
       ...(logoUpload.path ? { logo_path: logoUpload.path } : {}),
-      ...(coverUpload.path ? { cover_path: coverUpload.path } : {})
+      ...(coverUpload.path ? { cover_path: coverUpload.path } : {}),
+      ...galleryUpload.values
+    }
+  };
+}
+
+async function uploadCompanyGallery(
+  supabase: Awaited<ReturnType<typeof createSupabaseServerClient>>,
+  companyId: string,
+  formData: FormData
+) {
+  const galleryPaths = existingGalleryPaths(formData);
+  const galleryFiles = ["career_gallery_1", "career_gallery_2", "career_gallery_3"]
+    .map((key) => uploadedImageFile(formData, key))
+    .filter((file): file is File => Boolean(file));
+
+  if (galleryPaths.length === 0 && galleryFiles.length === 0) {
+    return { ok: true as const, values: {} };
+  }
+
+  for (const file of galleryFiles) {
+    if (galleryPaths.length >= 3) {
+      break;
+    }
+
+    if (!isAllowedCompanyImage(file)) {
+      return {
+        ok: false as const,
+        message: "Ajoutez des photos JPG ou PNG."
+      };
+    }
+
+    if (file.size > maxCompanyImageSizeBytes) {
+      return {
+        ok: false as const,
+        message: "Chaque photo doit faire moins de 2 Mo."
+      };
+    }
+
+    const path = `${companyId}/gallery-${galleryPaths.length + 1}-${Date.now()}-${sanitizeImageFileName(file.name)}`;
+    const { error } = await supabase.storage.from("company-covers").upload(path, file, {
+      contentType: file.type || "application/octet-stream",
+      upsert: true
+    });
+
+    if (error) {
+      return {
+        ok: false as const,
+        message: "Une photo n'a pas pu être envoyée."
+      };
+    }
+
+    galleryPaths.push(path);
+  }
+
+  return {
+    ok: true as const,
+    values: {
+      career_gallery_paths: galleryPaths
     }
   };
 }
@@ -161,14 +250,22 @@ export async function saveRecruiterCompany(formData: FormData): Promise<SaveRecr
   const values = {
     name,
     sector: optionalFormValue(formData, "sector"),
+    size_label: optionalFormValue(formData, "size_label"),
     city: optionalFormValue(formData, "city"),
     website: optionalFormValue(formData, "website"),
-    description: optionalFormValue(formData, "description")
+    description: optionalFormValue(formData, "description"),
+    career_headline: optionalFormValue(formData, "career_headline"),
+    career_intro: optionalFormValue(formData, "career_intro"),
+    career_values: formTextList(formData, "career_values"),
+    career_benefits: formTextList(formData, "career_benefits"),
+    career_connect_enabled: formBoolean(formData, "career_connect_enabled"),
+    career_connect_title: optionalFormValue(formData, "career_connect_title"),
+    career_connect_description: optionalFormValue(formData, "career_connect_description")
   };
 
   const { data: existingCompany, error: existingCompanyError } = await supabase
     .from("companies")
-    .select("id")
+    .select("id, slug")
     .eq("owner_id", user.id)
     .order("created_at", { ascending: true })
     .limit(1)
@@ -204,7 +301,7 @@ export async function saveRecruiterCompany(formData: FormData): Promise<SaveRecr
       };
     }
 
-    revalidateCompanyWorkspace();
+    revalidateCompanyWorkspace(existingCompany.slug);
 
     return {
       ok: true,
@@ -220,7 +317,7 @@ export async function saveRecruiterCompany(formData: FormData): Promise<SaveRecr
       slug: buildCompanySlug(name, user.id),
       status: "incomplete"
     })
-    .select("id")
+    .select("id, slug")
     .single<OwnedCompanyRow>();
 
   if (companyError || !company?.id) {
@@ -269,7 +366,7 @@ export async function saveRecruiterCompany(formData: FormData): Promise<SaveRecr
     };
   }
 
-  revalidateCompanyWorkspace();
+  revalidateCompanyWorkspace(company.slug);
 
   return {
     ok: true,
