@@ -23,6 +23,7 @@ type CandidateCvRow = {
   id: string;
   user_id: string;
   cv_path: string | null;
+  cv_library_opt_in: boolean | null;
 };
 
 function firstRelation<T>(value: T | T[] | null | undefined): T | null {
@@ -87,13 +88,19 @@ export async function createRecruiterLibraryCvSignedUrl(
 
   const { data: candidateProfile, error: candidateProfileError } = await supabase
     .from("candidate_profiles")
-    .select("id, user_id, cv_path")
+    .select("id, user_id, cv_path, cv_library_opt_in")
     .eq("id", normalizedCandidateProfileId)
     .maybeSingle<CandidateCvRow>();
 
   const cvPath = candidateProfile?.cv_path?.trim() ?? "";
 
-  if (candidateProfileError || !candidateProfile || !cvPath || !cvPath.startsWith(`${candidateProfile.user_id}/`)) {
+  if (
+    candidateProfileError ||
+    !candidateProfile ||
+    !candidateProfile.cv_library_opt_in ||
+    !cvPath ||
+    !cvPath.startsWith(`${candidateProfile.user_id}/`)
+  ) {
     return {
       ok: false,
       message: "CV candidat introuvable ou indisponible."

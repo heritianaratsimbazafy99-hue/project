@@ -112,4 +112,37 @@ describe("cooptation referral actions", () => {
     expect(mocks.storageFrom).not.toHaveBeenCalled();
     expect(mocks.from).not.toHaveBeenCalled();
   });
+
+  it("removes the uploaded cooptation CV when referral persistence fails", async () => {
+    const upload = vi.fn(async () => ({ error: null }));
+    const remove = vi.fn(async () => ({ error: null }));
+    const insertReferral = vi.fn(async () => ({ error: { message: "RLS denied" } }));
+
+    mocks.storageFrom.mockReturnValue({ upload, remove });
+    mocks.from.mockImplementation((table: string) => {
+      if (table === "cooptation_referrals") {
+        return { insert: insertReferral };
+      }
+
+      throw new Error(`Unexpected table ${table}`);
+    });
+
+    const formData = cooptationForm({
+      referrer_name: "Miora Rakoto",
+      referrer_email: "miora@example.com",
+      candidate_name: "Hery Ranaivo",
+      candidate_email: "hery@example.com",
+      company: ""
+    });
+    formData.set("candidate_cv", new File(["fake pdf"], "cv.pdf", { type: "application/pdf" }));
+
+    const { submitCooptationReferral } = await import("@/features/cooptation/actions");
+    const result = await submitCooptationReferral(formData);
+
+    expect(result).toEqual({
+      ok: false,
+      message: "La cooptation n'a pas pu être enregistrée."
+    });
+    expect(remove).toHaveBeenCalledWith([expect.stringMatching(/^referrals\/.+-cv\.pdf$/)]);
+  });
 });

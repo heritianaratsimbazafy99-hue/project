@@ -269,4 +269,32 @@ describe("initial Supabase schema", () => {
     expect(finalPlanReviewDefinition).toContain("security invoker");
     expect(finalPlanReviewDefinition).toMatch(/when 'booster' then\s+next_job_quota := 999;/);
   });
+
+  it("hardens career-site Connect storage and owner-side recruiter policies", () => {
+    expect(migrationSql).toContain("20260516_career_security_hardening");
+    expect(migrationSql).toContain("storage.foldername(storage.objects.name)");
+    expect(migrationSql).toContain("private.protect_company_connect_profile_identity");
+    expect(migrationSql).toContain("company connect cv identity cannot be changed");
+    expect(migrationSql).toContain("private.protect_verified_company_public_content");
+    expect(migrationSql).toContain("private.protect_published_job_public_content");
+    expect(migrationSql).toContain("cv_library_opt_in boolean not null default false");
+    expect(migrationSql).toContain("public.candidate_profiles.cv_library_opt_in = true");
+    expect(migrationSql).toContain("private.current_user_role() = 'recruiter'::public.user_role");
+    expect(migrationSql).toContain("plan_change_requests_one_pending_per_company_idx");
+    expect(migrationSql).toContain("create policy admin_reviews_select_admin_or_owner");
+    expect(migrationSql).toContain("private.owns_job(public.admin_reviews.target_id)");
+
+    const finalCompanyInsertPolicies = migrationSql.match(
+      /create policy companies_insert_owner_or_admin[\s\S]*?;\n/g
+    );
+    const finalCompanyInsertPolicy = finalCompanyInsertPolicies?.at(-1) ?? "";
+    expect(finalCompanyInsertPolicy).toContain("private.current_user_role() = 'recruiter'::public.user_role");
+
+    const finalConnectUploadPolicies = migrationSql.match(
+      /create policy company_connect_cvs_insert_public[\s\S]*?;\n/g
+    );
+    const finalConnectUploadPolicy = finalConnectUploadPolicies?.at(-1) ?? "";
+    expect(finalConnectUploadPolicy).toContain("storage.foldername(storage.objects.name)");
+    expect(finalConnectUploadPolicy).not.toContain("storage.foldername(name)");
+  });
 });

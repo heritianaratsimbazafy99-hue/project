@@ -125,6 +125,7 @@ describe("candidate profile actions", () => {
         sector: "Informatique & Digital",
         desired_role: "Designer UI/UX",
         salary_expectation: "1 200 000 Ar",
+        cv_library_opt_in: false,
         profile_completion: 100
       },
       { onConflict: "user_id" }
@@ -353,6 +354,53 @@ describe("candidate profile actions", () => {
     expect(mocks.storageFrom).not.toHaveBeenCalled();
   });
 
+  it("removes the uploaded candidate CV when profile persistence fails", async () => {
+    const dateSpy = vi.spyOn(Date, "now").mockReturnValue(1778338100000);
+    const upload = vi.fn(async () => ({ error: null }));
+    const remove = vi.fn(async () => ({ error: null }));
+    mocks.storageFrom.mockReturnValue({ upload, remove });
+
+    const candidateSelect = {
+      select: vi.fn().mockReturnThis(),
+      eq: vi.fn().mockReturnThis(),
+      maybeSingle: vi.fn(async () => ({ data: { desired_role: "Designer UI/UX" }, error: null }))
+    };
+    const alertsCount = {
+      select: vi.fn().mockReturnThis(),
+      eq: vi.fn(async () => ({ count: 1, error: null }))
+    };
+    const candidateUpsert = vi.fn(async () => ({ error: { message: "RLS denied" } }));
+
+    mocks.from.mockImplementation((table: string) => {
+      if (table === "candidate_profiles") {
+        return {
+          ...candidateSelect,
+          upsert: candidateUpsert
+        };
+      }
+
+      if (table === "job_alerts") {
+        return alertsCount;
+      }
+
+      throw new Error(`Unexpected table ${table}`);
+    });
+
+    const formData = new FormData();
+    formData.set("cv", new File(["fake pdf"], "Mon CV.pdf", { type: "application/pdf" }));
+
+    const { uploadCandidateCv } = await import("@/features/candidate/actions");
+    const result = await uploadCandidateCv(formData);
+
+    expect(result).toEqual({
+      ok: false,
+      message: "Le chemin du CV n'a pas pu être enregistré."
+    });
+    expect(remove).toHaveBeenCalledWith(["candidate-1/1778338100000-mon-cv.pdf"]);
+
+    dateSpy.mockRestore();
+  });
+
   it("adds an experience to the authenticated candidate profile", async () => {
     const profileMaybeSingle = vi.fn(async () => ({ data: { id: "profile-1" }, error: null }));
     const profileEq = vi.fn(() => ({ maybeSingle: profileMaybeSingle }));
@@ -445,7 +493,7 @@ describe("candidate profile actions", () => {
     );
   });
 
-  it("removes the current candidate CV and recalculates completion", async () => {
+  it("removes an unapplied current candidate CV and recalculates completion", async () => {
     const remove = vi.fn(async () => ({ error: null }));
     mocks.storageFrom.mockReturnValue({ remove });
 
@@ -461,6 +509,13 @@ describe("candidate profile actions", () => {
       select: vi.fn().mockReturnThis(),
       eq: vi.fn(async () => ({ count: 1, error: null }))
     };
+    const applicationsCount = {
+      select: vi.fn().mockReturnThis(),
+      eq: vi.fn().mockReturnThis()
+    };
+    applicationsCount.eq
+      .mockReturnValueOnce(applicationsCount)
+      .mockResolvedValueOnce({ count: 0, error: null });
     const candidateUpdateEq = vi.fn(async () => ({ error: null }));
     const candidateUpdate = vi.fn(() => ({ eq: candidateUpdateEq }));
     const profileUpdateEq = vi.fn(async () => ({ error: null }));
@@ -482,6 +537,10 @@ describe("candidate profile actions", () => {
         return alertsCount;
       }
 
+      if (table === "applications") {
+        return applicationsCount;
+      }
+
       throw new Error(`Unexpected table ${table}`);
     });
 
@@ -493,6 +552,70 @@ describe("candidate profile actions", () => {
     expect(candidateUpdate).toHaveBeenCalledWith({ cv_path: null, profile_completion: 75 });
     expect(candidateUpdateEq).toHaveBeenCalledWith("user_id", "candidate-1");
     expect(profileUpdate).toHaveBeenCalledWith({ onboarding_completion: 75 });
+  });
+
+  it("detaches the current candidate CV without deleting files referenced by applications", async () => {
+    const remove = vi.fn(async () => ({ error: null }));
+    mocks.storageFrom.mockReturnValue({ remove });
+
+    const candidateSelect = {
+      select: vi.fn().mockReturnThis(),
+      eq: vi.fn().mockReturnThis(),
+      maybeSingle: vi.fn(async () => ({
+        data: { cv_path: "candidate-1/applied.pdf", desired_role: "Designer UI/UX" },
+        error: null
+      }))
+    };
+    const alertsCount = {
+      select: vi.fn().mockReturnThis(),
+      eq: vi.fn(async () => ({ count: 1, error: null }))
+    };
+    const applicationsCount = {
+      select: vi.fn().mockReturnThis(),
+      eq: vi.fn().mockReturnThis()
+    };
+    applicationsCount.eq
+      .mockReturnValueOnce(applicationsCount)
+      .mockResolvedValueOnce({ count: 2, error: null });
+    const candidateUpdateEq = vi.fn(async () => ({ error: null }));
+    const candidateUpdate = vi.fn(() => ({ eq: candidateUpdateEq }));
+    const profileUpdateEq = vi.fn(async () => ({ error: null }));
+    const profileUpdate = vi.fn(() => ({ eq: profileUpdateEq }));
+
+    mocks.from.mockImplementation((table: string) => {
+      if (table === "candidate_profiles") {
+        return {
+          ...candidateSelect,
+          update: candidateUpdate
+        };
+      }
+
+      if (table === "profiles") {
+        return { update: profileUpdate };
+      }
+
+      if (table === "job_alerts") {
+        return alertsCount;
+      }
+
+      if (table === "applications") {
+        return applicationsCount;
+      }
+
+      throw new Error(`Unexpected table ${table}`);
+    });
+
+    const { deleteCandidateCv } = await import("@/features/candidate/actions");
+    const result = await deleteCandidateCv();
+
+    expect(result).toEqual({
+      ok: true,
+      message: "CV retiré du profil. Il reste disponible dans vos candidatures déjà envoyées."
+    });
+    expect(applicationsCount.eq).toHaveBeenNthCalledWith(1, "candidate_id", "candidate-1");
+    expect(applicationsCount.eq).toHaveBeenNthCalledWith(2, "cv_path", "candidate-1/applied.pdf");
+    expect(remove).not.toHaveBeenCalled();
+    expect(candidateUpdate).toHaveBeenCalledWith({ cv_path: null, profile_completion: 75 });
   });
 
   it("updates a job alert only when it belongs to the authenticated candidate", async () => {

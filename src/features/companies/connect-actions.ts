@@ -130,8 +130,9 @@ export async function submitCompanyConnect(slug: string, formData: FormData): Pr
     };
   }
 
+  const connectCvStorage = supabase.storage.from("company-connect-cvs");
   const cvPath = `${company.id}/${Date.now()}-${randomUUID()}-${sanitizeCvFileName(file.name)}`;
-  const { error: uploadError } = await supabase.storage.from("company-connect-cvs").upload(cvPath, file, {
+  const { error: uploadError } = await connectCvStorage.upload(cvPath, file, {
     contentType: file.type || "application/octet-stream",
     upsert: false
   });
@@ -156,6 +157,8 @@ export async function submitCompanyConnect(slug: string, formData: FormData): Pr
   });
 
   if (leadError) {
+    await connectCvStorage.remove([cvPath]);
+
     return {
       ok: false,
       message: "Votre profil n'a pas pu être enregistré."

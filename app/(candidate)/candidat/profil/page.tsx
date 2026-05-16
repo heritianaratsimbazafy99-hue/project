@@ -31,6 +31,7 @@ type CandidateProfileRow = {
   cv_parsed_at: string | null;
   cv_parse_source: "openai" | "fallback" | null;
   cv_parse_summary: string | null;
+  cv_library_opt_in: boolean | null;
 };
 
 type CandidateExperienceRow = {
@@ -147,7 +148,8 @@ export default async function CandidateProfilePage({ searchParams }: CandidatePr
         cv_path: demoCandidateProfile.cv_path,
         cv_parsed_at: null,
         cv_parse_source: null,
-        cv_parse_summary: null
+        cv_parse_summary: null,
+        cv_library_opt_in: false
       }
     : null;
 
@@ -155,7 +157,7 @@ export default async function CandidateProfilePage({ searchParams }: CandidatePr
     const supabase = await createSupabaseServerClient();
     const { data } = await supabase
       .from("candidate_profiles")
-      .select("id, first_name, last_name, city, sector, desired_role, salary_expectation, cv_path, cv_parsed_at, cv_parse_source, cv_parse_summary")
+      .select("id, first_name, last_name, city, sector, desired_role, salary_expectation, cv_path, cv_parsed_at, cv_parse_source, cv_parse_summary, cv_library_opt_in")
       .eq("user_id", user.id)
       .maybeSingle<CandidateProfileRow>();
 
@@ -351,6 +353,14 @@ export default async function CandidateProfilePage({ searchParams }: CandidatePr
                 <option key={range}>{range}</option>
               ))}
             </select>
+          </label>
+          <label className="candidateCheckbox">
+            <input
+              type="checkbox"
+              name="cv_library_opt_in"
+              defaultChecked={Boolean(candidateProfile?.cv_library_opt_in)}
+            />
+            <span>Autoriser les recruteurs vérifiés avec accès CVthèque à découvrir mon profil.</span>
           </label>
           <div className="candidateFormActions">
             <button type="submit">Enregistrer le profil</button>

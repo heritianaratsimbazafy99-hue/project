@@ -37,6 +37,10 @@ function optionalFormValue(formData: FormData, key: string) {
   return value || null;
 }
 
+function formBoolean(formData: FormData, key: string) {
+  return formData.get(key) === "on";
+}
+
 function buildDisplayName(firstName: string, lastName: string, fallback: string | null | undefined) {
   return [firstName, lastName].filter(Boolean).join(" ").trim() || fallback || "Candidat JobMada";
 }
@@ -253,7 +257,8 @@ export async function uploadCandidateCv(formData: FormData): Promise<CandidateAc
     parsedCv
   );
 
-  const { error: uploadError } = await supabase.storage.from("cvs").upload(cvPath, file, {
+  const cvStorage = supabase.storage.from("cvs");
+  const { error: uploadError } = await cvStorage.upload(cvPath, file, {
     contentType: file.type || "application/octet-stream",
     upsert: true
   });
@@ -281,6 +286,8 @@ export async function uploadCandidateCv(formData: FormData): Promise<CandidateAc
   );
 
   if (candidateError) {
+    await cvStorage.remove([cvPath]);
+
     return {
       ok: false,
       message: "Le chemin du CV n'a pas pu être enregistré."
@@ -396,6 +403,7 @@ export async function saveCandidateProfile(formData: FormData): Promise<Candidat
       sector: optionalFormValue(formData, "sector"),
       desired_role: desiredRole,
       salary_expectation: optionalFormValue(formData, "salary_expectation"),
+      cv_library_opt_in: formBoolean(formData, "cv_library_opt_in"),
       profile_completion: completion.percent
     },
     { onConflict: "user_id" }
@@ -697,13 +705,30 @@ export async function deleteCandidateCv(): Promise<CandidateActionResult> {
     };
   }
 
-  const { error: removeError } = await supabase.storage.from("cvs").remove([candidateProfile.cv_path]);
+  const { count: applicationCvCount, error: applicationCvError } = await supabase
+    .from("applications")
+    .select("id", { count: "exact", head: true })
+    .eq("candidate_id", user.id)
+    .eq("cv_path", candidateProfile.cv_path);
 
-  if (removeError) {
+  if (applicationCvError) {
     return {
       ok: false,
-      message: "Le CV n'a pas pu être supprimé du stockage."
+      message: "Impossible de vérifier vos candidatures liées à ce CV."
     };
+  }
+
+  const isReferencedByApplications = Boolean(applicationCvCount && applicationCvCount > 0);
+
+  if (!isReferencedByApplications) {
+    const { error: removeError } = await supabase.storage.from("cvs").remove([candidateProfile.cv_path]);
+
+    if (removeError) {
+      return {
+        ok: false,
+        message: "Le CV n'a pas pu être supprimé du stockage."
+      };
+    }
   }
 
   const completion = calculateCandidateCompletion({
@@ -741,7 +766,9 @@ export async function deleteCandidateCv(): Promise<CandidateActionResult> {
 
   return {
     ok: true,
-    message: "CV supprimé."
+    message: isReferencedByApplications
+      ? "CV retiré du profil. Il reste disponible dans vos candidatures déjà envoyées."
+      : "CV supprimé."
   };
 }
 

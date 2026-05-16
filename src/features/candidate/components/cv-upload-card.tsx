@@ -78,7 +78,7 @@ export function CvUploadCard({
           </span>
           <span>
             <LockKeyhole aria-hidden="true" size={16} />
-            Visible seulement lors de vos candidatures
+            Partage CVthèque uniquement avec votre accord
           </span>
         </div>
       </div>

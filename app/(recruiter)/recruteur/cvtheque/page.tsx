@@ -35,6 +35,7 @@ type CandidateProfileRow = {
   desired_role: string | null;
   salary_expectation: string | null;
   cv_path: string | null;
+  cv_library_opt_in: boolean | null;
   cv_parse_source: "openai" | "fallback" | null;
   cv_parse_summary: string | null;
   candidate_skills?: Array<{ label: string | null; kind: string | null }> | null;
@@ -116,9 +117,10 @@ export default async function RecruiterCvLibraryPage({ searchParams }: Recruiter
         supabase
           .from("candidate_profiles")
           .select(
-            "id, first_name, last_name, city, sector, desired_role, salary_expectation, cv_path, cv_parse_source, cv_parse_summary, candidate_skills(label, kind)"
+            "id, first_name, last_name, city, sector, desired_role, salary_expectation, cv_path, cv_library_opt_in, cv_parse_source, cv_parse_summary, candidate_skills(label, kind)"
           )
           .not("cv_path", "is", null)
+          .eq("cv_library_opt_in", true)
           .order("updated_at", { ascending: false })
           .limit(50)
           .returns<CandidateProfileRow[]>(),

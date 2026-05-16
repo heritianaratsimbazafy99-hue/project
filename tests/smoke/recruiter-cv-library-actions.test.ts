@@ -64,7 +64,8 @@ describe("recruiter CV library actions", () => {
     const candidate = candidateQuery({
       id: "candidate-profile-1",
       user_id: "candidate-1",
-      cv_path: "candidate-1/cv.pdf"
+      cv_path: "candidate-1/cv.pdf",
+      cv_library_opt_in: true
     });
     const createSignedUrl = vi.fn(async () => ({
       data: { signedUrl: "https://storage.example/candidate-1/cv.pdf?token=abc" },
@@ -93,7 +94,7 @@ describe("recruiter CV library actions", () => {
       signedUrl: "https://storage.example/candidate-1/cv.pdf?token=abc"
     });
     expect(company.select).toHaveBeenCalledWith("id, status, subscriptions(plan, status, job_quota, cv_access_enabled)");
-    expect(candidate.select).toHaveBeenCalledWith("id, user_id, cv_path");
+    expect(candidate.select).toHaveBeenCalledWith("id, user_id, cv_path, cv_library_opt_in");
     expect(mocks.storageFrom).toHaveBeenCalledWith("cvs");
     expect(createSignedUrl).toHaveBeenCalledWith("candidate-1/cv.pdf", 300);
   });
@@ -143,7 +144,8 @@ describe("recruiter CV library actions", () => {
     const candidate = candidateQuery({
       id: "candidate-profile-1",
       user_id: "candidate-1",
-      cv_path: "other-candidate/cv.pdf"
+      cv_path: "other-candidate/cv.pdf",
+      cv_library_opt_in: true
     });
 
     mocks.from.mockImplementation((table: string) => {

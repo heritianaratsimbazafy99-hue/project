@@ -96,8 +96,9 @@ export async function submitCooptationReferral(formData: FormData): Promise<Coop
   }
 
   const supabase = await createSupabaseServerClient();
+  const referralCvStorage = supabase.storage.from("cooptation-cvs");
   const cvPath = `referrals/${Date.now()}-${randomUUID()}-${sanitizeCvFileName(file.name)}`;
-  const { error: uploadError } = await supabase.storage.from("cooptation-cvs").upload(cvPath, file, {
+  const { error: uploadError } = await referralCvStorage.upload(cvPath, file, {
     contentType: file.type || "application/octet-stream",
     upsert: false
   });
@@ -123,6 +124,8 @@ export async function submitCooptationReferral(formData: FormData): Promise<Coop
   });
 
   if (referralError) {
+    await referralCvStorage.remove([cvPath]);
+
     return {
       ok: false,
       message: "La cooptation n'a pas pu être enregistrée."

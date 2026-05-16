@@ -125,4 +125,53 @@ describe("company Connect actions", () => {
     expect(mocks.storageFrom).not.toHaveBeenCalled();
     expect(mocks.from).not.toHaveBeenCalled();
   });
+
+  it("removes the uploaded Connect CV when the lead insert fails", async () => {
+    const companyQuery = {
+      select: vi.fn().mockReturnThis(),
+      eq: vi.fn().mockReturnThis(),
+      maybeSingle: vi.fn(async () => ({
+        data: {
+          id: "company-1",
+          slug: "media-click",
+          name: "Media Click",
+          career_connect_enabled: true
+        },
+        error: null
+      }))
+    };
+    const upload = vi.fn(async () => ({ error: null }));
+    const remove = vi.fn(async () => ({ error: null }));
+    const insertLead = vi.fn(async () => ({ error: { message: "RLS denied" } }));
+
+    mocks.storageFrom.mockReturnValue({ upload, remove });
+    mocks.from.mockImplementation((table: string) => {
+      if (table === "companies") {
+        return companyQuery;
+      }
+
+      if (table === "company_connect_profiles") {
+        return { insert: insertLead };
+      }
+
+      throw new Error(`Unexpected table ${table}`);
+    });
+
+    const formData = connectForm({
+      full_name: "Miora Rakoto",
+      email: "miora@example.com",
+      consent_accepted: "on",
+      company: ""
+    });
+    formData.set("cv", new File(["fake pdf"], "cv.pdf", { type: "application/pdf" }));
+
+    const { submitCompanyConnect } = await import("@/features/companies/connect-actions");
+    const result = await submitCompanyConnect("media-click", formData);
+
+    expect(result).toEqual({
+      ok: false,
+      message: "Votre profil n'a pas pu être enregistré."
+    });
+    expect(remove).toHaveBeenCalledWith([expect.stringMatching(/^company-1\/.+-cv\.pdf$/)]);
+  });
 });
